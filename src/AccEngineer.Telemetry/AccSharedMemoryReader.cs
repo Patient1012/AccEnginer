@@ -145,6 +145,10 @@ public sealed class AccSharedMemoryReader : ITrackTelemetryReader
 
     private bool TryConnect()
     {
+        // ACC and its shared memory exist only on Windows; elsewhere the reader
+        // simply reports that it is not connected.
+        if (!OperatingSystem.IsWindows()) return false;
+
         try
         {
             var physicsFile = MemoryMappedFile.OpenExisting(PhysicsMapName);

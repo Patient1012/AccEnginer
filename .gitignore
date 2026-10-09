@@ -29,3 +29,6 @@ Desktop.ini
 # Local environment / secrets
 *.local.json
 .env
+
+# Default telemetry recording output
+recordings/
