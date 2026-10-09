@@ -1,0 +1,31 @@
+# .NET build output
+bin/
+obj/
+*.user
+*.suo
+
+# Test coverage
+*.coverage
+*.coveragexml
+coverage*/
+
+# Rider / IntelliJ
+.idea/
+
+# VS Code (keep settings, ignore workspace state)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# Visual Studio
+.vs/
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Local environment / secrets
+*.local.json
+.env
