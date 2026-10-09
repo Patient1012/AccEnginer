@@ -1,0 +1,111 @@
+<UserControl x:Class="AccEngineer.UI.Views.OverviewView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ctrl="clr-namespace:AccEngineer.UI.Controls"
+             xmlns:conv="clr-namespace:AccEngineer.UI.Converters"
+             mc:Ignorable="d"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DesignHeight="700" d:DesignWidth="1000">
+    <UserControl.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <Style x:Key="EventMessage" TargetType="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Severity}" Value="Warning">
+                    <Setter Property="Foreground" Value="{DynamicResource BrushWarning}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Severity}" Value="Error">
+                    <Setter Property="Foreground" Value="{DynamicResource BrushError}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Severity}" Value="Success">
+                    <Setter Property="Foreground" Value="{DynamicResource BrushSuccess}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+        <StackPanel>
+            <TextBlock Text="Overview" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="{Binding StatusHint}" Style="{StaticResource Caption}" Margin="0,4,0,0" />
+
+            <Border Style="{StaticResource Card}" Margin="0,16,0,0"
+                    Visibility="{Binding Live.HasData, Converter={StaticResource BoolToVis}, ConverterParameter=invert}">
+                <StackPanel>
+                    <TextBlock Text="Waiting for telemetry" FontSize="16" FontWeight="SemiBold" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0"
+                               Text="Start Assetto Corsa Competizione and enter a session. Values appear as soon as the reader sees shared memory." />
+                </StackPanel>
+            </Border>
+
+            <StackPanel Visibility="{Binding Live.HasData, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="LIVE" Style="{StaticResource SectionHeader}" Margin="0,20,0,8" />
+                <UniformGrid Columns="4">
+                    <ctrl:MetricCard Label="SPEED" Value="{Binding Live.SpeedText}" Caption="km/h" />
+                    <ctrl:MetricCard Label="GEAR" Value="{Binding Live.GearText}" />
+                    <ctrl:MetricCard Label="RPM" Value="{Binding Live.RpmText}" />
+                    <ctrl:MetricCard Label="THROTTLE" Value="{Binding Live.ThrottleText}" Caption="%" />
+                    <ctrl:MetricCard Label="BRAKE" Value="{Binding Live.BrakeText}" Caption="%" />
+                    <ctrl:MetricCard Label="CURRENT LAP" Value="{Binding Live.LapTimeText}" />
+                    <ctrl:MetricCard Label="LAST LAP" Value="{Binding Live.LastLapText}" />
+                    <ctrl:MetricCard Label="BEST LAP" Value="{Binding Live.BestLapText}" />
+                </UniformGrid>
+
+                <UniformGrid Columns="2" Margin="0,4,0,0">
+                    <Border Style="{StaticResource Card}" Margin="0,0,8,0">
+                        <StackPanel>
+                            <TextBlock Text="SPEED (km/h)" Style="{StaticResource SectionHeader}" />
+                            <ctrl:TraceChart Height="90" Values="{Binding Live.SpeedTrace}"
+                                             Minimum="0" Maximum="{Binding Live.SpeedTraceMax}"
+                                             Stroke="{DynamicResource BrushAccent}"
+                                             Fill="{DynamicResource BrushAccent}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Card}" Margin="8,0,0,0">
+                        <StackPanel>
+                            <TextBlock Text="THROTTLE / BRAKE" Style="{StaticResource SectionHeader}" />
+                            <ctrl:TraceChart Height="40" Values="{Binding Live.ThrottleTrace}"
+                                             Minimum="0" Maximum="1" Stroke="{DynamicResource BrushSuccess}" />
+                            <ctrl:TraceChart Height="40" Values="{Binding Live.BrakeTrace}"
+                                             Minimum="0" Maximum="1" Stroke="{DynamicResource BrushError}" />
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+            </StackPanel>
+
+            <TextBlock Text="ACTIONS" Style="{StaticResource SectionHeader}" Margin="0,20,0,8" />
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Generate Report" Style="{StaticResource PrimaryButton}"
+                        Command="{Binding GenerateReportCommand}" />
+                <Button Content="Analyse Laps" Style="{StaticResource GhostButton}" Margin="10,0,0,0"
+                        Command="{Binding GoToAnalysisCommand}" />
+                <Button Content="Live Data" Style="{StaticResource GhostButton}" Margin="10,0,0,0"
+                        Command="{Binding GoToLiveCommand}" />
+            </StackPanel>
+
+            <TextBlock Text="RECENT EVENTS" Style="{StaticResource SectionHeader}" Margin="0,20,0,8" />
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="No events yet." Style="{StaticResource Caption}"
+                               Visibility="{Binding HasEvents, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
+                    <ItemsControl ItemsSource="{Binding RecentEvents}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="70" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding TimeText}" Style="{StaticResource Caption}"
+                                               VerticalAlignment="Top" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Message}" Style="{StaticResource EventMessage}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

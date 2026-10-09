@@ -1,0 +1,86 @@
+<UserControl x:Class="AccEngineer.UI.Views.LiveDataView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ctrl="clr-namespace:AccEngineer.UI.Controls"
+             xmlns:conv="clr-namespace:AccEngineer.UI.Converters"
+             mc:Ignorable="d"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DesignHeight="700" d:DesignWidth="1000">
+    <UserControl.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+        <StackPanel>
+            <TextBlock Text="Live Data" Style="{StaticResource PageTitle}" />
+            <TextBlock Style="{StaticResource Caption}" Margin="0,4,0,0"
+                       Text="Latest sample from ACC shared memory. Missing values are shown as — and never invented." />
+
+            <Border Style="{StaticResource Card}" Margin="0,16,0,0"
+                    Visibility="{Binding HasData, Converter={StaticResource BoolToVis}, ConverterParameter=invert}">
+                <TextBlock Text="No live data. Start ACC and enter a session, or replay a recording from the Sessions page." />
+            </Border>
+
+            <StackPanel Visibility="{Binding HasData, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="SESSION" Style="{StaticResource SectionHeader}" Margin="0,20,0,8" />
+                <UniformGrid Columns="4">
+                    <ctrl:MetricCard Label="STATE" Value="{Binding SessionStateText}" />
+                    <ctrl:MetricCard Label="LAP" Value="{Binding LapText}" Caption="validity shown below" />
+                    <ctrl:MetricCard Label="POSITION" Value="{Binding PitText}" />
+                    <ctrl:MetricCard Label="TYRE" Value="{Binding TyreCompoundText}" />
+                </UniformGrid>
+
+                <TextBlock Text="LAP TIMES" Style="{StaticResource SectionHeader}" Margin="0,16,0,8" />
+                <UniformGrid Columns="3">
+                    <ctrl:MetricCard Label="CURRENT" Value="{Binding LapTimeText}" />
+                    <ctrl:MetricCard Label="LAST" Value="{Binding LastLapText}" />
+                    <ctrl:MetricCard Label="BEST" Value="{Binding BestLapText}" />
+                </UniformGrid>
+
+                <TextBlock Text="DRIVING" Style="{StaticResource SectionHeader}" Margin="0,16,0,8" />
+                <UniformGrid Columns="4">
+                    <ctrl:MetricCard Label="SPEED" Value="{Binding SpeedText}" Caption="km/h" />
+                    <ctrl:MetricCard Label="GEAR" Value="{Binding GearText}" />
+                    <ctrl:MetricCard Label="RPM" Value="{Binding RpmText}" />
+                    <ctrl:MetricCard Label="STEERING" Value="{Binding SteeringText}" />
+                    <ctrl:MetricCard Label="THROTTLE" Value="{Binding ThrottleText}" Caption="%" />
+                    <ctrl:MetricCard Label="BRAKE" Value="{Binding BrakeText}" Caption="%" />
+                    <ctrl:MetricCard Label="FUEL" Value="{Binding FuelText}" Caption="kg" />
+                    <ctrl:MetricCard Label="DISTANCE" Value="{Binding DistanceText}" Caption="m" />
+                </UniformGrid>
+
+                <Border Style="{StaticResource Card}" Margin="0,4,0,0">
+                    <StackPanel>
+                        <TextBlock Text="SPEED TRACE (km/h)" Style="{StaticResource SectionHeader}" />
+                        <ctrl:TraceChart Height="110" Values="{Binding SpeedTrace}"
+                                         Minimum="0" Maximum="{Binding SpeedTraceMax}"
+                                         Stroke="{DynamicResource BrushAccent}"
+                                         Fill="{DynamicResource BrushAccent}" />
+                        <TextBlock Text="THROTTLE / BRAKE" Style="{StaticResource SectionHeader}" Margin="0,12,0,8" />
+                        <ctrl:TraceChart Height="44" Values="{Binding ThrottleTrace}"
+                                         Minimum="0" Maximum="1" Stroke="{DynamicResource BrushSuccess}" />
+                        <ctrl:TraceChart Height="44" Values="{Binding BrakeTrace}"
+                                         Minimum="0" Maximum="1" Stroke="{DynamicResource BrushError}" />
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="TYRE PRESSURES" Style="{StaticResource SectionHeader}" Margin="0,16,0,8" />
+                <UniformGrid Columns="4">
+                    <ctrl:MetricCard Label="FL" Value="{Binding PressureFl}" Caption="unverified unit" />
+                    <ctrl:MetricCard Label="FR" Value="{Binding PressureFr}" Caption="unverified unit" />
+                    <ctrl:MetricCard Label="RL" Value="{Binding PressureRl}" Caption="unverified unit" />
+                    <ctrl:MetricCard Label="RR" Value="{Binding PressureRr}" Caption="unverified unit" />
+                </UniformGrid>
+
+                <TextBlock Text="TYRE CORE TEMPERATURES" Style="{StaticResource SectionHeader}" Margin="0,16,0,8" />
+                <UniformGrid Columns="4">
+                    <ctrl:MetricCard Label="FL" Value="{Binding TempFl}" Caption="°C" />
+                    <ctrl:MetricCard Label="FR" Value="{Binding TempFr}" Caption="°C" />
+                    <ctrl:MetricCard Label="RL" Value="{Binding TempRl}" Caption="°C" />
+                    <ctrl:MetricCard Label="RR" Value="{Binding TempRr}" Caption="°C" />
+                </UniformGrid>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,66 @@
+using System.Globalization;
+
+namespace AccEngineer.UI.Services;
+
+/// <summary>
+/// Presentation formatting for telemetry values. Missing data is always shown as
+/// an em dash, never as a fabricated zero (see roadmap data-model principle).
+/// </summary>
+public static class Display
+{
+    public const string Missing = "—";
+
+    private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
+
+    /// <summary>Formats seconds as <c>m:ss.mmm</c>, or <c>s.mmm s</c> under a minute.</summary>
+    public static string LapTime(double? seconds)
+    {
+        if (seconds is not { } value) return Missing;
+        var span = TimeSpan.FromSeconds(value);
+        return value >= 60
+            ? $"{(int)span.TotalMinutes}:{span.Seconds:00}.{span.Milliseconds:000}"
+            : $"{value.ToString("0.000", Inv)} s";
+    }
+
+    public static string LapTimeMs(int? milliseconds) =>
+        milliseconds is null or < 0 ? Missing : LapTime(milliseconds.Value / 1000.0);
+
+    public static string Delta(double? seconds) =>
+        seconds is null ? Missing : seconds.Value.ToString("+0.000;-0.000;0.000", Inv) + " s";
+
+    public static string Gear(int? raw) => raw switch
+    {
+        null => Missing,
+        0 => "R",
+        1 => "N",
+        >= 2 => (raw.Value - 1).ToString(Inv),
+        _ => Missing
+    };
+
+    public static string Number(double? value, string format = "0.0") =>
+        value is null ? Missing : value.Value.ToString(format, Inv);
+
+    public static string Kmh(float? value) => value is null ? Missing : value.Value.ToString("0", Inv);
+
+    public static string Percent(float? fraction) =>
+        fraction is null ? Missing : (fraction.Value * 100.0).ToString("0", Inv);
+
+    public static string Degrees(float? celsius) => celsius is null ? Missing : celsius.Value.ToString("0.0", Inv);
+
+    public static string Pressure(float? value) => value is null ? Missing : value.Value.ToString("0.0", Inv);
+
+    public static string Metres(float? metres) => metres is null ? Missing : metres.Value.ToString("0", Inv);
+
+    public static string Fuel(float? kg) => kg is null ? Missing : kg.Value.ToString("0.0", Inv);
+
+    public static string Litres(float? litres) => litres is null ? Missing : litres.Value.ToString("0.0", Inv);
+
+    public static string Steering(float? normalized)
+    {
+        if (normalized is null) return Missing;
+        var degrees = normalized.Value * 180.0;
+        return degrees.ToString("+0;-0;0", Inv) + "°";
+    }
+
+    public static string Rpm(int? rpm) => rpm is null ? Missing : rpm.Value.ToString("0", Inv);
+}

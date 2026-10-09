@@ -1,0 +1,84 @@
+<UserControl x:Class="AccEngineer.UI.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             mc:Ignorable="d"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DesignHeight="700" d:DesignWidth="1000">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+        <StackPanel MaxWidth="760" HorizontalAlignment="Left">
+            <TextBlock Text="Settings" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="{Binding StatusText}" Style="{StaticResource Caption}" Margin="0,4,0,0" TextWrapping="Wrap" />
+
+            <TextBlock Text="TELEMETRY READER" Style="{StaticResource SectionHeader}" Margin="0,20,0,8" />
+            <Border Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Poll interval (ms)" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="0" Grid.Column="1" Width="120" HorizontalAlignment="Left"
+                             Style="{StaticResource InputBox}" Text="{Binding PollIntervalMs}" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Recordings directory" VerticalAlignment="Center" Margin="0,10,0,0" />
+                    <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource InputBox}" Margin="0,10,0,0"
+                             Text="{Binding RecordingsDirectory}" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Reports directory" VerticalAlignment="Center" Margin="0,10,0,0" />
+                    <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource InputBox}" Margin="0,10,0,0"
+                             Text="{Binding ReportsDirectory}" />
+                </Grid>
+            </Border>
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <Button Content="Save Settings" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}" />
+                <Button Content="Open Recordings" Style="{StaticResource GhostButton}" Margin="8,0,0,0"
+                        Command="{Binding OpenRecordingsCommand}" />
+                <Button Content="Open Reports" Style="{StaticResource GhostButton}" Margin="8,0,0,0"
+                        Command="{Binding OpenReportsCommand}" />
+            </StackPanel>
+
+            <TextBlock Text="AI PROVIDER" Style="{StaticResource SectionHeader}" Margin="0,20,0,8" />
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="{Binding AiStatusText}" TextWrapping="Wrap" />
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Provider" Style="{StaticResource Caption}" Margin="0,3" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AiProviderText}" Margin="0,3" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Model" Style="{StaticResource Caption}" Margin="0,3" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AiModelText}" Margin="0,3" />
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Endpoint" Style="{StaticResource Caption}" Margin="0,3" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AiEndpointText}" Margin="0,3" />
+                    </Grid>
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,10,0,0" TextWrapping="Wrap"
+                               Text="AI integration is a later milestone. Reports are generated locally and the Copy button always works, so nothing here blocks the core workflow." />
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="APPLICATION" Style="{StaticResource SectionHeader}" Margin="0,20,0,8" />
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="Settings file" Style="{StaticResource Caption}" />
+                    <TextBlock Text="{Binding SettingsPathText}" TextWrapping="Wrap" />
+                    <TextBlock Text="ACC Engineer · aligns with the ACC Telemetry AI roadmap and UI design."
+                               Style="{StaticResource Caption}" Margin="0,8,0,0" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
