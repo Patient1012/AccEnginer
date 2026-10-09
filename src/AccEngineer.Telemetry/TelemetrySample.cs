@@ -26,6 +26,30 @@ public sealed record TelemetrySample
 
     public bool IsLapValid { get; init; } = true;
 
+    /// <summary>
+    /// Current lap time in milliseconds as reported by ACC (<c>iCurrentTime</c>).
+    /// Null when ACC reports a negative sentinel value.
+    /// </summary>
+    public int? CurrentLapTimeMs { get; init; }
+
+    /// <summary>
+    /// Last completed lap time in milliseconds as reported by ACC (<c>iLastTime</c>).
+    /// Null when not yet set (ACC reports 0 or a negative sentinel).
+    /// </summary>
+    public int? LastLapTimeMs { get; init; }
+
+    /// <summary>
+    /// Best lap time in milliseconds as reported by ACC (<c>iBestTime</c>).
+    /// Null when not yet set (ACC reports 0 or a negative sentinel).
+    /// </summary>
+    public int? BestLapTimeMs { get; init; }
+
+    /// <summary>Current sector index (0-based) as reported by ACC (<c>currentSectorIndex</c>).</summary>
+    public int? CurrentSectorIndex { get; init; }
+
+    /// <summary>Sector count for the track, from the static page (<c>sectorCount</c>).</summary>
+    public int? SectorCount { get; init; }
+
     /// <summary>Track-relative progress in metres, if provided by the source.</summary>
     public float? TrackProgressMeters { get; init; }
 

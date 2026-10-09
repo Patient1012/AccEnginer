@@ -64,6 +64,11 @@ internal sealed class AccSampleBuilder
             SessionId = _sessionId ?? "unknown",
             LapNumber = graphics.CompletedLaps + 1,
             IsLapValid = graphics.IsValidLap != 0,
+            CurrentLapTimeMs = NonNegative(graphics.ICurrentTime),
+            LastLapTimeMs = Positive(graphics.ILastTime),
+            BestLapTimeMs = Positive(graphics.IBestTime),
+            CurrentSectorIndex = NonNegative(graphics.CurrentSectorIndex),
+            SectorCount = Positive(statics.SectorCount),
             TrackProgressMeters = trackProgress,
             SpeedKph = physics.SpeedKmh,
             SpeedMetersPerSecond = physics.SpeedKmh / 3.6f,
@@ -176,6 +181,12 @@ internal sealed class AccSampleBuilder
 
     private static float? At(float[]? values, int index) =>
         values != null && index >= 0 && index < values.Length ? values[index] : null;
+
+    /// <summary>Maps an ACC sentinel-friendly value to itself when non-negative, otherwise null.</summary>
+    private static int? NonNegative(int value) => value >= 0 ? value : null;
+
+    /// <summary>Maps a value that is only meaningful when positive (times, counts), otherwise null.</summary>
+    private static int? Positive(int value) => value > 0 ? value : null;
 
     /// <summary>World position of the player car from the graphics car array.</summary>
     private static float? CarAxis(AccGraphicsPage graphics, int axis)

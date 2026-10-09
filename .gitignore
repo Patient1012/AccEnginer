@@ -32,3 +32,6 @@ Desktop.ini
 
 # Default telemetry recording output
 recordings/
+
+# Default lap report output
+reports/

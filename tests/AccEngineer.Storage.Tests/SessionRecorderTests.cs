@@ -55,6 +55,11 @@ public class SessionRecorderTests : IDisposable
         Assert.Equal(original.SessionId, loaded.SessionId);
         Assert.Equal(original.LapNumber, loaded.LapNumber);
         Assert.Equal(original.IsLapValid, loaded.IsLapValid);
+        Assert.Equal(original.CurrentLapTimeMs, loaded.CurrentLapTimeMs);
+        Assert.Equal(original.LastLapTimeMs, loaded.LastLapTimeMs);
+        Assert.Equal(original.BestLapTimeMs, loaded.BestLapTimeMs);
+        Assert.Equal(original.CurrentSectorIndex, loaded.CurrentSectorIndex);
+        Assert.Equal(original.SectorCount, loaded.SectorCount);
         Assert.Equal(original.TrackProgressMeters, loaded.TrackProgressMeters);
         Assert.Equal(original.SpeedMetersPerSecond, loaded.SpeedMetersPerSecond);
         Assert.Equal(original.SpeedKph, loaded.SpeedKph);

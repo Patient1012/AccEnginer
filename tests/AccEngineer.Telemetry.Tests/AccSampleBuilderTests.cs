@@ -48,12 +48,17 @@ public class AccSampleBuilderTests
             CompletedLaps = 2,
             IsValidLap = 1,
             DistanceTraveled = 150.25f,
-            TyreCompound = "Dry"
+            TyreCompound = "Dry",
+            ICurrentTime = 45_000,
+            ILastTime = 92_123,
+            IBestTime = 91_500,
+            CurrentSectorIndex = 1
         };
         var statics = new AccStaticPage
         {
             CarModel = "porsche_991_cup",
-            Track = "monza"
+            Track = "monza",
+            SectorCount = 3
         };
 
         var sample = builder.Build(physics, graphics, statics, T0, 1234);
@@ -64,6 +69,11 @@ public class AccSampleBuilderTests
         Assert.Equal(4, sample.Gear);
         Assert.Equal(3, sample.LapNumber);
         Assert.True(sample.IsLapValid);
+        Assert.Equal(45_000, sample.CurrentLapTimeMs);
+        Assert.Equal(92_123, sample.LastLapTimeMs);
+        Assert.Equal(91_500, sample.BestLapTimeMs);
+        Assert.Equal(1, sample.CurrentSectorIndex);
+        Assert.Equal(3, sample.SectorCount);
         Assert.Equal(150.25f, sample.TrackProgressMeters);
         Assert.Equal(1f, sample.ThrottleInput);
         Assert.Equal(0.25f, sample.BrakeInput);
@@ -215,6 +225,33 @@ public class AccSampleBuilderTests
         Assert.Null(sample.PositionXMeters);
         Assert.Null(sample.PositionYMeters);
         Assert.Null(sample.PositionZMeters);
+    }
+
+    [Fact]
+    public void Build_NegativeLapTimingSentinels_MapToNull()
+    {
+        var builder = new AccSampleBuilder();
+        var graphics = new AccGraphicsPage
+        {
+            Status = AccStatus.Live,
+            SessionIndex = 0,
+            CompletedLaps = 0,
+            IsValidLap = 1,
+            DistanceTraveled = 0f,
+            ICurrentTime = -1,
+            ILastTime = 0,
+            IBestTime = -1,
+            CurrentSectorIndex = -1
+        };
+        var statics = new AccStaticPage { SectorCount = 0 };
+
+        var sample = builder.Build(default, graphics, statics, T0, 0);
+
+        Assert.Null(sample.CurrentLapTimeMs);
+        Assert.Null(sample.LastLapTimeMs);
+        Assert.Null(sample.BestLapTimeMs);
+        Assert.Null(sample.CurrentSectorIndex);
+        Assert.Null(sample.SectorCount);
     }
 
     [Fact]
