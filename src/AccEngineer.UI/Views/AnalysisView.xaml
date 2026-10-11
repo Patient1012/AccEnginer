@@ -36,9 +36,10 @@
             </Border>
 
             <StackPanel Visibility="{Binding HasAnalysis, Converter={StaticResource BoolToVis}}">
-                <UniformGrid Columns="2" Margin="0,12,0,0">
+                <UniformGrid Columns="3" Margin="0,12,0,0">
                     <ctrl:MetricCard Label="REFERENCE LAP" Value="{Binding ReferenceText}" />
                     <ctrl:MetricCard Label="DATA QUALITY" Value="{Binding DataQualityText}" />
+                    <ctrl:MetricCard Label="DRIVING FINDINGS" Value="{Binding FindingsSummary}" />
                 </UniformGrid>
 
                 <TextBlock Text="LAPS" Style="{StaticResource SectionHeader}" Margin="0,16,0,8" />
@@ -137,8 +138,63 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
+                <TextBlock Text="DRIVING FINDINGS" Style="{StaticResource SectionHeader}" Margin="0,16,0,8" />
+                <TextBlock Text="Measured facts from braking, corner, throttle and tyre channels. Possible explanations are labelled separately and are never treated as proven."
+                           Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,8" />
+                <TextBlock Text="{Binding AiNote}" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,8" />
+                <TextBlock Text="No driving findings were produced from this recording." Style="{StaticResource Caption}"
+                           Visibility="{Binding HasFindings, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
+                <ItemsControl ItemsSource="{Binding Findings}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding Header}" FontWeight="SemiBold" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Severity}"
+                                                   Foreground="{DynamicResource BrushTextSecondary}" />
+                                    </Grid>
+                                    <TextBlock Text="{Binding Observation}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                    <TextBlock Text="{Binding Interpretation}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                               Foreground="{DynamicResource BrushWarning}"
+                                               Visibility="{Binding HasInterpretation, Converter={StaticResource BoolToVis}}" />
+                                    <TextBlock Text="{Binding Limitation}" Style="{StaticResource Caption}" TextWrapping="Wrap"
+                                               Margin="0,4,0,0"
+                                               Visibility="{Binding HasLimitation, Converter={StaticResource BoolToVis}}" />
+                                    <Button Content="{Binding InterpretLabel}" Style="{StaticResource GhostButton}"
+                                            HorizontalAlignment="Left" Margin="0,8,0,0"
+                                            Command="{Binding InterpretCommand}" />
+                                    <TextBlock Text="{Binding AiError}" TextWrapping="Wrap" Margin="0,6,0,0"
+                                               Foreground="{DynamicResource BrushError}"
+                                               Visibility="{Binding HasAiError, Converter={StaticResource BoolToVis}}" />
+                                    <Border Margin="0,8,0,0" Padding="10" CornerRadius="4"
+                                            Background="{DynamicResource BrushSurfaceAlt}"
+                                            Visibility="{Binding HasAiResult, Converter={StaticResource BoolToVis}}">
+                                        <StackPanel>
+                                            <TextBlock Text="AI INTERPRETATION (POSSIBLE CAUSE, NOT PROVEN)"
+                                                       Style="{StaticResource Caption}" />
+                                            <TextBlock Text="{Binding AiObservation}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                            <TextBlock Text="{Binding AiInterpretation}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                                       Foreground="{DynamicResource BrushWarning}"
+                                                       Visibility="{Binding HasAiInterpretation, Converter={StaticResource BoolToVis}}" />
+                                            <TextBlock Text="{Binding AiTest}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                                       Visibility="{Binding HasAiTest, Converter={StaticResource BoolToVis}}" />
+                                            <TextBlock Text="{Binding AiLimitations}" Style="{StaticResource Caption}"
+                                                       TextWrapping="Wrap" Margin="0,4,0,0"
+                                                       Visibility="{Binding HasAiLimitations, Converter={StaticResource BoolToVis}}" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
                 <TextBlock Text="SESSION EVENTS" Style="{StaticResource SectionHeader}" Margin="0,16,0,8" />
-                <TextBlock Text="Driving-event detection (braking, apex, traction) arrives in a later milestone. The list shows only events the current data can honestly support."
+                <TextBlock Text="Lap completions, invalid laps and telemetry-quality notices recorded while the session ran."
                            Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,8" />
                 <Border Style="{StaticResource Card}">
                     <ItemsControl ItemsSource="{Binding Events}">

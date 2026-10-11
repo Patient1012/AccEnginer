@@ -19,7 +19,7 @@ internal static class ReplayRunner
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException)
         {
-            display.Status($"Failed to load recording: {ex.Message}");
+            display.StatusError($"Failed to load recording: {ex.Message}");
             return 1;
         }
 
@@ -56,8 +56,8 @@ internal static class ReplayRunner
             display.Status("Replayed 0 samples.");
         }
 
-        if (outOfOrder > 0) display.Status($"Warning: {outOfOrder} sample(s) out of order.");
-        if (nonIncreasingTimestamp > 0) display.Status($"Warning: {nonIncreasingTimestamp} sample(s) with non-increasing timestamps.");
+        if (outOfOrder > 0) display.StatusWarn($"Warning: {outOfOrder} sample(s) out of order.");
+        if (nonIncreasingTimestamp > 0) display.StatusWarn($"Warning: {nonIncreasingTimestamp} sample(s) with non-increasing timestamps.");
 
         if (recording.End is { } end)
         {
@@ -65,7 +65,7 @@ internal static class ReplayRunner
         }
         else
         {
-            display.Status("Recording was not closed cleanly (no end record).");
+            display.StatusWarn("Recording was not closed cleanly (no end record).");
         }
 
         if (recording.SkippedRecordCount > 0)

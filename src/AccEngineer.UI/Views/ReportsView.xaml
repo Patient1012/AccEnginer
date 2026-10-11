@@ -46,7 +46,11 @@
                                 <DataTemplate>
                                     <StackPanel Margin="2,4">
                                         <TextBlock Text="{Binding FileName}" TextTrimming="CharacterEllipsis" />
-                                        <TextBlock Text="{Binding CreatedText}" Style="{StaticResource Caption}" />
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Kind}" Style="{StaticResource Caption}"
+                                                       Foreground="{DynamicResource BrushAccent}" />
+                                            <TextBlock Text="{Binding CreatedText}" Style="{StaticResource Caption}" Margin="10,0,0,0" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>

@@ -67,17 +67,34 @@ internal sealed class ConsoleDisplay
     /// <summary>Writes a status message (stderr) and clears the inline line if present.</summary>
     public void Status(string message)
     {
+        Emit(message);
+        AppLog.Info(message);
+    }
+
+    /// <summary>Writes a warning status message (stderr) and logs it at warning level.</summary>
+    public void StatusWarn(string message)
+    {
+        Emit(message);
+        AppLog.Warn(message);
+    }
+
+    /// <summary>Writes an error status message (stderr) and logs it at error level.</summary>
+    public void StatusError(string message)
+    {
+        Emit(message);
+        AppLog.Error(message);
+    }
+
+    private void Emit(string message)
+    {
         Console.Out.Flush();
         if (_interactive)
         {
             Console.WriteLine();
-            Console.Error.WriteLine(message);
-            _lastInlineWidth = 0;
         }
-        else
-        {
-            Console.Error.WriteLine(message);
-        }
+
+        Console.Error.WriteLine(message);
+        _lastInlineWidth = 0;
     }
 
     public void StatusToStdout(string message) => Console.WriteLine(message);

@@ -16,6 +16,23 @@ public sealed class JsonReportExporter
         return JsonSerializer.Serialize(report, Options);
     }
 
+    /// <summary>Serializes any report model with the canonical report options.</summary>
+    public string Serialize<T>(T value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        return JsonSerializer.Serialize(value, Options);
+    }
+
+    public void Write<T>(T value, string path)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
+        var directory = Path.GetDirectoryName(Path.GetFullPath(path));
+        if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+        File.WriteAllText(path, Serialize(value));
+    }
+
     public void Write(LapReport report, string path)
     {
         ArgumentNullException.ThrowIfNull(report);

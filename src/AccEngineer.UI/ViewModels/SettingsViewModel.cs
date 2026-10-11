@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Input;
+using AccEngineer.AI;
 using AccEngineer.UI.Mvvm;
 using AccEngineer.UI.Services;
 
@@ -8,8 +9,9 @@ namespace AccEngineer.UI.ViewModels;
 
 /// <summary>
 /// Operator settings. Values persist under <c>%AppData%</c> so they stay out of
-/// the source tree. AI fields are shown honestly as "not configured" until the
-/// AI provider milestone lands; report generation and copy do not depend on them.
+/// the source tree. AI provider/model/endpoint are editable here; the API key is
+/// never stored and is read from environment variables at use time. Report
+/// generation and copy do not depend on AI configuration.
 /// </summary>
 public sealed class SettingsViewModel : PageViewModel
 {
@@ -17,6 +19,9 @@ public sealed class SettingsViewModel : PageViewModel
     private int _poll;
     private string _recordings;
     private string _reports;
+    private string _aiProvider = string.Empty;
+    private string _aiModel = string.Empty;
+    private string _aiEndpoint = string.Empty;
     private string _status = string.Empty;
 
     public SettingsViewModel(MainViewModel shell)
@@ -27,6 +32,9 @@ public sealed class SettingsViewModel : PageViewModel
         _poll = options.PollIntervalMs;
         _recordings = options.RecordingsDirectory;
         _reports = options.ReportsDirectory;
+        _aiProvider = options.AiProvider ?? string.Empty;
+        _aiModel = options.AiModel ?? string.Empty;
+        _aiEndpoint = options.AiEndpoint ?? string.Empty;
 
         SaveCommand = new RelayCommand(Save);
         OpenRecordingsCommand = new RelayCommand(() => Open(RecordingsDirectory));
@@ -51,17 +59,74 @@ public sealed class SettingsViewModel : PageViewModel
         set => SetProperty(ref _reports, value);
     }
 
-    public bool IsAiConfigured => _shell.Options.IsAiConfigured;
+    public string AiProvider
+    {
+        get => _aiProvider;
+        set
+        {
+            if (SetProperty(ref _aiProvider, value))
+            {
+                RefreshAiStatus();
+            }
+        }
+    }
 
-    public string AiProviderText => _shell.Options.AiProvider ?? "not configured";
+    public string AiModel
+    {
+        get => _aiModel;
+        set
+        {
+            if (SetProperty(ref _aiModel, value))
+            {
+                RefreshAiStatus();
+            }
+        }
+    }
 
-    public string AiModelText => _shell.Options.AiModel ?? Display.Missing;
+    public string AiEndpoint
+    {
+        get => _aiEndpoint;
+        set
+        {
+            if (SetProperty(ref _aiEndpoint, value))
+            {
+                RefreshAiStatus();
+            }
+        }
+    }
 
-    public string AiEndpointText => _shell.Options.AiEndpoint ?? Display.Missing;
+    public bool IsAiConfigured
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_aiModel))
+            {
+                return false;
+            }
 
-    public string AiStatusText => IsAiConfigured
-        ? $"{_shell.Options.AiProvider} · {_shell.Options.AiModel ?? "default model"}"
-        : "Not configured — reports and copy work fully offline.";
+            return AnalysisProviderFactory.ResolveEndpoint(new AiProviderOptions
+            {
+                Provider = _aiProvider,
+                Endpoint = _aiEndpoint
+            }) is not null;
+        }
+    }
+
+    public string AiStatusText
+    {
+        get
+        {
+            if (IsAiConfigured)
+            {
+                var provider = string.IsNullOrWhiteSpace(_aiProvider) ? "openai-compatible" : _aiProvider.Trim();
+                return $"AI configured: {provider} / {_aiModel.Trim()}. The key is read from ACCENGINEER_AI_API_KEY (or OPENROUTER_API_KEY).";
+            }
+
+            return string.IsNullOrWhiteSpace(_aiModel)
+                ? "Not configured - add a model and an optional endpoint. Reports and copy work fully offline."
+                : "Missing a resolvable endpoint - use openrouter, ollama, lmstudio, or a full base URL. Reports and copy work fully offline.";
+        }
+    }
 
     public string SettingsPathText => AppSettings.SettingsPath;
 
@@ -79,11 +144,21 @@ public sealed class SettingsViewModel : PageViewModel
 
     public override void Refresh()
     {
+        _poll = _shell.Options.PollIntervalMs;
+        _recordings = _shell.Options.RecordingsDirectory;
+        _reports = _shell.Options.ReportsDirectory;
+        _aiProvider = _shell.Options.AiProvider ?? string.Empty;
+        _aiModel = _shell.Options.AiModel ?? string.Empty;
+        _aiEndpoint = _shell.Options.AiEndpoint ?? string.Empty;
+
+        OnPropertyChanged(nameof(PollIntervalMs));
+        OnPropertyChanged(nameof(RecordingsDirectory));
+        OnPropertyChanged(nameof(ReportsDirectory));
+        OnPropertyChanged(nameof(AiProvider));
+        OnPropertyChanged(nameof(AiModel));
+        OnPropertyChanged(nameof(AiEndpoint));
         OnPropertyChanged(nameof(IsAiConfigured));
         OnPropertyChanged(nameof(AiStatusText));
-        OnPropertyChanged(nameof(AiProviderText));
-        OnPropertyChanged(nameof(AiModelText));
-        OnPropertyChanged(nameof(AiEndpointText));
     }
 
     private void Save()
@@ -93,9 +168,15 @@ public sealed class SettingsViewModel : PageViewModel
         if (!string.IsNullOrWhiteSpace(RecordingsDirectory)) options.RecordingsDirectory = RecordingsDirectory.Trim();
         if (!string.IsNullOrWhiteSpace(ReportsDirectory)) options.ReportsDirectory = ReportsDirectory.Trim();
 
+        options.AiProvider = string.IsNullOrWhiteSpace(AiProvider) ? null : AiProvider.Trim();
+        options.AiModel = string.IsNullOrWhiteSpace(AiModel) ? null : AiModel.Trim();
+        options.AiEndpoint = string.IsNullOrWhiteSpace(AiEndpoint) ? null : AiEndpoint.Trim();
+
         PollIntervalMs = options.PollIntervalMs;
         RecordingsDirectory = options.RecordingsDirectory;
         ReportsDirectory = options.ReportsDirectory;
+
+        RefreshAiStatus();
 
         try
         {
@@ -106,6 +187,12 @@ public sealed class SettingsViewModel : PageViewModel
         {
             StatusText = $"Could not save settings: {ex.Message}";
         }
+    }
+
+    private void RefreshAiStatus()
+    {
+        OnPropertyChanged(nameof(IsAiConfigured));
+        OnPropertyChanged(nameof(AiStatusText));
     }
 
     private static void Open(string directory)

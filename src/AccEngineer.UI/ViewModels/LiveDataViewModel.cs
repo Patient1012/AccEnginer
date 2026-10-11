@@ -1,4 +1,5 @@
 using AccEngineer.Telemetry;
+using AccEngineer.UI.Controls;
 using AccEngineer.UI.Services;
 
 namespace AccEngineer.UI.ViewModels;
@@ -12,6 +13,7 @@ public sealed class LiveDataViewModel : PageViewModel
 {
     private const int TracePoints = 240;
     private const int TraceSeconds = 12;
+    private const int MapPathPoints = 900;
 
     private readonly LiveTelemetryService _telemetry;
 
@@ -77,6 +79,28 @@ public sealed class LiveDataViewModel : PageViewModel
 
     public double SpeedTraceMax { get; private set; } = 300;
 
+    public IReadOnlyList<MapPoint> MapPoints { get; private set; } = Array.Empty<MapPoint>();
+
+    public IReadOnlyList<MapPoint> MapPath { get; private set; } = Array.Empty<MapPoint>();
+
+    public bool HasMap { get; private set; }
+
+    public string MapNote { get; private set; } = string.Empty;
+
+    public bool HasMapNote => !string.IsNullOrEmpty(MapNote);
+
+    public IReadOnlyList<CarRow> Cars { get; private set; } = Array.Empty<CarRow>();
+
+    public bool HasCars { get; private set; }
+
+    public string PositionText { get; private set; } = Display.Missing;
+
+    public string ActiveCarsText { get; private set; } = Display.Missing;
+
+    public double ThrottlePercent { get; private set; }
+
+    public double BrakePercent { get; private set; }
+
     public override void Refresh()
     {
         var sample = _telemetry.Latest;
@@ -98,6 +122,8 @@ public sealed class LiveDataViewModel : PageViewModel
         RpmText = Display.Rpm(sample.EngineRpm);
         ThrottleText = Display.Percent(sample.ThrottleInput);
         BrakeText = Display.Percent(sample.BrakeInput);
+        ThrottlePercent = sample.ThrottleInput is { } throttle ? Math.Clamp(throttle, 0, 1) * 100 : 0;
+        BrakePercent = sample.BrakeInput is { } brake ? Math.Clamp(brake, 0, 1) * 100 : 0;
         SteeringText = Display.Steering(sample.SteeringInput);
         FuelText = Display.Fuel(sample.FuelLevel);
         DistanceText = Display.Metres(sample.TrackProgressMeters);
@@ -117,7 +143,82 @@ public sealed class LiveDataViewModel : PageViewModel
         TempRr = At(temps, 3);
 
         BuildTraces();
+        BuildMap(sample);
+        BuildStandings(sample);
         OnAllPropertiesChanged();
+    }
+
+    private void BuildMap(TelemetrySample sample)
+    {
+        var markers = new List<MapPoint>();
+        var cars = sample.CarsOnTrack;
+        if (cars is { Count: > 0 })
+        {
+            var px = sample.PositionXMeters;
+            var pz = sample.PositionZMeters;
+            foreach (var car in cars)
+            {
+                var isPlayer = px is { } x && pz is { } z
+                    && Math.Abs(car.XMeters - x) < 4f
+                    && Math.Abs(car.ZMeters - z) < 4f;
+                markers.Add(new MapPoint(car.XMeters, car.ZMeters, isPlayer));
+            }
+        }
+
+        var recent = _telemetry.SnapshotRecent(MapPathPoints);
+        var path = new List<MapPoint>(recent.Count);
+        foreach (var s in recent)
+        {
+            if (s.PositionXMeters is { } x && s.PositionZMeters is { } z)
+            {
+                path.Add(new MapPoint(x, z, false));
+            }
+        }
+
+        MapPoints = markers;
+        MapPath = path;
+        HasMap = markers.Count > 0 || path.Count >= 2;
+        MapNote = markers.Count > 0
+            ? string.Empty
+            : path.Count >= 2
+                ? "Showing the player's path only. Other cars are not available in this session (replay, or no other cars on track)."
+                : string.Empty;
+    }
+
+    private void BuildStandings(TelemetrySample sample)
+    {
+        PositionText = sample.PlayerPosition is { } position
+            ? sample.ActiveCars is { } count ? $"{position} / {count}" : position.ToString()
+            : Display.Missing;
+        ActiveCarsText = sample.ActiveCars?.ToString() ?? Display.Missing;
+
+        var cars = sample.CarsOnTrack;
+        if (cars is not { Count: > 0 })
+        {
+            Cars = Array.Empty<CarRow>();
+            HasCars = false;
+            return;
+        }
+
+        var px = sample.PositionXMeters;
+        var pz = sample.PositionZMeters;
+        var rows = new List<CarRow>(cars.Count);
+        var slot = 0;
+        foreach (var car in cars)
+        {
+            double? distance = px is { } x && pz is { } z
+                ? Math.Sqrt(((car.XMeters - x) * (car.XMeters - x)) + ((car.ZMeters - z) * (car.ZMeters - z)))
+                : null;
+            var isPlayer = distance is { } d && d < 4;
+            rows.Add(new CarRow(car.CarId, slot, isPlayer, distance));
+            slot++;
+        }
+
+        Cars = rows
+            .OrderByDescending(r => r.IsPlayer)
+            .ThenBy(r => r.DistanceMeters ?? double.MaxValue)
+            .ToArray();
+        HasCars = true;
     }
 
     private void BuildTraces()
@@ -164,6 +265,12 @@ public sealed class LiveDataViewModel : PageViewModel
         PressureFl = PressureFr = PressureRl = PressureRr = Display.Missing;
         TempFl = TempFr = TempRl = TempRr = Display.Missing;
         SpeedTrace = ThrottleTrace = BrakeTrace = Array.Empty<double>();
+        MapPoints = MapPath = Array.Empty<MapPoint>();
+        Cars = Array.Empty<CarRow>();
+        HasMap = HasCars = false;
+        MapNote = string.Empty;
+        PositionText = ActiveCarsText = Display.Missing;
+        ThrottlePercent = BrakePercent = 0;
         OnAllPropertiesChanged();
     }
 

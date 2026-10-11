@@ -1,4 +1,9 @@
+using System.Text.Json.Serialization;
+
 namespace AccEngineer.Telemetry;
+
+/// <summary>World position of one car currently on track, from the graphics page.</summary>
+public readonly record struct CarPosition(int CarId, float XMeters, float YMeters, float ZMeters);
 
 /// <summary>
 /// Project-owned telemetry sample, independent of the ACC reader library.
@@ -102,6 +107,29 @@ public sealed record TelemetrySample
     public float? PositionYMeters { get; init; }
 
     public float? PositionZMeters { get; init; }
+
+    /// <summary>Player's overall race position (1-based) as reported by ACC.</summary>
+    public int? PlayerPosition { get; init; }
+
+    /// <summary>Player's normalized position around the lap (0..1), when reported.</summary>
+    public float? NormalizedCarPosition { get; init; }
+
+    /// <summary>Number of cars currently on track, when reported.</summary>
+    [JsonIgnore]
+    public int? ActiveCars { get; init; }
+
+    /// <summary>The player's car id within <see cref="CarsOnTrack"/>.</summary>
+    [JsonIgnore]
+    public int? PlayerCarId { get; init; }
+
+    /// <summary>
+    /// World positions of the cars currently on track. Only <c>carCoordinates</c>
+    /// and <c>carID</c> describe other cars in ACC shared memory; opponent names,
+    /// gaps and lap times are not exposed. Not persisted to recordings (used only
+    /// for the live map).
+    /// </summary>
+    [JsonIgnore]
+    public IReadOnlyList<CarPosition>? CarsOnTrack { get; init; }
 
     public float[]? WheelAngularSpeedRadPerSec { get; init; }
 

@@ -35,3 +35,7 @@ recordings/
 
 # Default lap report output
 reports/
+
+# Console log output (off by default)
+logs/
+*.log

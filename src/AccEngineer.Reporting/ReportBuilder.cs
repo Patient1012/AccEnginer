@@ -51,7 +51,7 @@ public sealed class ReportBuilder
         };
     }
 
-    private static ReportLap ToReportLap(LapTimeline lap) => new()
+    internal static ReportLap ToReportLap(LapTimeline lap) => new()
     {
         LapNumber = lap.LapNumber,
         IsValid = lap.IsValid,

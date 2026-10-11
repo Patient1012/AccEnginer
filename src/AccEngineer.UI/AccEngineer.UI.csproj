@@ -16,6 +16,7 @@
     <ProjectReference Include="..\AccEngineer.Analysis\AccEngineer.Analysis.csproj" />
     <ProjectReference Include="..\AccEngineer.AI\AccEngineer.AI.csproj" />
     <ProjectReference Include="..\AccEngineer.Reporting\AccEngineer.Reporting.csproj" />
+    <ProjectReference Include="..\AccEngineer.Pipeline\AccEngineer.Pipeline.csproj" />
     <ProjectReference Include="..\AccEngineer.Storage\AccEngineer.Storage.csproj" />
   </ItemGroup>
 

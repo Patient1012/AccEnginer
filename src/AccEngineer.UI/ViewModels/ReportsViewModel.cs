@@ -86,8 +86,12 @@ public sealed class ReportsViewModel : PageViewModel
         var directory = _shell.Options.ReportsDirectory;
         if (Directory.Exists(directory))
         {
-            foreach (var md in Directory.EnumerateFiles(directory, "*.report.md")
-                         .OrderByDescending(File.GetLastWriteTimeUtc))
+            var entries = Directory.EnumerateFiles(directory, "*.report.md")
+                .Concat(Directory.EnumerateFiles(directory, "*.live.md"))
+                .OrderByDescending(File.GetLastWriteTimeUtc)
+                .ToArray();
+
+            foreach (var md in entries)
             {
                 var json = Path.ChangeExtension(md, ".json");
                 Reports.Add(new ReportEntry(md, json, File.GetLastWriteTimeUtc(md)));

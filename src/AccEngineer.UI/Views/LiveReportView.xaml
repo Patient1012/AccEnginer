@@ -1,0 +1,107 @@
+<UserControl x:Class="AccEngineer.UI.Views.LiveReportView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:AccEngineer.UI.Converters"
+             xmlns:ctrl="clr-namespace:AccEngineer.UI.Controls"
+             mc:Ignorable="d"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             d:DesignHeight="700" d:DesignWidth="1000">
+    <UserControl.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+        <StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Live Events" Style="{StaticResource PageTitle}" />
+                    <TextBlock Text="{Binding StatusText}" Style="{StaticResource Caption}" Margin="0,4,0,0" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+                    <Button Content="Save Session Summary" Style="{StaticResource PrimaryButton}"
+                            Command="{Binding ExportSummaryCommand}" />
+                    <Button Content="Clear" Style="{StaticResource GhostButton}" Margin="8,0,0,0"
+                            Command="{Binding ClearCommand}" />
+                </StackPanel>
+            </Grid>
+
+            <UniformGrid Columns="4" Margin="0,12,0,0">
+                <ctrl:MetricCard Label="QUEUED" Value="{Binding PendingText}" />
+                <ctrl:MetricCard Label="ACCEPTED" Value="{Binding AcceptedText}" />
+                <ctrl:MetricCard Label="COALESCED" Value="{Binding CoalescedText}" />
+                <ctrl:MetricCard Label="DROPPED (QUEUE FULL)" Value="{Binding DroppedText}" />
+            </UniformGrid>
+
+            <TextBlock Text="{Binding AiNote}" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,12,0,0" />
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0"
+                    Visibility="{Binding HasFindings, Converter={StaticResource BoolToVis}, ConverterParameter=invert}">
+                <StackPanel>
+                    <TextBlock Text="No live findings yet" FontSize="16" FontWeight="SemiBold" />
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,6,0,0" TextWrapping="Wrap"
+                               Text="Findings are detected when a lap completes. Drive in ACC (or replay a recording). Repeated events from the same corner or condition are coalesced into one finding." />
+                </StackPanel>
+            </Border>
+
+            <ItemsControl ItemsSource="{Binding Findings}" Margin="0,12,0,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource Card}" Margin="0,0,0,8">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Header}" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding CoalescedText}" Margin="8,0,0,0"
+                                                   Foreground="{DynamicResource BrushAccent}"
+                                                   Visibility="{Binding HasCoalesced, Converter={StaticResource BoolToVis}}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Severity}" Foreground="{DynamicResource BrushTextSecondary}" />
+                                        <TextBlock Text="{Binding Confidence}" Margin="12,0,0,0"
+                                                   Foreground="{DynamicResource BrushTextSecondary}" />
+                                    </StackPanel>
+                                </Grid>
+                                <TextBlock Text="{Binding Observation}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                <TextBlock Text="{Binding LocalInterpretation}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                           Foreground="{DynamicResource BrushWarning}"
+                                           Visibility="{Binding HasLocalInterpretation, Converter={StaticResource BoolToVis}}" />
+                                <TextBlock Text="{Binding EvidenceText}" Style="{StaticResource Caption}" Margin="0,4,0,0" />
+
+                                <Border Margin="0,8,0,0" Padding="10" CornerRadius="4"
+                                        Background="{DynamicResource BrushSurfaceAlt}"
+                                        Visibility="{Binding HasAiResult, Converter={StaticResource BoolToVis}}">
+                                    <StackPanel>
+                                        <TextBlock Text="AI INTERPRETATION (POSSIBLE CAUSE, NOT PROVEN)"
+                                                   Style="{StaticResource Caption}" />
+                                        <TextBlock Text="{Binding AiObservation}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                        <TextBlock Text="{Binding AiPossibleCause}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                                   Foreground="{DynamicResource BrushWarning}"
+                                                   Visibility="{Binding HasAiPossibleCause, Converter={StaticResource BoolToVis}}" />
+                                        <TextBlock Text="{Binding AiTest}" TextWrapping="Wrap" Margin="0,4,0,0"
+                                                   Visibility="{Binding HasAiTest, Converter={StaticResource BoolToVis}}" />
+                                    </StackPanel>
+                                </Border>
+                                <TextBlock Text="{Binding AiNote}" Style="{StaticResource Caption}" TextWrapping="Wrap"
+                                           Margin="0,6,0,0"
+                                           Visibility="{Binding HasAiNote, Converter={StaticResource BoolToVis}}" />
+
+                                <Button Content="Save Report" Style="{StaticResource GhostButton}"
+                                        HorizontalAlignment="Left" Margin="0,8,0,0"
+                                        Command="{Binding ExportCommand}" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

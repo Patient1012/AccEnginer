@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\AccEngineer.Telemetry\AccEngineer.Telemetry.csproj" />
+    <ProjectReference Include="..\AccEngineer.Analysis\AccEngineer.Analysis.csproj" />
+    <ProjectReference Include="..\AccEngineer.AI\AccEngineer.AI.csproj" />
+    <ProjectReference Include="..\AccEngineer.Reporting\AccEngineer.Reporting.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

@@ -31,6 +31,52 @@
                     <ctrl:MetricCard Label="TYRE" Value="{Binding TyreCompoundText}" />
                 </UniformGrid>
 
+                <TextBlock Text="LIVE MAP" Style="{StaticResource SectionHeader}" Margin="0,16,0,8" />
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Map data is not available for this session." Style="{StaticResource Caption}"
+                                   Visibility="{Binding HasMap, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
+                        <ctrl:TrackMap Height="360"
+                                       Visibility="{Binding HasMap, Converter={StaticResource BoolToVis}}"
+                                       Markers="{Binding MapPoints}" Path="{Binding MapPath}"
+                                       MarkerBrush="{DynamicResource BrushTextSecondary}"
+                                       PlayerBrush="{DynamicResource BrushAccent}"
+                                       PathBrush="{DynamicResource BrushBorder}" />
+                        <TextBlock Text="{Binding MapNote}" Style="{StaticResource Caption}" TextWrapping="Wrap"
+                                   Margin="0,8,0,0"
+                                   Visibility="{Binding HasMapNote, Converter={StaticResource BoolToVis}}" />
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="STANDINGS" Style="{StaticResource SectionHeader}" Margin="0,16,0,8" />
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <UniformGrid Columns="2">
+                            <ctrl:MetricCard Label="YOUR POSITION" Value="{Binding PositionText}" Caption="ACC-reported" />
+                            <ctrl:MetricCard Label="CARS ON TRACK" Value="{Binding ActiveCarsText}" />
+                        </UniformGrid>
+                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,8"
+                                   Text="ACC shared memory exposes only your position and the world coordinates of cars on track. Opponent names, gaps and lap times are not available, so any rows are ordered by distance to you, not by race order." />
+                        <TextBlock Text="No other-car data on track." Style="{StaticResource Caption}"
+                                   Visibility="{Binding HasCars, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
+                        <ItemsControl ItemsSource="{Binding Cars}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding Label}" />
+                                        <TextBlock Grid.Column="1" Text="{Binding DistanceText}"
+                                                   Foreground="{DynamicResource BrushTextSecondary}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
                 <TextBlock Text="LAP TIMES" Style="{StaticResource SectionHeader}" Margin="0,16,0,8" />
                 <UniformGrid Columns="3">
                     <ctrl:MetricCard Label="CURRENT" Value="{Binding LapTimeText}" />
@@ -62,6 +108,28 @@
                                          Minimum="0" Maximum="1" Stroke="{DynamicResource BrushSuccess}" />
                         <ctrl:TraceChart Height="44" Values="{Binding BrakeTrace}"
                                          Minimum="0" Maximum="1" Stroke="{DynamicResource BrushError}" />
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="PEDAL INPUTS" Style="{StaticResource SectionHeader}" Margin="0,16,0,8" />
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <DockPanel>
+                            <TextBlock Text="{Binding ThrottleText}" DockPanel.Dock="Right"
+                                       Foreground="{DynamicResource BrushSuccess}" />
+                            <TextBlock Text="THROTTLE" Style="{StaticResource MetricLabel}" />
+                        </DockPanel>
+                        <ProgressBar Height="18" Maximum="100" Value="{Binding ThrottlePercent, Mode=OneWay}"
+                                     Foreground="{DynamicResource BrushSuccess}"
+                                     Background="{DynamicResource BrushSurfaceAlt}" />
+                        <DockPanel Margin="0,10,0,0">
+                            <TextBlock Text="{Binding BrakeText}" DockPanel.Dock="Right"
+                                       Foreground="{DynamicResource BrushError}" />
+                            <TextBlock Text="BRAKE" Style="{StaticResource MetricLabel}" />
+                        </DockPanel>
+                        <ProgressBar Height="18" Maximum="100" Value="{Binding BrakePercent, Mode=OneWay}"
+                                     Foreground="{DynamicResource BrushError}"
+                                     Background="{DynamicResource BrushSurfaceAlt}" />
                     </StackPanel>
                 </Border>
 

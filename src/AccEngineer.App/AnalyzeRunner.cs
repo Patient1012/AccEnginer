@@ -21,7 +21,7 @@ internal static class AnalyzeRunner
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException)
         {
-            display.Status($"Failed to load recording: {ex.Message}");
+            display.StatusError($"Failed to load recording: {ex.Message}");
             return 1;
         }
 

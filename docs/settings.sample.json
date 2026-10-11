@@ -1,0 +1,9 @@
+{
+  "pollIntervalMs": 50,
+  "recordingsDirectory": "C:\\ACC\\recordings",
+  "reportsDirectory": "C:\\ACC\\reports",
+  "accentColor": "#B7F34A",
+  "aiProvider": "openrouter",
+  "aiModel": "openai/gpt-4o-mini",
+  "aiEndpoint": null
+}

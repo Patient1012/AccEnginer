@@ -14,6 +14,11 @@ internal sealed record AppOptions
     public string RecordDirectory { get; init; } =
         Path.Combine(Environment.CurrentDirectory, SessionPaths.DefaultDirectoryName);
 
+    public bool LiveReports { get; init; }
+
+    public string ReportDirectory { get; init; } =
+        Path.Combine(Environment.CurrentDirectory, "reports");
+
     public string? ReplayPath { get; init; }
 }
 
@@ -26,6 +31,7 @@ internal static class LiveRunner
         using var reader = new AccSharedMemoryReader();
         var validator = new TelemetryValidator();
         var cancellation = new ConsoleCancellation();
+        var collector = options.LiveReports && !options.Once ? new LiveReportCollector(options, display) : null;
 
         long sampleCount = 0;
         string? lastHeader = null;
@@ -50,7 +56,7 @@ internal static class LiveRunner
                 }
                 catch (Exception ex)
                 {
-                    display.Status($"Read error ({ex.GetType().Name}): {ex.Message}");
+                    display.StatusError($"Read error ({ex.GetType().Name}): {ex.Message}");
                     Thread.Sleep(Math.Max(options.PollMs, 500));
                     continue;
                 }
@@ -78,6 +84,8 @@ internal static class LiveRunner
                     {
                         recorder = RecordSample(display, options, recorder, ref recordedSessionId, sample);
                     }
+
+                    collector?.Observe(sample);
 
                     display.RenderInline(ConsoleDisplay.FormatSample(sample));
 
@@ -119,6 +127,7 @@ internal static class LiveRunner
         {
             display.EndInline();
             CompleteRecorder(display, recorder);
+            collector?.Complete();
         }
 
         if (last is not null)
@@ -188,7 +197,7 @@ internal static class LiveRunner
         }
         catch (Exception ex)
         {
-            display.Status($"Failed to close recording cleanly: {ex.Message}");
+            display.StatusError($"Failed to close recording cleanly: {ex.Message}");
         }
     }
 }

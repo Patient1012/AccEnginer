@@ -41,6 +41,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         Live = new LiveDataViewModel(Telemetry);
         Overview = new OverviewViewModel(this);
         Analysis = new AnalysisViewModel(this);
+        LiveEvents = new LiveReportViewModel(this);
         ReportsPage = new ReportsViewModel(this);
         Sessions = new SessionsViewModel(this);
         SettingsPage = new SettingsViewModel(this);
@@ -50,6 +51,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             Overview,
             Live,
             Analysis,
+            LiveEvents,
             ReportsPage,
             Sessions
         };
@@ -86,6 +88,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public OverviewViewModel Overview { get; }
 
     public AnalysisViewModel Analysis { get; }
+
+    public LiveReportViewModel LiveEvents { get; }
 
     public ReportsViewModel ReportsPage { get; }
 

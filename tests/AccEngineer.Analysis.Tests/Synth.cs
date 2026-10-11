@@ -16,7 +16,13 @@ internal static class Synth
         bool valid = true,
         int? lastLapTimeMs = null,
         int? sectorCount = null,
-        DataQualityFlags quality = DataQualityFlags.None)
+        DataQualityFlags quality = DataQualityFlags.None,
+        float? speedKph = null,
+        float? throttle = null,
+        float? brake = null,
+        float? steering = null,
+        float[]? pressure = null,
+        float[]? coreTempC = null)
         => new()
         {
             SampleId = id,
@@ -29,7 +35,13 @@ internal static class Synth
             CurrentSectorIndex = sectorIndex,
             LastLapTimeMs = lastLapTimeMs,
             SectorCount = sectorCount,
-            Quality = quality
+            Quality = quality,
+            SpeedKph = speedKph,
+            ThrottleInput = throttle,
+            BrakeInput = brake,
+            SteeringInput = steering,
+            WheelPressure = pressure,
+            TyreCoreTempC = coreTempC
         };
 
     public static LapTimeline Timeline(int lapNumber, params (double Progress, double Time)[] points)

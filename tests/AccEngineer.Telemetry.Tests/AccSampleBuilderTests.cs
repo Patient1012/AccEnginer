@@ -280,4 +280,106 @@ public class AccSampleBuilderTests
         Assert.Equal(222.5f, sample.PositionYMeters);
         Assert.Equal(333.5f, sample.PositionZMeters);
     }
+
+    [Fact]
+    public void Build_CarsOnTrack_SkipsUnpopulatedSlots()
+    {
+        var builder = new AccSampleBuilder();
+        var coords = new float[180];
+        coords[0] = 1f;  // car 0, X
+        coords[2] = 2f;  // car 0, Z (Y left at 0)
+        // car 1 left at the origin (empty slot)
+        coords[6] = 3f;  // car 2, X
+        coords[8] = 4f;  // car 2, Z
+
+        var graphics = new AccGraphicsPage
+        {
+            Status = AccStatus.Live,
+            SessionIndex = 0,
+            CompletedLaps = 0,
+            IsValidLap = 1,
+            DistanceTraveled = 10f,
+            CarId = new[] { 7, 8, 9 },
+            CarCoordinates = coords,
+            PlayerCarId = 42,
+            ActiveCars = 3
+        };
+
+        var sample = builder.Build(default, graphics, default, T0, 0);
+
+        Assert.NotNull(sample.CarsOnTrack);
+        Assert.Equal(2, sample.CarsOnTrack!.Count);
+        Assert.Equal(new CarPosition(7, 1f, 0f, 2f), sample.CarsOnTrack[0]);
+        Assert.Equal(new CarPosition(9, 3f, 0f, 4f), sample.CarsOnTrack[1]);
+    }
+
+    [Fact]
+    public void Build_CarsOnTrack_IsNullWhenGraphicsLacksArrays()
+    {
+        var builder = new AccSampleBuilder();
+        var graphics = new AccGraphicsPage
+        {
+            Status = AccStatus.Live,
+            SessionIndex = 0,
+            CompletedLaps = 0,
+            IsValidLap = 1,
+            DistanceTraveled = 10f
+        };
+
+        var sample = builder.Build(default, graphics, default, T0, 0);
+
+        Assert.Null(sample.CarsOnTrack);
+    }
+
+    [Fact]
+    public void Build_PlayerPositionAndActiveCars_Mapped()
+    {
+        var builder = new AccSampleBuilder();
+        var graphics = new AccGraphicsPage
+        {
+            Status = AccStatus.Live,
+            SessionIndex = 0,
+            CompletedLaps = 0,
+            IsValidLap = 1,
+            DistanceTraveled = 10f,
+            Position = 5,
+            ActiveCars = 12,
+            NormalizedCarPosition = 0.42f
+        };
+
+        var sample = builder.Build(default, graphics, default, T0, 0);
+
+        Assert.Equal(5, sample.PlayerPosition);
+        Assert.Equal(12, sample.ActiveCars);
+        Assert.Equal(0.42f, sample.NormalizedCarPosition);
+    }
+
+    [Fact]
+    public void Build_ZeroActiveCars_MapsToNullAndReadsAllSlots()
+    {
+        var builder = new AccSampleBuilder();
+        var coords = new float[6];
+        coords[0] = 5f;
+        coords[2] = 6f;
+
+        var graphics = new AccGraphicsPage
+        {
+            Status = AccStatus.Live,
+            SessionIndex = 0,
+            CompletedLaps = 0,
+            IsValidLap = 1,
+            DistanceTraveled = 10f,
+            CarId = new[] { 3, 4 },
+            CarCoordinates = coords,
+            PlayerCarId = 3,
+            ActiveCars = 0
+        };
+
+        var sample = builder.Build(default, graphics, default, T0, 0);
+
+        Assert.Null(sample.ActiveCars);
+        Assert.NotNull(sample.CarsOnTrack);
+        Assert.Single(sample.CarsOnTrack!);
+        Assert.Equal(new CarPosition(3, 5f, 0f, 6f), sample.CarsOnTrack![0]);
+    }
 }

@@ -1,14 +1,15 @@
 using System.Globalization;
 using System.IO;
 using System.Text.Json;
+using AccEngineer.AI;
 
 namespace AccEngineer.UI.Services;
 
 /// <summary>
 /// User-configurable settings. Persisted as JSON under
 /// <c>%AppData%\AccEngineer\settings.json</c> so operator values stay out of the
-/// source tree (roadmap §14). No secrets are stored here; AI provider keys are
-/// not part of this milestone.
+/// source tree (roadmap §14). AI configuration is stored for convenience;
+/// provider keys are never persisted and are read from environment variables.
 /// </summary>
 public sealed class AppSettings
 {
@@ -29,7 +30,12 @@ public sealed class AppSettings
     public string? AiEndpoint { get; set; }
 
     public bool IsAiConfigured =>
-        !string.IsNullOrWhiteSpace(AiProvider) && !string.IsNullOrWhiteSpace(AiEndpoint);
+        !string.IsNullOrWhiteSpace(AiModel) &&
+        AnalysisProviderFactory.ResolveEndpoint(new AiProviderOptions
+        {
+            Provider = AiProvider,
+            Endpoint = AiEndpoint
+        }) is not null;
 
     public static string SettingsDirectory => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AccEngineer");

@@ -58,15 +58,21 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Provider" Style="{StaticResource Caption}" Margin="0,3" />
-                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding AiProviderText}" Margin="0,3" />
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Model" Style="{StaticResource Caption}" Margin="0,3" />
-                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AiModelText}" Margin="0,3" />
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Endpoint" Style="{StaticResource Caption}" Margin="0,3" />
-                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding AiEndpointText}" Margin="0,3" />
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Provider" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource InputBox}"
+                                 Text="{Binding AiProvider, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Model" VerticalAlignment="Center" Margin="0,10,0,0" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource InputBox}" Margin="0,10,0,0"
+                                 Text="{Binding AiModel, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Endpoint (optional)" VerticalAlignment="Center" Margin="0,10,0,0" />
+                        <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource InputBox}" Margin="0,10,0,0"
+                                 Text="{Binding AiEndpoint, UpdateSourceTrigger=PropertyChanged}" />
                     </Grid>
                     <TextBlock Style="{StaticResource Caption}" Margin="0,10,0,0" TextWrapping="Wrap"
-                               Text="AI integration is a later milestone. Reports are generated locally and the Copy button always works, so nothing here blocks the core workflow." />
+                               Text="Set provider to openrouter, ollama or lmstudio to infer the endpoint, or supply a full base URL. The API key is read from the ACCENGINEER_AI_API_KEY (or OPENROUTER_API_KEY) environment variable and is never saved here." />
                 </StackPanel>
             </Border>
 
@@ -75,7 +81,7 @@
                 <StackPanel>
                     <TextBlock Text="Settings file" Style="{StaticResource Caption}" />
                     <TextBlock Text="{Binding SettingsPathText}" TextWrapping="Wrap" />
-                    <TextBlock Text="ACC Engineer · aligns with the ACC Telemetry AI roadmap and UI design."
+                    <TextBlock Text="ACC Engineer aligns with the ACC Telemetry AI roadmap and UI design."
                                Style="{StaticResource Caption}" Margin="0,8,0,0" />
                 </StackPanel>
             </Border>

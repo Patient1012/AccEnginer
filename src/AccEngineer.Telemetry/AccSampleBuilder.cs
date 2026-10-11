@@ -98,6 +98,11 @@ internal sealed class AccSampleBuilder
             FuelLevel = physics.Fuel,
             PitLimiterOn = physics.PitLimiterOn != 0,
             IsInPitLane = graphics.IsInPitLane != 0,
+            PlayerPosition = graphics.Position > 0 ? graphics.Position : null,
+            NormalizedCarPosition = graphics.NormalizedCarPosition,
+            ActiveCars = graphics.ActiveCars > 0 ? graphics.ActiveCars : null,
+            PlayerCarId = graphics.PlayerCarId,
+            CarsOnTrack = BuildCarsOnTrack(graphics),
             TrackName = statics.Track,
             CarName = statics.CarModel,
             TyreCompound = graphics.TyreCompound,
@@ -200,6 +205,34 @@ internal sealed class AccSampleBuilder
 
         var offset = index * 3 + axis;
         return offset < coords.Length ? coords[offset] : null;
+    }
+
+    /// <summary>
+    /// Reads the multi-car world coordinates from the graphics page. Only cars
+    /// with a non-zero coordinate are returned; slots the game has not populated
+    /// are skipped rather than reported as real cars at the origin.
+    /// </summary>
+    private static IReadOnlyList<CarPosition>? BuildCarsOnTrack(AccGraphicsPage graphics)
+    {
+        var coords = graphics.CarCoordinates;
+        var ids = graphics.CarId;
+        if (coords is null || ids is null) return null;
+
+        var slots = Math.Min(coords.Length / 3, ids.Length);
+        var limit = graphics.ActiveCars > 0 ? Math.Min(graphics.ActiveCars, slots) : slots;
+
+        List<CarPosition>? cars = null;
+        for (var i = 0; i < limit; i++)
+        {
+            var x = coords[i * 3];
+            var y = coords[i * 3 + 1];
+            var z = coords[i * 3 + 2];
+            if (x == 0f && y == 0f && z == 0f) continue;
+
+            (cars ??= new List<CarPosition>()).Add(new CarPosition(ids[i], x, y, z));
+        }
+
+        return cars;
     }
 
     private static string NewSessionId(int sessionIndex) =>
