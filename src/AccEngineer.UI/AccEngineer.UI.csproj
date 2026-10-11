@@ -9,6 +9,8 @@
     <RootNamespace>AccEngineer.UI</RootNamespace>
     <AssemblyName>AccEngineer.UI</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>0.1.0</Version>
+    <Product>ACC Engineer</Product>
   </PropertyGroup>
 
   <ItemGroup>
