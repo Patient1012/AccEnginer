@@ -12,14 +12,12 @@ public static class Display
 
     private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
 
-    /// <summary>Formats seconds as <c>m:ss.mmm</c>, or <c>s.mmm s</c> under a minute.</summary>
+    /// <summary>Formats seconds as <c>m:ss.mmm</c> (for example <c>0:45.200</c> or <c>1:23.456</c>).</summary>
     public static string LapTime(double? seconds)
     {
         if (seconds is not { } value) return Missing;
         var span = TimeSpan.FromSeconds(value);
-        return value >= 60
-            ? $"{(int)span.TotalMinutes}:{span.Seconds:00}.{span.Milliseconds:000}"
-            : $"{value.ToString("0.000", Inv)} s";
+        return $"{(int)span.TotalMinutes}:{span.Seconds:00}.{span.Milliseconds:000}";
     }
 
     public static string LapTimeMs(int? milliseconds) =>

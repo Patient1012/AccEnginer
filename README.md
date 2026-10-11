@@ -102,6 +102,28 @@ Every finding separates the **measured observation** (a fact) from any
 **possible cause** (an interpretation). AI output is always labelled as a
 hypothesis, never as a diagnosis.
 
+## Session recordings
+
+Recordings are line-based `.jsonl` files, **gzip-compressed by default** and
+auto-detected on load, so plain and compressed files read the same way:
+
+- **Schema version 1** — verbatim per-sample JSON (still readable for old files).
+- **Schema version 2** (current) — one compact sample line per sample with
+  **relative elapsed-millisecond timestamps** (from the session start), integer
+  enum/flag values, and no repeated `sessionId` (that lives once in the header).
+
+Metadata (simulator, car, track, session type, start time) is written once as
+the header; an end record summarises sample/dropped counts when the recording is
+closed cleanly. Recordings are **never overwritten** (`CreateNew`), so a failed
+save can't damage an existing recording, and a missing end record marks an
+interrupted session. Recording is fully streamed through a bounded
+producer/consumer queue, so capture never blocks on disk I/O.
+
+Measured on a synthesized 20,000-sample session, schema v2 + gzip is roughly
+**4% of the v1 file size** (v2 without gzip alone is ~89%). A live-in-progress
+gzip file may be unreadable until it is closed (partial writes), which is
+reported rather than fatally failing a listing.
+
 ## Configuration
 
 Settings live outside the source tree at
@@ -152,6 +174,11 @@ The console app reads `ACCENGINEER_AI_PROVIDER`, `ACCENGINEER_AI_MODEL`, and
   are off by default and never contain secrets.
 - **Recordings/reports not visible** — check the directories on the Settings
   page and use the **Folder** buttons to open them.
+- **A recording shows as unreadable while it is being recorded** — gzip streams
+  are only fully readable once closed cleanly; the entry is reported as an error
+  until then and resolves when the recording completes.
+- **Old recordings** — schema-v1 recordings (including pre-compression files)
+  load unchanged; the reader detects both versions and gzip automatically.
 
 ## Roadmap status
 

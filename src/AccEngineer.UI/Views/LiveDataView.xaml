@@ -6,7 +6,7 @@
              mc:Ignorable="d"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             d:DesignHeight="700" d:DesignWidth="1000">
+             d:DesignHeight="900" d:DesignWidth="1200">
     <UserControl.Resources>
         <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
     </UserControl.Resources>
@@ -14,140 +14,480 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
         <StackPanel>
             <TextBlock Text="Live Data" Style="{StaticResource PageTitle}" />
-            <TextBlock Style="{StaticResource Caption}" Margin="0,4,0,0"
-                       Text="Latest sample from ACC shared memory. Missing values are shown as — and never invented." />
+            <TextBlock Style="{StaticResource Caption}" Margin="0,4,0,0" TextWrapping="Wrap"
+                       Text="Latest sample from ACC shared memory. Missing values are shown as — and never invented. ACC does not expose opponent timing or names, so the leaderboard order and gaps are an estimate from car positions." />
 
-            <Border Style="{StaticResource Card}" Margin="0,16,0,0"
-                    Visibility="{Binding HasData, Converter={StaticResource BoolToVis}, ConverterParameter=invert}">
-                <TextBlock Text="No live data. Start ACC and enter a session, or replay a recording from the Sessions page." />
+            <!-- Connection status strip -->
+            <Border Style="{StaticResource StatCard}" Margin="0,12,0,0" Padding="14,8">
+                <DockPanel>
+                    <TextBlock Text="{Binding LiveStatusText}" DockPanel.Dock="Right" FontWeight="Bold" FontSize="12"
+                               VerticalAlignment="Center" Margin="16,0,0,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="{DynamicResource BrushWarning}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding LiveStatusText}" Value="LIVE">
+                                        <Setter Property="Foreground" Value="{DynamicResource BrushSuccess}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock Text="{Binding StatusHintText}" Style="{StaticResource Caption}" TextWrapping="Wrap" />
+                </DockPanel>
             </Border>
 
-            <StackPanel Visibility="{Binding HasData, Converter={StaticResource BoolToVis}}">
-                <TextBlock Text="SESSION" Style="{StaticResource SectionHeader}" Margin="0,20,0,8" />
-                <UniformGrid Columns="4">
-                    <ctrl:MetricCard Label="STATE" Value="{Binding SessionStateText}" />
-                    <ctrl:MetricCard Label="LAP" Value="{Binding LapText}" Caption="validity shown below" />
-                    <ctrl:MetricCard Label="POSITION" Value="{Binding PitText}" />
-                    <ctrl:MetricCard Label="TYRE" Value="{Binding TyreCompoundText}" />
-                </UniformGrid>
+            <!-- Pit wall is always visible; values show placeholders until data arrives -->
+            <StackPanel>
 
-                <TextBlock Text="LIVE MAP" Style="{StaticResource SectionHeader}" Margin="0,16,0,8" />
-                <Border Style="{StaticResource Card}">
-                    <StackPanel>
-                        <TextBlock Text="Map data is not available for this session." Style="{StaticResource Caption}"
-                                   Visibility="{Binding HasMap, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
-                        <ctrl:TrackMap Height="360"
-                                       Visibility="{Binding HasMap, Converter={StaticResource BoolToVis}}"
-                                       Markers="{Binding MapPoints}" Path="{Binding MapPath}"
-                                       MarkerBrush="{DynamicResource BrushTextSecondary}"
-                                       PlayerBrush="{DynamicResource BrushAccent}"
-                                       PathBrush="{DynamicResource BrushBorder}" />
-                        <TextBlock Text="{Binding MapNote}" Style="{StaticResource Caption}" TextWrapping="Wrap"
-                                   Margin="0,8,0,0"
-                                   Visibility="{Binding HasMapNote, Converter={StaticResource BoolToVis}}" />
-                    </StackPanel>
+                <!-- Broadcast information bar -->
+                <Border Style="{StaticResource StatCard}" Margin="0,16,0,0" Padding="0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="3" />
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="0.85*" />
+                                <ColumnDefinition Width="0.7*" />
+                                <ColumnDefinition Width="0.8*" />
+                                <ColumnDefinition Width="0.9*" />
+                                <ColumnDefinition Width="1*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,0,1,0" Padding="14,12">
+                                <StackPanel>
+                                    <TextBlock Text="SESSION" Style="{StaticResource BannerLabel}" />
+                                    <TextBlock Text="{Binding SessionTypeText}" Style="{StaticResource BannerValue}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,0,1,0" Padding="14,12">
+                                <StackPanel>
+                                    <TextBlock Text="TRACK" Style="{StaticResource BannerLabel}" />
+                                    <TextBlock Text="{Binding TrackText}" Style="{StaticResource BannerValue}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="2" BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,0,1,0" Padding="14,12">
+                                <StackPanel>
+                                    <TextBlock Text="CAR" Style="{StaticResource BannerLabel}" />
+                                    <TextBlock Text="{Binding CarText}" Style="{StaticResource BannerValue}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="3" BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,0,1,0" Padding="14,12">
+                                <StackPanel>
+                                    <TextBlock Text="TYRE" Style="{StaticResource BannerLabel}" />
+                                    <TextBlock Text="{Binding TyreCompoundText}" Style="{StaticResource BannerValue}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="4" BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,0,1,0" Padding="14,12">
+                                <StackPanel>
+                                    <TextBlock Text="LAP" Style="{StaticResource BannerLabel}" />
+                                    <TextBlock Text="{Binding LapText}" Style="{StaticResource BannerValue}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="5" BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,0,1,0" Padding="14,12">
+                                <StackPanel>
+                                    <TextBlock Text="VALID" Style="{StaticResource BannerLabel}" />
+                                    <TextBlock Text="{Binding LapValidText}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource BannerValue}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding LapValidText}" Value="VALID">
+                                                        <Setter Property="Foreground" Value="{DynamicResource BrushSuccess}" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding LapValidText}" Value="INVALID">
+                                                        <Setter Property="Foreground" Value="{DynamicResource BrushError}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="6" BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,0,1,0" Padding="14,12">
+                                <StackPanel>
+                                    <TextBlock Text="POSITION" Style="{StaticResource BannerLabel}" />
+                                    <TextBlock Text="{Binding PositionText}" Style="{StaticResource BannerValue}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="7" Padding="14,12">
+                                <StackPanel>
+                                    <TextBlock Text="PIT" Style="{StaticResource BannerLabel}" />
+                                    <TextBlock Text="{Binding PitText}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource BannerValue}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding PitText}" Value="IN PIT">
+                                                        <Setter Property="Foreground" Value="{DynamicResource BrushWarning}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                        <Border Grid.Row="1" Background="{DynamicResource BrushAccent}" Opacity="0.85" />
+                    </Grid>
                 </Border>
 
-                <TextBlock Text="STANDINGS" Style="{StaticResource SectionHeader}" Margin="0,16,0,8" />
-                <Border Style="{StaticResource Card}">
-                    <StackPanel>
-                        <UniformGrid Columns="2">
-                            <ctrl:MetricCard Label="YOUR POSITION" Value="{Binding PositionText}" Caption="ACC-reported" />
-                            <ctrl:MetricCard Label="CARS ON TRACK" Value="{Binding ActiveCarsText}" />
-                        </UniformGrid>
-                        <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,8"
-                                   Text="ACC shared memory exposes only your position and the world coordinates of cars on track. Opponent names, gaps and lap times are not available, so any rows are ordered by distance to you, not by race order." />
-                        <TextBlock Text="No other-car data on track." Style="{StaticResource Caption}"
-                                   Visibility="{Binding HasCars, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
-                        <ItemsControl ItemsSource="{Binding Cars}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="0,2">
+                <!-- Pit wall: leaderboard + map on the left, data tiles on the right -->
+                <Grid Margin="0,16,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="340" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- LEFT: race timing tower -->
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                        <Border Style="{StaticResource StatCard}">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="RACE TIMING" Style="{StaticResource SectionHeader}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{Binding LeaderboardWindowText}"
+                                               Style="{StaticResource StatUnit}" VerticalAlignment="Center" Margin="8,0,0,8" />
+                                </Grid>
+                                <TextBlock Text="{Binding LeaderboardAccPositionText}" Style="{StaticResource TowerDriver}"
+                                           Margin="0,0,0,6" />
+                                <TextBlock Text="No cars to order yet — no data, or no other cars on track."
+                                           Style="{StaticResource Caption}"
+                                           Visibility="{Binding HasLeaderboard, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
+
+                                <StackPanel Visibility="{Binding HasLeaderboard, Converter={StaticResource BoolToVis}}">
+                                    <Grid>
                                         <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="33" />
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="70" />
+                                            <ColumnDefinition Width="70" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0" Text="{Binding Label}" />
-                                        <TextBlock Grid.Column="1" Text="{Binding DistanceText}"
-                                                   Foreground="{DynamicResource BrushTextSecondary}" />
+                                        <TextBlock Text="P" Style="{StaticResource TowerHeader}" />
+                                        <TextBlock Grid.Column="1" Text="CAR" Style="{StaticResource TowerHeader}" />
+                                        <TextBlock Grid.Column="2" Text="GAP" Style="{StaticResource TowerHeader}"
+                                                   HorizontalAlignment="Right" />
+                                        <TextBlock Grid.Column="3" Text="INT" Style="{StaticResource TowerHeader}"
+                                                   HorizontalAlignment="Right" />
                                     </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+
+                                    <ItemsControl ItemsSource="{Binding Leaderboard}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Padding="8,5" Margin="0,1,0,0" CornerRadius="4">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Background" Value="Transparent" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsPlayer}" Value="True">
+                                                                    <Setter Property="Background" Value="{DynamicResource BrushAccentDim}" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="3" />
+                                                            <ColumnDefinition Width="30" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="70" />
+                                                            <ColumnDefinition Width="70" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border Grid.Column="0" Width="3" CornerRadius="2" Margin="0,2">
+                                                            <Border.Style>
+                                                                <Style TargetType="Border">
+                                                                    <Setter Property="Background" Value="Transparent" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsPlayer}" Value="True">
+                                                                            <Setter Property="Background" Value="{DynamicResource BrushAccent}" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Border.Style>
+                                                        </Border>
+                                                        <TextBlock Grid.Column="1" Text="{Binding PositionText}"
+                                                                   Style="{StaticResource TowerPosition}" VerticalAlignment="Center" />
+                                                        <StackPanel Grid.Column="2">
+                                                            <TextBlock Text="{Binding CarText}" Style="{StaticResource TowerDriver}" />
+                                                            <TextBlock Text="{Binding CarSubText}" Style="{StaticResource StatUnit}"
+                                                                       Visibility="{Binding HasCarSub, Converter={StaticResource BoolToVis}}" />
+                                                        </StackPanel>
+                                                        <TextBlock Grid.Column="3" Text="{Binding GapText}" Style="{StaticResource TowerGap}"
+                                                                   VerticalAlignment="Center" HorizontalAlignment="Right" />
+                                                        <TextBlock Grid.Column="4" Text="{Binding IntervalText}" Style="{StaticResource TowerGap}"
+                                                                   VerticalAlignment="Center" HorizontalAlignment="Right" />
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,8,0,0"
+                                               Text="Estimated order from the last few seconds of positions: each car is projected onto your recent line and ranked by track progress, so gaps are metre estimates, not official timing. Your ACC-reported position is shown above and is the only official figure." />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Track map -->
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <TextBlock Text="LIVE MAP" Style="{StaticResource SectionHeader}" />
+                                <TextBlock Text="Map data is not available for this session." Style="{StaticResource Caption}"
+                                           Visibility="{Binding HasMap, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
+                                <ctrl:TrackMap Height="220"
+                                               Visibility="{Binding HasMap, Converter={StaticResource BoolToVis}}"
+                                               Markers="{Binding MapPoints}" Path="{Binding MapPath}"
+                                               MarkerBrush="{DynamicResource BrushTextSecondary}"
+                                               PlayerBrush="{DynamicResource BrushAccent}"
+                                               PathBrush="{DynamicResource BrushBorder}" />
+                                <TextBlock Text="{Binding MapNote}" Style="{StaticResource Caption}" TextWrapping="Wrap"
+                                           Margin="0,8,0,0"
+                                           Visibility="{Binding HasMapNote, Converter={StaticResource BoolToVis}}" />
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
-                </Border>
 
-                <TextBlock Text="LAP TIMES" Style="{StaticResource SectionHeader}" Margin="0,16,0,8" />
-                <UniformGrid Columns="3">
-                    <ctrl:MetricCard Label="CURRENT" Value="{Binding LapTimeText}" />
-                    <ctrl:MetricCard Label="LAST" Value="{Binding LastLapText}" />
-                    <ctrl:MetricCard Label="BEST" Value="{Binding BestLapText}" />
-                </UniformGrid>
+                    <!-- RIGHT: data tiles -->
+                    <StackPanel Grid.Column="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.3*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Style="{StaticResource StatCard}" Margin="0,0,8,0">
+                                <StackPanel>
+                                    <TextBlock Text="SPEED" Style="{StaticResource StatLabel}" />
+                                    <TextBlock Text="{Binding SpeedText}" Style="{StaticResource StatValueBig}"
+                                               Foreground="{DynamicResource BrushAccent}" />
+                                    <TextBlock Text="km/h" Style="{StaticResource StatUnit}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Style="{StaticResource StatCard}" Margin="8,0,8,0">
+                                <StackPanel>
+                                    <TextBlock Text="GEAR" Style="{StaticResource StatLabel}" />
+                                    <TextBlock Text="{Binding GearText}" Style="{StaticResource StatValueBig}" />
+                                    <TextBlock Text="ratio" Style="{StaticResource StatUnit}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="2" Style="{StaticResource StatCard}" Margin="8,0,8,0">
+                                <StackPanel>
+                                    <TextBlock Text="RPM" Style="{StaticResource StatLabel}" />
+                                    <TextBlock Text="{Binding RpmText}" Style="{StaticResource StatValue}" />
+                                    <TextBlock Text="engine" Style="{StaticResource StatUnit}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="3" Style="{StaticResource StatCard}" Margin="8,0,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="FUEL" Style="{StaticResource StatLabel}" />
+                                    <TextBlock Text="{Binding FuelText}" Style="{StaticResource StatValue}" />
+                                    <TextBlock Text="kg" Style="{StaticResource StatUnit}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
 
-                <TextBlock Text="DRIVING" Style="{StaticResource SectionHeader}" Margin="0,16,0,8" />
-                <UniformGrid Columns="4">
-                    <ctrl:MetricCard Label="SPEED" Value="{Binding SpeedText}" Caption="km/h" />
-                    <ctrl:MetricCard Label="GEAR" Value="{Binding GearText}" />
-                    <ctrl:MetricCard Label="RPM" Value="{Binding RpmText}" />
-                    <ctrl:MetricCard Label="STEERING" Value="{Binding SteeringText}" />
-                    <ctrl:MetricCard Label="THROTTLE" Value="{Binding ThrottleText}" Caption="%" />
-                    <ctrl:MetricCard Label="BRAKE" Value="{Binding BrakeText}" Caption="%" />
-                    <ctrl:MetricCard Label="FUEL" Value="{Binding FuelText}" Caption="kg" />
-                    <ctrl:MetricCard Label="DISTANCE" Value="{Binding DistanceText}" Caption="m" />
-                </UniformGrid>
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Style="{StaticResource StatCard}" Margin="0,0,8,0">
+                                <StackPanel>
+                                    <TextBlock Text="CURRENT" Style="{StaticResource StatLabel}" />
+                                    <TextBlock Text="{Binding LapTimeText}" Style="{StaticResource StatValue}" />
+                                    <TextBlock Text="lap time" Style="{StaticResource StatUnit}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Style="{StaticResource StatCard}" Margin="8,0,8,0">
+                                <StackPanel>
+                                    <TextBlock Text="LAST" Style="{StaticResource StatLabel}" />
+                                    <TextBlock Text="{Binding LastLapText}" Style="{StaticResource StatValue}" />
+                                    <TextBlock Text="completed lap" Style="{StaticResource StatUnit}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="2" Style="{StaticResource StatCard}" Margin="8,0,8,0">
+                                <StackPanel>
+                                    <TextBlock Text="BEST" Style="{StaticResource StatLabel}" />
+                                    <TextBlock Text="{Binding BestLapText}" Style="{StaticResource StatValue}" />
+                                    <TextBlock Text="best lap" Style="{StaticResource StatUnit}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="3" Style="{StaticResource StatCard}" Margin="8,0,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="VS BEST" Style="{StaticResource StatLabel}" />
+                                    <TextBlock Text="{Binding DeltaToBestText}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource StatValue}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsAheadOfBest}" Value="True">
+                                                        <Setter Property="Foreground" Value="{DynamicResource BrushSuccess}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock Text="to best lap" Style="{StaticResource StatUnit}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
 
-                <Border Style="{StaticResource Card}" Margin="0,4,0,0">
-                    <StackPanel>
-                        <TextBlock Text="SPEED TRACE (km/h)" Style="{StaticResource SectionHeader}" />
-                        <ctrl:TraceChart Height="110" Values="{Binding SpeedTrace}"
-                                         Minimum="0" Maximum="{Binding SpeedTraceMax}"
-                                         Stroke="{DynamicResource BrushAccent}"
-                                         Fill="{DynamicResource BrushAccent}" />
-                        <TextBlock Text="THROTTLE / BRAKE" Style="{StaticResource SectionHeader}" Margin="0,12,0,8" />
-                        <ctrl:TraceChart Height="44" Values="{Binding ThrottleTrace}"
-                                         Minimum="0" Maximum="1" Stroke="{DynamicResource BrushSuccess}" />
-                        <ctrl:TraceChart Height="44" Values="{Binding BrakeTrace}"
-                                         Minimum="0" Maximum="1" Stroke="{DynamicResource BrushError}" />
+                        <!-- Driver inputs -->
+                        <Border Style="{StaticResource StatCard}" Margin="0,8,0,0">
+                            <StackPanel>
+                                <TextBlock Text="DRIVER INPUTS" Style="{StaticResource SectionHeader}" />
+                                <DockPanel>
+                                    <TextBlock Text="{Binding ThrottleText}" DockPanel.Dock="Right"
+                                               Foreground="{DynamicResource BrushSuccess}" />
+                                    <TextBlock Text="THROTTLE" Style="{StaticResource BannerLabel}" />
+                                </DockPanel>
+                                <ProgressBar Height="14" Maximum="100" Value="{Binding ThrottlePercent, Mode=OneWay}"
+                                             Foreground="{DynamicResource BrushSuccess}"
+                                             Background="{DynamicResource BrushSurfaceAlt}" />
+                                <DockPanel Margin="0,10,0,0">
+                                    <TextBlock Text="{Binding BrakeText}" DockPanel.Dock="Right"
+                                               Foreground="{DynamicResource BrushError}" />
+                                    <TextBlock Text="BRAKE" Style="{StaticResource BannerLabel}" />
+                                </DockPanel>
+                                <ProgressBar Height="14" Maximum="100" Value="{Binding BrakePercent, Mode=OneWay}"
+                                             Foreground="{DynamicResource BrushError}"
+                                             Background="{DynamicResource BrushSurfaceAlt}" />
+
+                                <Grid Margin="0,12,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="STEERING" Style="{StaticResource StatLabel}" />
+                                        <TextBlock Text="{Binding SteeringText}" Style="{StaticResource StatValue}" FontSize="18" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="G LAT" Style="{StaticResource StatLabel}" />
+                                        <TextBlock Text="{Binding LateralAccelerationText}" Style="{StaticResource StatValue}" FontSize="18" />
+                                        <TextBlock Text="g" Style="{StaticResource StatUnit}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="G LON" Style="{StaticResource StatLabel}" />
+                                        <TextBlock Text="{Binding LongitudinalAccelerationText}" Style="{StaticResource StatValue}" FontSize="18" />
+                                        <TextBlock Text="g" Style="{StaticResource StatUnit}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="3">
+                                        <TextBlock Text="TRACK POS" Style="{StaticResource StatLabel}" />
+                                        <TextBlock Text="{Binding DistanceText}" Style="{StaticResource StatValue}" FontSize="18" />
+                                        <TextBlock Text="m" Style="{StaticResource StatUnit}" />
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Tyre telemetry matrix -->
+                        <Border Style="{StaticResource StatCard}" Margin="0,8,0,0">
+                            <StackPanel>
+                                <TextBlock Text="TYRES" Style="{StaticResource SectionHeader}" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,0,1,0" Padding="10,0">
+                                        <StackPanel>
+                                            <TextBlock Text="FL" Style="{StaticResource BannerValue}" Foreground="{DynamicResource BrushAccent}" />
+                                            <TextBlock Text="CORE" Style="{StaticResource StatLabel}" Margin="0,6,0,0" />
+                                            <TextBlock Text="{Binding TempFl}" Style="{StaticResource StatValue}" FontSize="18" />
+                                            <TextBlock Text="°C" Style="{StaticResource StatUnit}" />
+                                            <TextBlock Text="PRESS" Style="{StaticResource StatLabel}" Margin="0,8,0,0" />
+                                            <TextBlock Text="{Binding PressureFl}" Style="{StaticResource TowerGap}" />
+                                            <TextBlock Text="WEAR" Style="{StaticResource StatLabel}" Margin="0,8,0,0" />
+                                            <TextBlock Text="{Binding TyreWearFl}" Style="{StaticResource TowerGap}" />
+                                            <TextBlock Text="% worn" Style="{StaticResource StatUnit}" />
+                                            <TextBlock Text="BRAKE" Style="{StaticResource StatLabel}" Margin="0,8,0,0" />
+                                            <TextBlock Text="{Binding BrakeTempFl}" Style="{StaticResource TowerGap}" />
+                                            <TextBlock Text="°C" Style="{StaticResource StatUnit}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="1" BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,0,1,0" Padding="10,0">
+                                        <StackPanel>
+                                            <TextBlock Text="FR" Style="{StaticResource BannerValue}" Foreground="{DynamicResource BrushAccent}" />
+                                            <TextBlock Text="CORE" Style="{StaticResource StatLabel}" Margin="0,6,0,0" />
+                                            <TextBlock Text="{Binding TempFr}" Style="{StaticResource StatValue}" FontSize="18" />
+                                            <TextBlock Text="°C" Style="{StaticResource StatUnit}" />
+                                            <TextBlock Text="PRESS" Style="{StaticResource StatLabel}" Margin="0,8,0,0" />
+                                            <TextBlock Text="{Binding PressureFr}" Style="{StaticResource TowerGap}" />
+                                            <TextBlock Text="WEAR" Style="{StaticResource StatLabel}" Margin="0,8,0,0" />
+                                            <TextBlock Text="{Binding TyreWearFr}" Style="{StaticResource TowerGap}" />
+                                            <TextBlock Text="% worn" Style="{StaticResource StatUnit}" />
+                                            <TextBlock Text="BRAKE" Style="{StaticResource StatLabel}" Margin="0,8,0,0" />
+                                            <TextBlock Text="{Binding BrakeTempFr}" Style="{StaticResource TowerGap}" />
+                                            <TextBlock Text="°C" Style="{StaticResource StatUnit}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="2" BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,0,1,0" Padding="10,0">
+                                        <StackPanel>
+                                            <TextBlock Text="RL" Style="{StaticResource BannerValue}" Foreground="{DynamicResource BrushAccent}" />
+                                            <TextBlock Text="CORE" Style="{StaticResource StatLabel}" Margin="0,6,0,0" />
+                                            <TextBlock Text="{Binding TempRl}" Style="{StaticResource StatValue}" FontSize="18" />
+                                            <TextBlock Text="°C" Style="{StaticResource StatUnit}" />
+                                            <TextBlock Text="PRESS" Style="{StaticResource StatLabel}" Margin="0,8,0,0" />
+                                            <TextBlock Text="{Binding PressureRl}" Style="{StaticResource TowerGap}" />
+                                            <TextBlock Text="WEAR" Style="{StaticResource StatLabel}" Margin="0,8,0,0" />
+                                            <TextBlock Text="{Binding TyreWearRl}" Style="{StaticResource TowerGap}" />
+                                            <TextBlock Text="% worn" Style="{StaticResource StatUnit}" />
+                                            <TextBlock Text="BRAKE" Style="{StaticResource StatLabel}" Margin="0,8,0,0" />
+                                            <TextBlock Text="{Binding BrakeTempRl}" Style="{StaticResource TowerGap}" />
+                                            <TextBlock Text="°C" Style="{StaticResource StatUnit}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="3" Padding="10,0">
+                                        <StackPanel>
+                                            <TextBlock Text="RR" Style="{StaticResource BannerValue}" Foreground="{DynamicResource BrushAccent}" />
+                                            <TextBlock Text="CORE" Style="{StaticResource StatLabel}" Margin="0,6,0,0" />
+                                            <TextBlock Text="{Binding TempRr}" Style="{StaticResource StatValue}" FontSize="18" />
+                                            <TextBlock Text="°C" Style="{StaticResource StatUnit}" />
+                                            <TextBlock Text="PRESS" Style="{StaticResource StatLabel}" Margin="0,8,0,0" />
+                                            <TextBlock Text="{Binding PressureRr}" Style="{StaticResource TowerGap}" />
+                                            <TextBlock Text="WEAR" Style="{StaticResource StatLabel}" Margin="0,8,0,0" />
+                                            <TextBlock Text="{Binding TyreWearRr}" Style="{StaticResource TowerGap}" />
+                                            <TextBlock Text="% worn" Style="{StaticResource StatUnit}" />
+                                            <TextBlock Text="BRAKE" Style="{StaticResource StatLabel}" Margin="0,8,0,0" />
+                                            <TextBlock Text="{Binding BrakeTempRr}" Style="{StaticResource TowerGap}" />
+                                            <TextBlock Text="°C" Style="{StaticResource StatUnit}" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,10,0,0"
+                                           Text="Tyre pressures are shown exactly as ACC reports them (unit not documented by ACC); core temps and brake temps in °C; wear as a percentage of the race life." />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Traces -->
+                        <Border Style="{StaticResource StatCard}" Margin="0,8,0,0">
+                            <StackPanel>
+                                <TextBlock Text="SPEED TRACE (km/h)" Style="{StaticResource SectionHeader}" />
+                                <ctrl:TraceChart Height="100" Values="{Binding SpeedTrace}"
+                                                 Minimum="0" Maximum="{Binding SpeedTraceMax}"
+                                                 Stroke="{DynamicResource BrushAccent}"
+                                                 Fill="{DynamicResource BrushAccent}" />
+                                <TextBlock Text="THROTTLE / BRAKE" Style="{StaticResource SectionHeader}" Margin="0,12,0,8" />
+                                <ctrl:TraceChart Height="40" Values="{Binding ThrottleTrace}"
+                                                 Minimum="0" Maximum="1" Stroke="{DynamicResource BrushSuccess}" />
+                                <ctrl:TraceChart Height="40" Values="{Binding BrakeTrace}"
+                                                 Minimum="0" Maximum="1" Stroke="{DynamicResource BrushError}" />
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
-                </Border>
-
-                <TextBlock Text="PEDAL INPUTS" Style="{StaticResource SectionHeader}" Margin="0,16,0,8" />
-                <Border Style="{StaticResource Card}">
-                    <StackPanel>
-                        <DockPanel>
-                            <TextBlock Text="{Binding ThrottleText}" DockPanel.Dock="Right"
-                                       Foreground="{DynamicResource BrushSuccess}" />
-                            <TextBlock Text="THROTTLE" Style="{StaticResource MetricLabel}" />
-                        </DockPanel>
-                        <ProgressBar Height="18" Maximum="100" Value="{Binding ThrottlePercent, Mode=OneWay}"
-                                     Foreground="{DynamicResource BrushSuccess}"
-                                     Background="{DynamicResource BrushSurfaceAlt}" />
-                        <DockPanel Margin="0,10,0,0">
-                            <TextBlock Text="{Binding BrakeText}" DockPanel.Dock="Right"
-                                       Foreground="{DynamicResource BrushError}" />
-                            <TextBlock Text="BRAKE" Style="{StaticResource MetricLabel}" />
-                        </DockPanel>
-                        <ProgressBar Height="18" Maximum="100" Value="{Binding BrakePercent, Mode=OneWay}"
-                                     Foreground="{DynamicResource BrushError}"
-                                     Background="{DynamicResource BrushSurfaceAlt}" />
-                    </StackPanel>
-                </Border>
-
-                <TextBlock Text="TYRE PRESSURES" Style="{StaticResource SectionHeader}" Margin="0,16,0,8" />
-                <UniformGrid Columns="4">
-                    <ctrl:MetricCard Label="FL" Value="{Binding PressureFl}" Caption="unverified unit" />
-                    <ctrl:MetricCard Label="FR" Value="{Binding PressureFr}" Caption="unverified unit" />
-                    <ctrl:MetricCard Label="RL" Value="{Binding PressureRl}" Caption="unverified unit" />
-                    <ctrl:MetricCard Label="RR" Value="{Binding PressureRr}" Caption="unverified unit" />
-                </UniformGrid>
-
-                <TextBlock Text="TYRE CORE TEMPERATURES" Style="{StaticResource SectionHeader}" Margin="0,16,0,8" />
-                <UniformGrid Columns="4">
-                    <ctrl:MetricCard Label="FL" Value="{Binding TempFl}" Caption="°C" />
-                    <ctrl:MetricCard Label="FR" Value="{Binding TempFr}" Caption="°C" />
-                    <ctrl:MetricCard Label="RL" Value="{Binding TempRl}" Caption="°C" />
-                    <ctrl:MetricCard Label="RR" Value="{Binding TempRr}" Caption="°C" />
-                </UniformGrid>
+                </Grid>
             </StackPanel>
         </StackPanel>
     </ScrollViewer>

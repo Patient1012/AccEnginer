@@ -59,5 +59,11 @@ public sealed record SessionRecording
 
 public static class RecordingSchema
 {
-    public const int Version = 1;
+    /// <summary>
+    /// 1 = verbatim per-sample JSONL (full <c>TelemetrySample</c> objects).
+    /// 2 = compact sample encoding: relative elapsed-ms timestamps, integer
+    /// enum/flag values, and no per-sample <c>sessionId</c> (held in the header).
+    /// The loader transparently accepts both and auto-detects gzip compression.
+    /// </summary>
+    public const int Version = 2;
 }

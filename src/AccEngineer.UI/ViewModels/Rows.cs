@@ -127,6 +127,56 @@ public sealed class CarRow
 }
 
 /// <summary>
+/// One row of the race timing tower shown on the Live Data page. ACC shared memory
+/// exposes only each car's id and world coordinates (no names, gaps or lap times),
+/// so the order and the gaps are an estimate: each car's position is projected onto
+/// the player's recent line and compared by track progress metres.
+/// </summary>
+public sealed class LeaderboardRowViewModel
+{
+    public LeaderboardRowViewModel(
+        int towerPosition,
+        int carId,
+        bool isPlayer,
+        double? gapToLeaderMeters,
+        double? intervalToPreviousMeters)
+    {
+        TowerPosition = towerPosition;
+        CarId = carId;
+        IsPlayer = isPlayer;
+        GapToLeaderMeters = gapToLeaderMeters;
+        IntervalToPreviousMeters = intervalToPreviousMeters;
+    }
+
+    /// <summary>1-based estimated running position (P1, P2, ...).</summary>
+    public int TowerPosition { get; }
+
+    public int CarId { get; }
+
+    public bool IsPlayer { get; }
+
+    public double? GapToLeaderMeters { get; }
+
+    public double? IntervalToPreviousMeters { get; }
+
+    public string PositionText => $"P{TowerPosition}";
+
+    public string CarText => IsPlayer ? "YOU" : CarId > 0 ? $"CAR {CarId}" : "CAR";
+
+    public string CarSubText => IsPlayer && CarId > 0 ? $"car id {CarId}" : string.Empty;
+
+    public bool HasCarSub => !string.IsNullOrEmpty(CarSubText);
+
+    public string GapText => TowerPosition == 1 ? "—" : GapToLeaderMeters is { } gap
+        ? $"+{gap.ToString("0", CultureInfo.InvariantCulture)} m"
+        : Display.Missing;
+
+    public string IntervalText => TowerPosition == 1 ? "—" : IntervalToPreviousMeters is { } interval
+        ? $"+{interval.ToString("0", CultureInfo.InvariantCulture)} m"
+        : Display.Missing;
+}
+
+/// <summary>
 /// One deterministic driving finding. The measured observation is shown plainly;
 /// any interpretation is labelled and shown separately so a hypothesis is never
 /// mistaken for a diagnosis. An AI interpretation can be requested per finding;

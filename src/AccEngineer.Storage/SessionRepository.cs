@@ -1,12 +1,18 @@
+using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 
 namespace AccEngineer.Storage;
 
 /// <summary>
-/// Loads JSONL session recordings produced by <see cref="JsonlSessionRecorder"/>.
-/// Tolerant of a truncated final line (interrupted session), which is counted in
-/// <see cref="SessionRecording.SkippedRecordCount"/> rather than failing the load.
+/// Loads session recordings produced by <see cref="JsonlSessionRecorder"/>.
+/// Supports both schema versions: v1 (<c>{"type":"sample","sample":{...}}</c>)
+/// and v2 (compact sample objects with relative timestamps). gzip compression is
+/// auto-detected by magic bytes, so uncompressed and compressed files load the
+/// same way. Tolerant of a truncated final line (interrupted session), which is
+/// counted in <see cref="SessionRecording.SkippedRecordCount"/> rather than
+/// failing the load. During recording, a partially written gzip stream may be
+/// unreadable until the recording is closed cleanly.
 ///
 /// Note: entire recordings are loaded into memory. At the intended capture rates
 /// this is small; streaming access can be added when multi-hour sessions or the
@@ -64,7 +70,9 @@ public sealed class SessionRepository
                         metadata = root.GetProperty("metadata").Deserialize<SessionMetadata>(TelemetryJson.Options);
                         break;
                     case "sample":
-                        var sample = root.GetProperty("sample").Deserialize<Telemetry.TelemetrySample>(TelemetryJson.Options);
+                        var sample = root.TryGetProperty("sample", out _)
+                            ? root.GetProperty("sample").Deserialize<Telemetry.TelemetrySample>(TelemetryJson.Options)
+                            : root.Deserialize<CompactSample>(TelemetryJson.Options)?.ToFull(RequireMetadata(metadata, lineNumber, path));
                         if (sample is not null) samples.Add(sample);
                         break;
                     case "end":
@@ -97,10 +105,30 @@ public sealed class SessionRepository
 
     /// <summary>
     /// Opens a recording for reading with <see cref="FileShare.ReadWrite"/> so a
-    /// session can be inspected while it is still being recorded.
+    /// session can be inspected while it is still being recorded. gzip files are
+    /// detected by their magic bytes and decompressed transparently.
     /// </summary>
-    private static StreamReader OpenReader(string path) =>
-        new(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite), Encoding.UTF8);
+    private static StreamReader OpenReader(string path)
+    {
+        Stream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        if (IsGzip(stream))
+        {
+            stream = new GZipStream(stream, CompressionMode.Decompress);
+        }
+
+        return new StreamReader(stream, Encoding.UTF8);
+    }
+
+    private static bool IsGzip(Stream stream)
+    {
+        Span<byte> magic = stackalloc byte[2];
+        var read = stream.Read(magic);
+        if (stream.CanSeek) stream.Position = 0;
+        return read == 2 && magic[0] == 0x1F && magic[1] == 0x8B;
+    }
+
+    private static SessionMetadata RequireMetadata(SessionMetadata? metadata, int lineNumber, string path) =>
+        metadata ?? throw new InvalidDataException($"Sample seen before session header (line {lineNumber}): {path}");
 
     private static SessionMetadata? TryParseMetadata(string line)
     {

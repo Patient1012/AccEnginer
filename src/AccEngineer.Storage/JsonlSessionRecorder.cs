@@ -1,8 +1,16 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.IO.Compression;
 using System.Text.Json;
 
 namespace AccEngineer.Storage;
+
+/// <summary>Compression applied to the recording stream. gzip is auto-detected when loading.</summary>
+public enum RecordingCompression
+{
+    None = 0,
+    Gzip = 1
+}
 
 public sealed class SessionRecorderOptions
 {
@@ -15,13 +23,18 @@ public sealed class SessionRecorderOptions
 
     /// <summary>How often buffered samples are flushed to disk.</summary>
     public TimeSpan FlushInterval { get; init; } = TimeSpan.FromMilliseconds(250);
+
+    /// <summary>Compression applied around the recording stream (default: gzip).</summary>
+    public RecordingCompression Compression { get; init; } = RecordingCompression.Gzip;
 }
 
 /// <summary>
-/// Append-only JSONL session recorder. Each recording is a text file of records:
-/// one <c>{"type":"session",...}</c> header, one <c>{"type":"sample",...}</c> line
-/// per telemetry sample in capture order, and one <c>{"type":"end",...}</c>
-/// summary written when the recording is closed cleanly.
+/// Append-only session recorder. A recording is a text stream of records —
+/// one <c>{"type":"session",...}</c> header, one compact sample line per telemetry
+/// sample in capture order, and one <c>{"type":"end",...}</c> summary written when
+/// the recording is closed cleanly. Samples are encoded with the compact
+/// schema-version-2 representation (relative timestamps, integer enums) and the
+/// stream is gzip-compressed by default.
 ///
 /// A dedicated writer thread drains a bounded queue, so capture is never blocked:
 /// when the queue is full, samples are dropped and counted rather than stalling
@@ -57,12 +70,20 @@ public sealed class JsonlSessionRecorder : ISessionRecorder
         FilePath = SessionPaths.ResolveUniquePath(options.Directory, metadata.StartedAtUtc, metadata.SessionId);
 
         _queue = new BlockingCollection<Telemetry.TelemetrySample>(options.QueueCapacity);
-        _writer = new StreamWriter(new FileStream(
+
+        var fileStream = new FileStream(
             FilePath,
             FileMode.CreateNew,
             FileAccess.Write,
             FileShare.Read,
-            bufferSize: 1 << 16));
+            bufferSize: 1 << 16);
+        Stream baseStream = fileStream;
+        if (options.Compression == RecordingCompression.Gzip)
+        {
+            baseStream = new GZipStream(baseStream, CompressionLevel.Optimal);
+        }
+
+        _writer = new StreamWriter(baseStream);
         _writer.NewLine = "\n";
 
         WriteHeader();
@@ -175,9 +196,9 @@ public sealed class JsonlSessionRecorder : ISessionRecorder
 
     private void WriteSample(Telemetry.TelemetrySample sample)
     {
-        _writer.Write("{\"type\":\"sample\",\"sample\":");
-        _writer.Write(JsonSerializer.Serialize(sample, TelemetryJson.Options));
-        _writer.Write("}\n");
+        var body = JsonSerializer.Serialize(CompactSample.From(sample, Metadata.StartedAtUtc), TelemetryJson.Options);
+        var inner = body.Length >= 2 ? body[1..^1] : body;
+        _writer.Write("{\"type\":\"sample\"," + inner + "}\n");
         Interlocked.Increment(ref _written);
     }
 
