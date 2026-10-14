@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Windows.Media;
 using AccEngineer.Telemetry;
 using AccEngineer.UI.Services;
 
@@ -94,41 +93,10 @@ public sealed class RelativePanelViewModel : OverlayPanelViewModel
                 IsPlayer = entry.IsPlayer,
                 Position = i + 1,
                 GapText = gap is { } g ? g.ToString("0", CultureInfo.InvariantCulture) + " m" : "--",
-                Stripe = CarColour(entry.CarId)
+                Stripe = CarColour.ForCar(entry.CarId)
             });
         }
 
         OnAllPropertiesChanged();
-    }
-
-    /// <summary>
-    /// Stable per-car colour derived from the car id. ACC supplies no class/driver
-    /// colours, so we generate a consistent one per id to keep identity readable.
-    /// </summary>
-    private static SolidColorBrush CarColour(int carId)
-    {
-        var hue = (carId * 47) % 360;
-        var brush = new SolidColorBrush(HsvToRgb(hue / 360.0, 0.55, 0.85));
-        brush.Freeze();
-        return brush;
-    }
-
-    private static System.Windows.Media.Color HsvToRgb(double h, double s, double v)
-    {
-        var i = (int)(h * 6);
-        var f = (h * 6) - i;
-        var p = v * (1 - s);
-        var q = v * (1 - (f * s));
-        var t = v * (1 - ((1 - f) * s));
-        var (r, g, b) = (i % 6) switch
-        {
-            0 => (v, t, p),
-            1 => (q, v, p),
-            2 => (p, v, t),
-            3 => (p, q, v),
-            4 => (t, p, v),
-            _ => (v, p, q)
-        };
-        return System.Windows.Media.Color.FromRgb((byte)(r * 255), (byte)(g * 255), (byte)(b * 255));
     }
 }

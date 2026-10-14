@@ -1,0 +1,53 @@
+<UserControl x:Class="AccEngineer.UI.Overlay.Panels.TrackMapOverlayPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:oc="clr-namespace:AccEngineer.UI.Overlay.Controls"
+             xmlns:ctl="clr-namespace:AccEngineer.UI.Controls">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
+
+    <!-- Top-down map: cached static outline + live car markers. -->
+    <Border Style="{StaticResource OverlayPanelBorder}">
+        <Grid Margin="6,4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="3" Background="{StaticResource OverlayAccentBrush}" Margin="0,0,6,0" />
+                    <TextBlock Text="MAP" Style="{StaticResource OverlayHeader}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding TrackText}" Margin="8,0,0,0"
+                               Style="{StaticResource OverlayCellMuted}" VerticalAlignment="Center" />
+                </StackPanel>
+                <oc:OverlayStatusIndicator Grid.Column="1" Text="{Binding StatusText}" IsActive="{Binding IsLive}" />
+            </Grid>
+
+            <Rectangle Grid.Row="1" Style="{StaticResource OverlaySeparator}" Margin="0,2,0,2" />
+
+            <!-- The shared TrackMap control: fit against the cached outline so live
+                 markers never shift the transform. -->
+            <ctl:TrackMap Grid.Row="2"
+                          MinHeight="120"
+                          FitPath="{Binding Outline}"
+                          Path="{Binding Outline}"
+                          Markers="{Binding Markers}"
+                          PathBrush="{StaticResource OverlayMutedBrush}"
+                          MarkerBrush="{StaticResource OverlayWarningBrush}"
+                          PlayerBrush="{StaticResource OverlayAccentBrush}" />
+
+            <TextBlock Grid.Row="3" Text="{Binding NoteText}" Margin="0,3,0,0" TextWrapping="Wrap"
+                       Style="{StaticResource OverlayCellMuted}"
+                       Visibility="{Binding HasNote, Converter={StaticResource BoolToVis}}" />
+        </Grid>
+    </Border>
+</UserControl>

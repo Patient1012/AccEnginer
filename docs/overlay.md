@@ -62,9 +62,9 @@ and synthetic demo data so the layout can be tuned without ACC.
   player's recent racing line (gaps in **metres, estimates**).
 - `Overlay/OverlayPanelWindow.cs` - generic host wrapping a panel control with the
   shared edit outline, drag and resize grip.
-- `Overlay/OverlayManager.cs` - now multi-panel (`timing`, `relative`, `inputs`, `test`)
-  with demo-mode swap, `Panels`, `AnyVisible` / `AnyEditing`, `ToggleAll` / `ShowAll` /
-  `HideAll` / `ToggleEditAll` / `TogglePanel(id)` / `ResetToDefault`.
+- `Overlay/OverlayManager.cs` - now multi-panel (`timing`, `relative`, `inputs`, `map`,
+  `test`) with demo-mode swap, `Panels`, `AnyVisible` / `AnyEditing`, `ToggleAll` /
+  `ShowAll` / `HideAll` / `ToggleEditAll` / `TogglePanel(id)` / `ResetToDefault`.
 
 ### Data-availability note
 
@@ -73,7 +73,7 @@ For cars other than the player the graphics page only exposes `CarCoordinates` a
 panel therefore orders cars by projecting them onto the player's recent line and
 labels the gaps as estimates. Ground plane is X-Z.
 
-## Phase 4 - inputs / gear panel (current)
+## Phase 4 - inputs / gear panel
 
 - `Overlay/Panels/InputsPanelViewModel.cs` + `InputsOverlayPanel.xaml(.cs)` - gear badge,
   speed and RPM headline plus throttle, brake and steering readouts (bars + values) and
@@ -85,6 +85,30 @@ labels the gaps as estimates. Ground plane is X-Z.
 - Uses the central `Services/Display` formatter for units (no hard-coded assumptions).
 - `Themes/OverlayClassic.xaml` gains throttle/brake/steering brushes.
 - Registered in `OverlayManager` as panel `inputs` (default 300,40 240x210, hidden).
+
+## Phase 5 - track map (current)
+
+There is no official track-outline source in the shared-memory API, so the static
+outline is **built from the player's own driven line** and cached separately from the
+live car markers (rebuilt every tick). All positions go through one calibration
+transform so markers stay aligned to the outline.
+
+- `Services/TrackMapCalibration.cs` - pure (WPF-free) world-to-map fit returning a
+  uniform scale + offset; a `FitPath` on the control keeps the transform fixed while
+  markers move (no fit jitter). Unit tested in `tests/AccEngineer.UI.Tests`.
+- `Services/CarColour.cs` - shared stable per-car colour, now used by both the relative
+  panel and the map.
+- `Controls/TrackMap.cs` - gained optional per-marker brushes and `FitPath`; existing
+  binding shape is unchanged.
+- `Overlay/Panels/TrackMapViewModel.cs` + `TrackMapOverlayPanel.xaml(.cs)` - cached
+  outline (downsampled to <= 600 points, refreshed ~1 s) plus per-tick markers; the
+  player marker uses the distinct player brush, opponents their stable colour.
+- Honest empty states: unknown track / waiting for movement ("outline unavailable"),
+  no other cars, and no-signal.
+- Registered in `OverlayManager` as panel `map` (default 560,40 250x250, hidden).
+
+> Note: ACC does not flag pit lane in the exposed data, so the map does not attempt to
+> distinguish pit state; it would be shown as a normal position.
 
 ## Controls
 

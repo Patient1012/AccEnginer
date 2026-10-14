@@ -1,10 +1,15 @@
 using System.Windows;
 using System.Windows.Media;
+using AccEngineer.UI.Services;
 
 namespace AccEngineer.UI.Controls;
 
-/// <summary>One point on the live map (world X/Z) and whether it is the player.</summary>
-public readonly record struct MapPoint(double X, double Z, bool IsPlayer);
+/// <summary>
+/// One point on the live map (world X/Z) and whether it is the player. An optional
+/// per-marker brush lets callers give each car a stable colour; when omitted the
+/// control's shared marker/player brushes are used.
+/// </summary>
+public readonly record struct MapPoint(double X, double Z, bool IsPlayer, Brush? Brush = null);
 
 /// <summary>
 /// Lightweight top-down map of the cars currently on track. Draws only the points
@@ -19,6 +24,15 @@ public sealed class TrackMap : FrameworkElement
 
     public static readonly DependencyProperty PathProperty = DependencyProperty.Register(
         nameof(Path), typeof(IEnumerable<MapPoint>), typeof(TrackMap),
+        new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    /// <summary>
+    /// Optional geometry used only for fitting. Set it to the cached static outline so
+    /// the transform stays fixed while live markers move (avoids fit jitter). When null
+    /// the fit uses <see cref="Path"/> plus <see cref="Markers"/>.
+    /// </summary>
+    public static readonly DependencyProperty FitPathProperty = DependencyProperty.Register(
+        nameof(FitPath), typeof(IEnumerable<MapPoint>), typeof(TrackMap),
         new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty MarkerBrushProperty = DependencyProperty.Register(
@@ -43,6 +57,12 @@ public sealed class TrackMap : FrameworkElement
     {
         get => (IEnumerable<MapPoint>?)GetValue(PathProperty);
         set => SetValue(PathProperty, value);
+    }
+
+    public IEnumerable<MapPoint>? FitPath
+    {
+        get => (IEnumerable<MapPoint>?)GetValue(FitPathProperty);
+        set => SetValue(FitPathProperty, value);
     }
 
     public Brush MarkerBrush
@@ -73,86 +93,56 @@ public sealed class TrackMap : FrameworkElement
 
         var markers = Markers as IReadOnlyList<MapPoint> ?? Markers?.ToArray() ?? Array.Empty<MapPoint>();
         var path = Path as IReadOnlyList<MapPoint> ?? Path?.ToArray() ?? Array.Empty<MapPoint>();
-        if (markers.Count == 0 && Path is null) return;
+        if (markers.Count == 0 && path.Count == 0) return;
 
-        var minX = double.PositiveInfinity;
-        var maxX = double.NegativeInfinity;
-        var minZ = double.PositiveInfinity;
-        var maxZ = double.NegativeInfinity;
-
-        void Extend(double x, double z)
+        // Fit against the cached static outline when supplied so live markers moving
+        // does not shift the transform (no jitter); otherwise fit everything.
+        var fitSource = FitPath as IReadOnlyList<MapPoint> ?? FitPath?.ToArray();
+        var fitPoints = new List<(double X, double Z)>();
+        if (fitSource is { Count: > 0 })
         {
-            if (x < minX) minX = x;
-            if (x > maxX) maxX = x;
-            if (z < minZ) minZ = z;
-            if (z > maxZ) maxZ = z;
+            foreach (var p in fitSource) fitPoints.Add((p.X, p.Z));
+        }
+        else
+        {
+            foreach (var p in path) fitPoints.Add((p.X, p.Z));
+            foreach (var m in markers) fitPoints.Add((m.X, m.Z));
         }
 
-        foreach (var p in Path ?? Array.Empty<MapPoint>())
+        var calibration = TrackMapCalibration.TryCreate(fitPoints, width, height);
+        if (calibration is not { } map) return;
+
+        System.Windows.Point Project(double x, double z)
         {
-            if (double.IsNaN(p.X) || double.IsNaN(p.Z)) continue;
-            Extend(p.X, p.Z);
+            var c = map.Project(x, z);
+            return new System.Windows.Point(c.X, c.Y);
         }
 
-        foreach (var m in Markers ?? Array.Empty<MapPoint>())
+        if (path.Count >= 2)
         {
-            Extend(m.X, m.Z);
-        }
-
-        if (double.IsInfinity(minX) || double.IsInfinity(minZ)) return;
-
-        var spanX = Math.Max(Max(50, maxX - minX), 1);
-        var spanZ = Math.Max(maxZ - minZ, 1);
-        const double pad = 8.0;
-
-        var scale = Math.Min(
-            (width - pad * 2) / spanX,
-            (height - pad * 2) / spanZ);
-
-        if (double.IsNaN(scale) || double.IsInfinity(scale) || scale <= 0)
-        {
-            scale = 1;
-        }
-
-        var offsetX = (width - spanX * scale) / 2.0 - minX * scale;
-        var offsetY = (height - spanZ * scale) / 2.0 - minZ * scale;
-
-        Point Map(double x, double z) => new(x * scale + offsetX, z * scale + offsetY);
-
-        if (Path is { } pathEnum)
-        {
-            var pathList = pathEnum as IReadOnlyList<MapPoint> ?? pathEnum.ToArray();
-            if (pathList.Count >= 2)
+            var geometry = new StreamGeometry();
+            using (var context = geometry.Open())
             {
-                var geometry = new StreamGeometry();
-                using (var context = geometry.Open())
+                var start = Project(path[0].X, path[0].Z);
+                context.BeginFigure(start, isFilled: false, isClosed: false);
+                for (var i = 1; i < path.Count; i++)
                 {
-                    var start = Map(pathList[0].X, pathList[0].Z);
-                    context.BeginFigure(start, isFilled: false, isClosed: false);
-                    for (var i = 1; i < pathList.Count; i++)
-                    {
-                        context.LineTo(Map(pathList[i].X, pathList[i].Z), isStroked: true, isSmoothJoin: true);
-                    }
+                    context.LineTo(Project(path[i].X, path[i].Z), isStroked: true, isSmoothJoin: true);
                 }
-
-                geometry.Freeze();
-                var pen = new Pen(PathBrush, 1.5);
-                pen.Freeze();
-                dc.DrawGeometry(null, pen, geometry);
             }
+
+            geometry.Freeze();
+            var pen = new Pen(PathBrush, 1.5);
+            pen.Freeze();
+            dc.DrawGeometry(null, pen, geometry);
         }
 
-        if (Markers is { } markerEnum)
+        foreach (var marker in markers)
         {
-            foreach (var marker in markerEnum)
-            {
-                var point = Map(marker.X, marker.Z);
-                var brush = marker.IsPlayer ? PlayerBrush : MarkerBrush;
-                var radius = marker.IsPlayer ? 6.0 : 4.0;
-                dc.DrawEllipse(brush, null, point, radius, radius);
-            }
+            var point = Project(marker.X, marker.Z);
+            var brush = marker.Brush ?? (marker.IsPlayer ? PlayerBrush : MarkerBrush);
+            var radius = marker.IsPlayer ? 6.0 : 4.0;
+            dc.DrawEllipse(brush, null, point, radius, radius);
         }
     }
-
-    private static double Max(double a, double b) => a > b ? a : b;
 }

@@ -221,6 +221,16 @@ public sealed class OverlayManager : IDisposable
             ViewModel = inputsVm
         });
 
+        // Track map block.
+        var mapVm = new TrackMapViewModel(_source);
+        _panels.Add(new PanelHost
+        {
+            Id = "map",
+            Title = "Track Map",
+            Window = new OverlayPanelWindow("map", "ACC Engineer - Track Map", new TrackMapOverlayPanel { DataContext = mapVm }, DefaultState("map")),
+            ViewModel = mapVm
+        });
+
         // Legacy Phase 1 test panel (kept available; hidden by default).
         var testVm = new TestPanelViewModel(_source);
         _panels.Add(new PanelHost
@@ -293,6 +303,7 @@ public sealed class OverlayManager : IDisposable
         "timing" => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 40, Width = 260, Height = 158, Opacity = 0.92 },
         "relative" => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 210, Width = 232, Height = 178, Opacity = 0.92 },
         "inputs" => new OverlayPanelState { Id = id, Visible = false, X = 300, Y = 40, Width = 240, Height = 210, Opacity = 0.92 },
+        "map" => new OverlayPanelState { Id = id, Visible = false, X = 560, Y = 40, Width = 250, Height = 250, Opacity = 0.92 },
         _ => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 400, Width = 300, Height = 230, Opacity = 0.92 }
     };
 }
