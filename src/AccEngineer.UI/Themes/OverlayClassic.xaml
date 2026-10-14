@@ -16,6 +16,13 @@
     <SolidColorBrush x:Key="OverlayAccentBrush" Color="#FFB7F34A" />
     <SolidColorBrush x:Key="OverlaySuccessBrush" Color="#FF63D67F" />
     <SolidColorBrush x:Key="OverlayWarningBrush" Color="#FFE7C34A" />
+    <SolidColorBrush x:Key="OverlayFlagBlueBrush" Color="#FF4FA3FF" />
+    <SolidColorBrush x:Key="OverlayFlagYellowBrush" Color="#FFE7C34A" />
+    <SolidColorBrush x:Key="OverlayFlagRedBrush" Color="#FFE4574C" />
+    <SolidColorBrush x:Key="OverlayFlagGreenBrush" Color="#FF63D67F" />
+    <SolidColorBrush x:Key="OverlayFlagWhiteBrush" Color="#FFF5F5F5" />
+    <SolidColorBrush x:Key="OverlayFlagBlackBrush" Color="#FF9AA0A6" />
+    <SolidColorBrush x:Key="OverlayFlagCheckeredBrush" Color="#B3B7F34A" />
     <FontFamily x:Key="OverlayValueFont">Consolas</FontFamily>
 
     <Style x:Key="OverlayPanelBorder" TargetType="Border">

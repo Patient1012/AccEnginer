@@ -332,6 +332,56 @@ public class AccSampleBuilderTests
     }
 
     [Fact]
+    public void Build_MapsConditionAndFlagFields()
+    {
+        var builder = new AccSampleBuilder();
+        var physics = new AccPhysicsPage { AirTemp = 24.5f, RoadTemp = 31.2f };
+        var graphics = new AccGraphicsPage
+        {
+            Status = AccStatus.Live,
+            SessionIndex = 0,
+            CompletedLaps = 0,
+            IsValidLap = 1,
+            DistanceTraveled = 10f,
+            SurfaceGrip = 0.97f,
+            RainTyres = 1,
+            Flag = 2 // yellow
+        };
+
+        var sample = builder.Build(physics, graphics, default, T0, 0);
+
+        Assert.Equal(24.5f, sample.AirTempC);
+        Assert.Equal(31.2f, sample.TrackTempC);
+        Assert.Equal(0.97f, sample.SurfaceGrip);
+        Assert.True(sample.RainTyresOn);
+        Assert.Equal(SessionFlag.Yellow, sample.Flag);
+    }
+
+    [Theory]
+    [InlineData(0, SessionFlag.None)]
+    [InlineData(1, SessionFlag.Blue)]
+    [InlineData(6, SessionFlag.Red)]
+    [InlineData(7, SessionFlag.Green)]
+    [InlineData(99, SessionFlag.Unknown)]
+    public void Build_FlagValue_MapsToEnum(int raw, SessionFlag expected)
+    {
+        var builder = new AccSampleBuilder();
+        var graphics = new AccGraphicsPage
+        {
+            Status = AccStatus.Live,
+            SessionIndex = 0,
+            CompletedLaps = 0,
+            IsValidLap = 1,
+            DistanceTraveled = 10f,
+            Flag = raw
+        };
+
+        var sample = builder.Build(default, graphics, default, T0, 0);
+
+        Assert.Equal(expected, sample.Flag);
+    }
+
+    [Fact]
     public void Build_PlayerPositionAndActiveCars_Mapped()
     {
         var builder = new AccSampleBuilder();

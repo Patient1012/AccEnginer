@@ -163,6 +163,25 @@ public sealed record TelemetrySample
 
     public bool? IsInPitLane { get; init; }
 
+    /// <summary>Ambient air temperature in degrees Celsius (physics page <c>airTemp</c>).</summary>
+    public float? AirTempC { get; init; }
+
+    /// <summary>Track surface (road) temperature in degrees Celsius (physics page <c>roadTemp</c>).</summary>
+    public float? TrackTempC { get; init; }
+
+    /// <summary>
+    /// Track surface grip factor (graphics page <c>surfaceGrip</c>). The scale is
+    /// simulator-defined and is not asserted here; some ACC versions report a constant
+    /// value, so consumers must not treat it as a precise wetness measurement.
+    /// </summary>
+    public float? SurfaceGrip { get; init; }
+
+    /// <summary>Whether the player has wet-weather tyres fitted (graphics page <c>rainTyres</c>).</summary>
+    public bool RainTyresOn { get; init; }
+
+    /// <summary>Current session flag (graphics page <c>flag</c>).</summary>
+    public SessionFlag Flag { get; init; } = SessionFlag.Unknown;
+
     public string? TrackName { get; init; }
 
     public string? CarName { get; init; }
@@ -197,6 +216,23 @@ public enum SessionState
     Replay = 2,
     Live = 3,
     Pause = 4
+}
+
+/// <summary>
+/// Session flag as reported by ACC (graphics page <c>flag</c>). Values follow the
+/// shared-memory flag enumeration; unrecognised values map to <see cref="Unknown"/>.
+/// </summary>
+public enum SessionFlag
+{
+    Unknown = -1,
+    None = 0,
+    Blue = 1,
+    Yellow = 2,
+    Black = 3,
+    White = 4,
+    Checkered = 5,
+    Red = 6,
+    Green = 7
 }
 
 [Flags]

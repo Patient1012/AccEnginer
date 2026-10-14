@@ -1,0 +1,62 @@
+<UserControl x:Class="AccEngineer.UI.Overlay.Panels.ConditionsOverlayPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:oc="clr-namespace:AccEngineer.UI.Overlay.Controls"
+             xmlns:conv="clr-namespace:AccEngineer.UI.Converters">
+    <UserControl.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
+    <Border Style="{StaticResource OverlayPanelBorder}">
+        <Grid Margin="6,4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,2">
+                <Border Width="3" Background="{StaticResource OverlayAccentBrush}" Margin="0,0,6,0" />
+                <TextBlock Text="CONDITIONS" Style="{StaticResource OverlayHeader}" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding TrackText}" Margin="8,0,0,0"
+                           Style="{StaticResource OverlayCellMuted}" VerticalAlignment="Center" />
+            </StackPanel>
+            <oc:OverlayStatusIndicator Grid.Row="0" Grid.Column="1"
+                                       Text="{Binding StatusText}"
+                                       IsActive="{Binding IsLive}" />
+
+            <Rectangle Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource OverlaySeparator}"
+                       Margin="0,2,0,2" />
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="SESSION" Style="{StaticResource OverlayLabel}" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SessionText}" Style="{StaticResource OverlayCellMono}" />
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="AIR TEMP" Style="{StaticResource OverlayLabel}" />
+            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding AirTempText}" Style="{StaticResource OverlayCellMono}" />
+
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="TRACK TEMP" Style="{StaticResource OverlayLabel}" />
+            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding TrackTempText}" Style="{StaticResource OverlayCellMono}" />
+
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="GRIP" Style="{StaticResource OverlayLabel}" />
+            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding GripText}" Style="{StaticResource OverlayCellMono}" />
+
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="TYRES" Style="{StaticResource OverlayLabel}" />
+            <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding TyresText}" Style="{StaticResource OverlayCellMono}" />
+
+            <TextBlock Grid.Row="7" Grid.Column="0" Text="FLAG" Style="{StaticResource OverlayLabel}" />
+            <Border Grid.Row="7" Grid.Column="1" Background="{Binding FlagBrush}" CornerRadius="1" Padding="4,0"
+                    Visibility="{Binding FlagText, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="{Binding FlagText}" Style="{StaticResource OverlayCellMono}" />
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

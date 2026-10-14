@@ -96,6 +96,11 @@ internal sealed class AccSampleBuilder
             TyreWear = physics.TyreWear,
             BrakeTempC = physics.BrakeTemp,
             FuelLevel = physics.Fuel,
+            AirTempC = physics.AirTemp,
+            TrackTempC = physics.RoadTemp,
+            SurfaceGrip = graphics.SurfaceGrip,
+            RainTyresOn = graphics.RainTyres != 0,
+            Flag = MapFlag(graphics.Flag),
             PitLimiterOn = physics.PitLimiterOn != 0,
             IsInPitLane = graphics.IsInPitLane != 0,
             PlayerPosition = graphics.Position > 0 ? graphics.Position : null,
@@ -259,5 +264,19 @@ internal sealed class AccSampleBuilder
         AccStatus.Live => SessionState.Live,
         AccStatus.Pause => SessionState.Pause,
         _ => SessionState.Unknown
+    };
+
+    /// <summary>Maps the raw ACC flag value; unknown values are reported as Unknown.</summary>
+    private static SessionFlag MapFlag(int flag) => flag switch
+    {
+        0 => SessionFlag.None,
+        1 => SessionFlag.Blue,
+        2 => SessionFlag.Yellow,
+        3 => SessionFlag.Black,
+        4 => SessionFlag.White,
+        5 => SessionFlag.Checkered,
+        6 => SessionFlag.Red,
+        7 => SessionFlag.Green,
+        _ => SessionFlag.Unknown
     };
 }

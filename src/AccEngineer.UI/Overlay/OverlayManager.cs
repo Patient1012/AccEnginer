@@ -403,6 +403,16 @@ public sealed class OverlayManager : IDisposable
             Configurable = mapVm
         });
 
+        // Conditions panel.
+        var conditionsVm = new ConditionsPanelViewModel(_source);
+        _panels.Add(new PanelHost
+        {
+            Id = "conditions",
+            Title = "Conditions",
+            Window = new OverlayPanelWindow("conditions", "ACC Engineer - Conditions", new ConditionsOverlayPanel { DataContext = conditionsVm }, DefaultState("conditions")),
+            ViewModel = conditionsVm
+        });
+
         // Legacy Phase 1 test panel (kept available; hidden by default).
         var testVm = new TestPanelViewModel(_source);
         _panels.Add(new PanelHost
@@ -531,6 +541,7 @@ public sealed class OverlayManager : IDisposable
         "relative" => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 210, Width = 232, Height = 178, Opacity = 0.92 },
         "inputs" => new OverlayPanelState { Id = id, Visible = false, X = 300, Y = 40, Width = 240, Height = 210, Opacity = 0.92 },
         "map" => new OverlayPanelState { Id = id, Visible = false, X = 560, Y = 40, Width = 250, Height = 250, Opacity = 0.92 },
+        "conditions" => new OverlayPanelState { Id = id, Visible = false, X = 560, Y = 300, Width = 220, Height = 172, Opacity = 0.92 },
         _ => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 400, Width = 300, Height = 230, Opacity = 0.92 }
     };
 }
