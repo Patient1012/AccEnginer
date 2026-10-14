@@ -89,6 +89,8 @@
                                 Command="{Binding ResetOverlayCommand}" />
                         <Button Content="Toggle Demo Data" Style="{StaticResource GhostButton}" Margin="8,0,0,0"
                                 Command="{Binding ToggleDemoOverlayCommand}" />
+                        <Button Content="Configure Overlay…" Style="{StaticResource PrimaryButton}" Margin="8,0,0,0"
+                                Command="{Binding ConfigureOverlayCommand}" />
                     </StackPanel>
 
                     <ItemsControl ItemsSource="{Binding OverlayPanels}" Margin="0,10,0,0">

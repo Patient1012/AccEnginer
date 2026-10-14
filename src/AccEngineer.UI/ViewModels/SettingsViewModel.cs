@@ -62,6 +62,7 @@ public sealed class SettingsViewModel : PageViewModel
             _shell.Overlays.SetDemoMode(!_shell.Overlays.IsDemoMode);
             RefreshOverlayStatus();
         });
+        ConfigureOverlayCommand = new RelayCommand(() => _shell.OpenOverlayManager());
     }
 
     public int PollIntervalMs
@@ -159,7 +160,7 @@ public sealed class SettingsViewModel : PageViewModel
         {
             var overlay = _shell.Overlays;
             var hotkeys = overlay.HotkeysActive
-                ? "Global hotkeys: Ctrl+Alt+O show/hide, Ctrl+Alt+E toggle edit."
+                ? "Global hotkeys: Ctrl+Alt+O show/hide, Ctrl+Alt+E toggle edit, Ctrl+Alt+M editor."
                 : "Global hotkeys are unavailable (already registered by another app); use the buttons.";
             return $"{overlay.StatusText}. {hotkeys}";
         }
@@ -178,6 +179,8 @@ public sealed class SettingsViewModel : PageViewModel
     public ICommand ResetOverlayCommand { get; }
 
     public ICommand ToggleDemoOverlayCommand { get; }
+
+    public ICommand ConfigureOverlayCommand { get; }
 
     /// <summary>Panels and their current visibility, for the per-panel toggles.</summary>
     public IReadOnlyList<OverlayPanelInfo> OverlayPanels => _shell.Overlays.Panels;

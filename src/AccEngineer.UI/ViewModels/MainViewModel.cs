@@ -1,10 +1,12 @@
 using System.Collections.ObjectModel;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 using AccEngineer.Storage;
 using AccEngineer.UI.Mvvm;
 using AccEngineer.UI.Overlay;
 using AccEngineer.UI.Services;
+using AccEngineer.UI.Views;
 
 namespace AccEngineer.UI.ViewModels;
 
@@ -30,6 +32,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     private readonly DispatcherTimer _timer;
     private PageViewModel _currentPage;
     private StatusSnapshot _status;
+    private OverlayManagerWindow? _overlayManagerWindow;
 
     public MainViewModel()
     {
@@ -39,6 +42,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         Reports = new ReportService(Options);
         Library = new RecordingLibrary(Options);
         Overlays = new OverlayManager(new LiveOverlayTelemetrySource(Telemetry));
+        Overlays.EditorRequested += OpenOverlayManager;
 
         Live = new LiveDataViewModel(Telemetry);
         Overview = new OverviewViewModel(this);
@@ -133,6 +137,30 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     {
         if (page is null) return;
         CurrentPage = page;
+    }
+
+    /// <summary>
+    /// Opens (or re-focuses) the non-modal overlay layout editor. Lazily created so the
+    /// window and its view model only exist while needed.
+    /// </summary>
+    public void OpenOverlayManager()
+    {
+        if (Application.Current is null) return;
+
+        if (_overlayManagerWindow is null)
+        {
+            var window = new OverlayManagerWindow(new OverlayManagerViewModel(Overlays));
+            if (Application.Current.MainWindow is { } owner && !owner.Equals(window))
+            {
+                window.Owner = owner;
+            }
+
+            window.Closed += (_, _) => _overlayManagerWindow = null;
+            _overlayManagerWindow = window;
+        }
+
+        if (!_overlayManagerWindow.IsVisible) _overlayManagerWindow.Show();
+        _overlayManagerWindow.Activate();
     }
 
     /// <summary>Builds and saves a report from the live session's captured samples.</summary>
@@ -239,6 +267,9 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public void Dispose()
     {
         _timer.Stop();
+        Overlays.EditorRequested -= OpenOverlayManager;
+        _overlayManagerWindow?.Close();
+        _overlayManagerWindow = null;
         Overlays.Dispose();
         Telemetry.Dispose();
     }

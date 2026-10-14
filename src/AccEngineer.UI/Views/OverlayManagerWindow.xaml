@@ -1,0 +1,187 @@
+<Window x:Class="AccEngineer.UI.Views.OverlayManagerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Overlay Layout Editor" Height="640" Width="560"
+        MinHeight="480" MinWidth="480"
+        Background="{DynamicResource BrushBackground}"
+        WindowStartupLocation="CenterOwner"
+        FontFamily="Segoe UI"
+        Foreground="{DynamicResource BrushTextPrimary}">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Overlay Layout" Style="{StaticResource PageTitle}" Margin="0,0,0,10" />
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <!-- PROFILE & LAYOUT -->
+                <TextBlock Text="PROFILE &amp; LAYOUT" Style="{StaticResource SectionHeader}" />
+                <Border Style="{StaticResource Card}" Margin="0,6,0,0">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="90" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Profile" VerticalAlignment="Center" />
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding Profiles}"
+                                      SelectedItem="{Binding SelectedProfile, Mode=TwoWay}" />
+                            <TextBox Grid.Column="2" Width="120" Margin="8,0,0,0" Style="{StaticResource InputBox}"
+                                     Text="{Binding NewProfileName, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="New profile name" />
+                            <Button Grid.Column="3" Content="Add" Style="{StaticResource GhostButton}" Margin="6,0,0,0"
+                                    Command="{Binding AddProfileCommand}" />
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="90" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Layout" VerticalAlignment="Center" />
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding Layouts}"
+                                      SelectedItem="{Binding SelectedLayout, Mode=TwoWay}" />
+                            <TextBox Grid.Column="2" Width="120" Margin="8,0,0,0" Style="{StaticResource InputBox}"
+                                     Text="{Binding NewLayoutName, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Save current arrangement as..." />
+                            <Button Grid.Column="3" Content="Save As" Style="{StaticResource GhostButton}" Margin="6,0,0,0"
+                                    Command="{Binding SaveLayoutAsCommand}" />
+                            <Button Grid.Column="4" Content="Delete" Style="{StaticResource GhostButton}" Margin="6,0,0,0"
+                                    Command="{Binding DeleteLayoutCommand}" />
+                        </Grid>
+
+                        <Rectangle Height="1" Fill="{DynamicResource BrushBorder}" Margin="0,10,0,10" />
+
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Per-resolution" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding ResolutionText}" Margin="8,0,0,0" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource BrushTextSecondary}" />
+                            <Button Content="Pin" Style="{StaticResource GhostButton}" Margin="12,0,0,0"
+                                    Command="{Binding PinResolutionCommand}" />
+                            <Button Content="Unpin" Style="{StaticResource GhostButton}" Margin="6,0,0,0"
+                                    Command="{Binding UnpinResolutionCommand}" />
+                            <TextBlock Margin="10,0,0,0" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource BrushTextSecondary}">
+                                <Run Text="Pinned:" />
+                                <Run Text="{Binding IsResolutionPinned, Mode=OneWay}" />
+                            </TextBlock>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- APPEARANCE -->
+                <TextBlock Text="APPEARANCE" Style="{StaticResource SectionHeader}" Margin="0,16,0,0" />
+                <Border Style="{StaticResource Card}" Margin="0,6,0,0">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="48" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Font scale" VerticalAlignment="Center" />
+                            <Slider Grid.Column="1" Minimum="0.6" Maximum="2.0" SmallChange="0.05"
+                                    LargeChange="0.1" Value="{Binding FontScale, Mode=TwoWay}" />
+                            <TextBlock Grid.Column="2" Text="{Binding FontScale, StringFormat={}{0:0.00}}"
+                                       HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        </Grid>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="48" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Trace length" VerticalAlignment="Center" />
+                            <Slider Grid.Column="1" Minimum="30" Maximum="400" TickFrequency="10"
+                                    IsSnapToTickEnabled="True" Value="{Binding TraceLength, Mode=TwoWay}" />
+                            <TextBlock Grid.Column="2" Text="{Binding TraceLength}" HorizontalAlignment="Right"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="48" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Relative rows" VerticalAlignment="Center" />
+                            <Slider Grid.Column="1" Minimum="3" Maximum="20" TickFrequency="1"
+                                    IsSnapToTickEnabled="True" Value="{Binding RelativeRows, Mode=TwoWay}" />
+                            <TextBlock Grid.Column="2" Text="{Binding RelativeRows}" HorizontalAlignment="Right"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                            <CheckBox Content="Show gap column" IsChecked="{Binding RelativeShowGap, Mode=TwoWay}"
+                                      Foreground="{DynamicResource BrushTextPrimary}" />
+                            <CheckBox Content="Show name column" IsChecked="{Binding RelativeShowName, Mode=TwoWay}"
+                                      Margin="18,0,0,0" Foreground="{DynamicResource BrushTextPrimary}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- PANELS -->
+                <TextBlock Text="PANELS" Style="{StaticResource SectionHeader}" Margin="0,16,0,0" />
+                <Border Style="{StaticResource Card}" Margin="0,6,0,0">
+                    <ItemsControl ItemsSource="{Binding PanelRows}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="48" />
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox Grid.Column="0" Content="{Binding Title}" IsChecked="{Binding IsVisible, Mode=TwoWay}"
+                                              Foreground="{DynamicResource BrushTextPrimary}" VerticalAlignment="Center" />
+                                    <Slider Grid.Column="1" Minimum="0.2" Maximum="1.0" SmallChange="0.02"
+                                            Value="{Binding Opacity, Mode=TwoWay}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Opacity, StringFormat={}{0:0.00}}"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+
+                <!-- ACTIONS -->
+                <TextBlock Text="ACTIONS" Style="{StaticResource SectionHeader}" Margin="0,16,0,0" />
+                <Border Style="{StaticResource Card}" Margin="0,6,0,0">
+                    <StackPanel>
+                        <WrapPanel>
+                            <Button Content="Show All" Style="{StaticResource PrimaryButton}"
+                                    Command="{Binding ShowAllCommand}" />
+                            <Button Content="Hide All" Style="{StaticResource GhostButton}" Margin="8,0,0,0"
+                                    Command="{Binding HideAllCommand}" />
+                            <Button Content="Toggle Edit Mode" Style="{StaticResource GhostButton}" Margin="8,0,0,0"
+                                    Command="{Binding ToggleEditCommand}" />
+                            <Button Content="Reset Layout" Style="{StaticResource GhostButton}" Margin="8,0,0,0"
+                                    Command="{Binding ResetLayoutCommand}" />
+                        </WrapPanel>
+                        <CheckBox Content="Demo preview (synthetic data)" IsChecked="{Binding IsDemoMode, Mode=TwoWay}"
+                                  Margin="0,10,0,0" Foreground="{DynamicResource BrushTextPrimary}" />
+                        <TextBlock Text="{Binding HotkeyText}" Style="{StaticResource Caption}" Margin="0,6,0,0"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Grid Grid.Row="2" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{Binding StatusText}" Style="{StaticResource Caption}"
+                       VerticalAlignment="Center" TextWrapping="Wrap" />
+            <Button Grid.Column="1" Content="Close" Style="{StaticResource GhostButton}" Click="OnCloseClick" />
+        </Grid>
+    </Grid>
+</Window>

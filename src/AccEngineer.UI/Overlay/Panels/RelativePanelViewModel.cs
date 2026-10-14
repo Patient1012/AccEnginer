@@ -14,7 +14,8 @@ namespace AccEngineer.UI.Overlay.Panels;
 public sealed class RelativePanelViewModel : OverlayPanelViewModel
 {
     private const int LinePoints = 900;
-    private const int MaxRows = 8;
+
+    private int _maxRows = 8;
 
     public RelativePanelViewModel(IOverlayTelemetrySource telemetry) : base(telemetry, 100) { }
 
@@ -24,7 +25,22 @@ public sealed class RelativePanelViewModel : OverlayPanelViewModel
 
     public string HeaderText { get; private set; } = "NEARBY";
 
+    /// <summary>Whether the gap column is shown (configurable in the layout editor).</summary>
+    public bool ShowGapColumn { get; private set; } = true;
+
+    /// <summary>Whether the driver/name column is shown (configurable in the layout editor).</summary>
+    public bool ShowNameColumn { get; private set; } = true;
+
     public ObservableCollection<RelativeRow> Rows { get; } = new();
+
+    /// <inheritdoc />
+    public override void ApplyAppearance(OverlayAppearance appearance)
+    {
+        _maxRows = Math.Clamp(appearance.RelativeRows, 3, 20);
+        ShowGapColumn = appearance.RelativeShowGap;
+        ShowNameColumn = appearance.RelativeShowName;
+        OnAllPropertiesChanged();
+    }
 
     protected override void Refresh(TelemetrySample? sample)
     {
@@ -81,7 +97,7 @@ public sealed class RelativePanelViewModel : OverlayPanelViewModel
             entries.Add((playerId ?? 0, true, sample.TrackProgressMeters ?? TrackLineProjection.ProjectToLine(px, pz, line)));
         }
 
-        var sorted = entries.OrderBy(e => e.Progress ?? double.MaxValue).Take(MaxRows).ToArray();
+        var sorted = entries.OrderBy(e => e.Progress ?? double.MaxValue).Take(_maxRows).ToArray();
         var leader = sorted.Length > 0 ? sorted[0].Progress : null;
         for (var i = 0; i < sorted.Length; i++)
         {

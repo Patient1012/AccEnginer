@@ -27,6 +27,13 @@ public abstract class OverlayPanelViewModel : ObservableObject, IDisposable
     /// <summary>Called on each tick with the latest sample. The sample may be null.</summary>
     protected abstract void Refresh(AccEngineer.Telemetry.TelemetrySample? sample);
 
+    /// <summary>
+    /// Applies layout-wide appearance settings (trace length, row/column counts, ...).
+    /// Called when the layout is (re)applied and when the editor changes a setting.
+    /// The default is a no-op; panels that honour a setting override this.
+    /// </summary>
+    public virtual void ApplyAppearance(OverlayAppearance appearance) { }
+
     public virtual void Dispose()
     {
         if (_disposed) return;

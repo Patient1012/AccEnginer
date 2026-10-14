@@ -86,7 +86,7 @@ labels the gaps as estimates. Ground plane is X-Z.
 - `Themes/OverlayClassic.xaml` gains throttle/brake/steering brushes.
 - Registered in `OverlayManager` as panel `inputs` (default 300,40 240x210, hidden).
 
-## Phase 5 - track map (current)
+## Phase 5 - track map
 
 There is no official track-outline source in the shared-memory API, so the static
 outline is **built from the player's own driven line** and cached separately from the
@@ -110,12 +110,44 @@ transform so markers stay aligned to the outline.
 > Note: ACC does not flag pit lane in the exposed data, so the map does not attempt to
 > distinguish pit state; it would be shown as a normal position.
 
+## Phase 6 - layout editor, profiles and appearance (current)
+
+Adds a normal (non-overlay) dialog for managing how the overlay looks, named layouts and
+per-simulator profiles.
+
+- **Document v2** (`OverlayLayout.cs`) - `OverlayLayoutDocument` holds `ActiveProfile` and
+  a `Profiles` map; each `OverlayLayoutProfile` has a `Simulator`, an `ActiveLayout`, a
+  `Layouts` map and optional `ResolutionLayouts` (`"1920x1080"` -> layout name) overrides.
+  Each `OverlayLayout` now also carries an `OverlayAppearance` (font scale, trace length,
+  relative rows, relative gap/name columns). **v1 files are migrated** into the default
+  `acc` profile / `Default` layout on load.
+- **Sanitisation** - `OverlayPanelState.Sanitize()` / `OverlayAppearance.Sanitize()` clamp
+  and coerce values (including non-finite `NaN`/`Infinity` from un-arranged windows) before
+  serialization, because `System.Text.Json` refuses non-finite doubles. Called from
+  `CaptureState`, `Save` and the store, so a bad value can never drop the whole layout.
+- **`OverlayManager`** - now exposes profiles/layouts/appearance (`ProfileNames`,
+  `SetProfile`, `AddProfile`, `DeleteProfile`, `LayoutNames`, `SetLayout`, `SaveLayoutAs`,
+  `DeleteLayout`, `Appearance`, `SetAppearance`, `SetPanelVisible`, `SetPanelOpacity`,
+  `PinCurrentResolution` / `UnpinCurrentResolution`, `CurrentResolution`, `IsResolutionPinned`,
+  `ResetToDefault`) plus `Changed` (state) and `EditorRequested` (hotkey/UI) events.
+- **Appearance plumbing** - `OverlayPanelViewModelBase.ApplyAppearance` (overridden by the
+  inputs + relative panels) and `OverlayWindowBase.SetContentScale` (uniform
+  `LayoutTransform` on the panel content, clamped 0.6-2.0).
+- **`OverlayManagerViewModel`** + **`Views/OverlayManagerWindow.xaml(.cs)`** - the editor:
+  profile/layout selection (add/save-as/delete), per-resolution pinning, appearance sliders,
+  a panel list with visibility + opacity, and Show/Hide/Edit/Reset actions with a status
+  footer.
+- Opened from Settings -> **Configure Overlay...** or the **Ctrl+Alt+M** hotkey
+  (`MainViewModel.OpenOverlayManager`, subscribed to `Overlays.EditorRequested`).
+
 ## Controls
 
 - **Ctrl+Alt+O** - show / hide all panels.
 - **Ctrl+Alt+E** - toggle edit (unlock) mode.
+- **Ctrl+Alt+M** - open the layout editor.
 - Settings page -> **OVERLAY** section: Show / Hide, Toggle Edit Mode, Reset Layout,
-  Toggle Demo Data, per-panel visibility and the live status / hotkey availability.
+  Toggle Demo Data, per-panel visibility, **Configure Overlay...** and the live status /
+  hotkey availability.
 
 While locked the panels are click-through, so mouse input reaches the simulator. In
 edit mode drag a header to move a panel and the bottom-right grip to resize; placement,
@@ -132,6 +164,10 @@ size and opacity are saved automatically and restored on restart.
 - [ ] When values are unavailable they read `--` (never a fabricated zero).
 - [ ] Demo data moves the timing + relative panels and drives the inputs panel so the
       layout can be tuned offline.
+- [ ] The layout editor opens (Ctrl+Alt+M / Configure Overlay...) and profile, layout,
+      appearance and per-panel visibility/opacity changes apply live.
+- [ ] Switching profile/layout (or toggling demo) keeps the panels that should be visible.
+- [ ] A manually edited / older (v1) `overlay.json` still loads and is migrated.
 
 > Note: live-over-simulator behaviour (click-through, topmost, hotkeys) can only be
 > verified with ACC running; the checks above are manual.

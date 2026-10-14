@@ -74,8 +74,18 @@ public abstract class OverlayWindowBase : Window
     /// <summary>Allows the window to close for real (used during shutdown).</summary>
     public void AllowClose() => _allowClose = true;
 
-    /// <summary>Captures the current placement and appearance for persistence.</summary>
-    public OverlayPanelState CaptureState() => new()
+    /// <summary>
+    /// Applies a uniform content scale (used by the layout editor's font scale). The
+    /// base does nothing; panel-hosting windows override it.
+    /// </summary>
+    public virtual void SetContentScale(double scale) { }
+
+    /// <summary>
+    /// Captures the current placement and appearance for persistence. Sanitized because
+    /// Left/Top/Width/Height are NaN until the window is first arranged, and this runs
+    /// from the layout-changed handler during initial show.
+    /// </summary>
+    public OverlayPanelState CaptureState() => new OverlayPanelState
     {
         Id = PanelId,
         Visible = IsVisible,
@@ -84,7 +94,7 @@ public abstract class OverlayWindowBase : Window
         Width = Width,
         Height = Height,
         Opacity = Opacity
-    };
+    }.Sanitize();
 
     /// <summary>Applies persisted placement and appearance, clamped to the visible desktop.</summary>
     public void ApplyState(OverlayPanelState state)

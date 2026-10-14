@@ -15,8 +15,10 @@ public sealed class OverlayHotkeys : IDisposable
     private const uint ModNoRepeat = 0x4000;
     private const int ToggleId = 0x4F01;
     private const int EditId = 0x4F02;
+    private const int ManagerId = 0x4F03;
     private const uint VkO = 0x4F;
     private const uint VkE = 0x45;
+    private const uint VkM = 0x4D;
 
     private static readonly IntPtr HwndMessage = new(-3);
 
@@ -32,9 +34,13 @@ public sealed class OverlayHotkeys : IDisposable
 
     public event Action? EditRequested;
 
+    public event Action? ManagerRequested;
+
     public bool ToggleHotkeyActive { get; private set; }
 
     public bool EditHotkeyActive { get; private set; }
+
+    public bool ManagerHotkeyActive { get; private set; }
 
     public void Attach()
     {
@@ -54,6 +60,7 @@ public sealed class OverlayHotkeys : IDisposable
         var hwnd = _source.Handle;
         ToggleHotkeyActive = RegisterHotKey(hwnd, ToggleId, ModControl | ModAlt | ModNoRepeat, VkO);
         EditHotkeyActive = RegisterHotKey(hwnd, EditId, ModControl | ModAlt | ModNoRepeat, VkE);
+        ManagerHotkeyActive = RegisterHotKey(hwnd, ManagerId, ModControl | ModAlt | ModNoRepeat, VkM);
     }
 
     public void Dispose()
@@ -62,6 +69,7 @@ public sealed class OverlayHotkeys : IDisposable
 
         UnregisterHotKey(_source.Handle, ToggleId);
         UnregisterHotKey(_source.Handle, EditId);
+        UnregisterHotKey(_source.Handle, ManagerId);
         _source.RemoveHook(WndProc);
         _source.Dispose();
         _source = null;
@@ -79,6 +87,10 @@ public sealed class OverlayHotkeys : IDisposable
                     break;
                 case EditId:
                     EditRequested?.Invoke();
+                    handled = true;
+                    break;
+                case ManagerId:
+                    ManagerRequested?.Invoke();
                     handled = true;
                     break;
             }

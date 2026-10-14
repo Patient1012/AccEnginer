@@ -11,14 +11,27 @@ namespace AccEngineer.UI.Overlay.Panels;
 /// </summary>
 public sealed class InputsPanelViewModel : OverlayPanelViewModel
 {
-    /// <summary>Number of samples retained per input trace (~6 s at 50 ms).</summary>
-    private const int TraceLength = 120;
-
     private readonly Queue<double> _throttle = new();
     private readonly Queue<double> _brake = new();
     private readonly Queue<double> _steering = new();
 
+    /// <summary>Number of samples retained per input trace (~6 s at 50 ms by default).</summary>
+    private int _traceLength = 120;
+
     public InputsPanelViewModel(IOverlayTelemetrySource telemetry) : base(telemetry, 50) { }
+
+    /// <inheritdoc />
+    public override void ApplyAppearance(OverlayAppearance appearance)
+    {
+        _traceLength = Math.Clamp(appearance.TraceLength, 30, 400);
+        Trim(_throttle);
+        Trim(_brake);
+        Trim(_steering);
+        ThrottleTrace = _throttle.ToArray();
+        BrakeTrace = _brake.ToArray();
+        SteeringTrace = _steering.ToArray();
+        OnAllPropertiesChanged();
+    }
 
     public bool IsLive { get; private set; }
 
@@ -90,6 +103,7 @@ public sealed class InputsPanelViewModel : OverlayPanelViewModel
             ThrottleText = Display.Percent(throttle);
             ThrottleBar = Math.Clamp(throttle, 0, 1);
             Push(_throttle, throttle);
+            Trim(_throttle);
         }
         else
         {
@@ -102,6 +116,7 @@ public sealed class InputsPanelViewModel : OverlayPanelViewModel
             BrakeText = Display.Percent(brake);
             BrakeBar = Math.Clamp(brake, 0, 1);
             Push(_brake, brake);
+            Trim(_brake);
         }
         else
         {
@@ -114,6 +129,7 @@ public sealed class InputsPanelViewModel : OverlayPanelViewModel
             SteeringText = Display.Steering(steering);
             SteeringBar = Math.Clamp(Math.Abs(steering), 0, 1);
             Push(_steering, steering);
+            Trim(_steering);
         }
         else
         {
@@ -128,9 +144,10 @@ public sealed class InputsPanelViewModel : OverlayPanelViewModel
         OnAllPropertiesChanged();
     }
 
-    private static void Push(Queue<double> queue, double value)
+    private static void Push(Queue<double> queue, double value) => queue.Enqueue(value);
+
+    private void Trim(Queue<double> queue)
     {
-        queue.Enqueue(value);
-        while (queue.Count > TraceLength) queue.Dequeue();
+        while (queue.Count > _traceLength) queue.Dequeue();
     }
 }
