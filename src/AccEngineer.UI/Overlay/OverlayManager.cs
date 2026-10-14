@@ -211,6 +211,16 @@ public sealed class OverlayManager : IDisposable
             ViewModel = relativeVm
         });
 
+        // Inputs / gear block.
+        var inputsVm = new InputsPanelViewModel(_source);
+        _panels.Add(new PanelHost
+        {
+            Id = "inputs",
+            Title = "Inputs",
+            Window = new OverlayPanelWindow("inputs", "ACC Engineer - Inputs", new InputsOverlayPanel { DataContext = inputsVm }, DefaultState("inputs")),
+            ViewModel = inputsVm
+        });
+
         // Legacy Phase 1 test panel (kept available; hidden by default).
         var testVm = new TestPanelViewModel(_source);
         _panels.Add(new PanelHost
@@ -282,6 +292,7 @@ public sealed class OverlayManager : IDisposable
     {
         "timing" => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 40, Width = 260, Height = 158, Opacity = 0.92 },
         "relative" => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 210, Width = 232, Height = 178, Opacity = 0.92 },
+        "inputs" => new OverlayPanelState { Id = id, Visible = false, X = 300, Y = 40, Width = 240, Height = 210, Opacity = 0.92 },
         _ => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 400, Width = 300, Height = 230, Opacity = 0.92 }
     };
 }

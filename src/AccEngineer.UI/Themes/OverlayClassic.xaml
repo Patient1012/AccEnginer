@@ -97,6 +97,10 @@
 
     <SolidColorBrush x:Key="OverlaySelectedRowBrush" Color="#22B7F34A" />
     <SolidColorBrush x:Key="OverlayPitBrush" Color="#4D9AA0A6" />
+    <!-- Input channel colours (throttle/brake/steering) shared by bars and traces. -->
+    <SolidColorBrush x:Key="OverlayThrottleBrush" Color="#FF63D67F" />
+    <SolidColorBrush x:Key="OverlayBrakeBrush" Color="#FFE4574C" />
+    <SolidColorBrush x:Key="OverlaySteerBrush" Color="#FF4FA3FF" />
     <SolidColorBrush x:Key="OverlayClassProBrush" Color="#FF4FA3FF" />
     <SolidColorBrush x:Key="OverlayClassAmBrush" Color="#FFFFC24D" />
     <SolidColorBrush x:Key="OverlayClassSilverBrush" Color="#FFD0D4DA" />

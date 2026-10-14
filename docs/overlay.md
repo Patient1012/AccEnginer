@@ -42,7 +42,7 @@ hotkeys and persisted placement.
 - `Themes/OverlayClassic.xaml` - dense table/row/cell styles, separators, bar track,
   gear badge, class-colour brushes.
 
-## Phase 3 - timing + relative panels with a demo data source (current)
+## Phase 3 - timing + relative panels with a demo data source
 
 Scope: the telemetry-source abstraction, two real panels (timing and relative/nearby)
 and synthetic demo data so the layout can be tuned without ACC.
@@ -62,8 +62,8 @@ and synthetic demo data so the layout can be tuned without ACC.
   player's recent racing line (gaps in **metres, estimates**).
 - `Overlay/OverlayPanelWindow.cs` - generic host wrapping a panel control with the
   shared edit outline, drag and resize grip.
-- `Overlay/OverlayManager.cs` - now multi-panel (`timing`, `relative`, `test`) with
-  demo-mode swap, `Panels`, `AnyVisible` / `AnyEditing`, `ToggleAll` / `ShowAll` /
+- `Overlay/OverlayManager.cs` - now multi-panel (`timing`, `relative`, `inputs`, `test`)
+  with demo-mode swap, `Panels`, `AnyVisible` / `AnyEditing`, `ToggleAll` / `ShowAll` /
   `HideAll` / `ToggleEditAll` / `TogglePanel(id)` / `ResetToDefault`.
 
 ### Data-availability note
@@ -73,7 +73,20 @@ For cars other than the player the graphics page only exposes `CarCoordinates` a
 panel therefore orders cars by projecting them onto the player's recent line and
 labels the gaps as estimates. Ground plane is X-Z.
 
-### Controls
+## Phase 4 - inputs / gear panel (current)
+
+- `Overlay/Panels/InputsPanelViewModel.cs` + `InputsOverlayPanel.xaml(.cs)` - gear badge,
+  speed and RPM headline plus throttle, brake and steering readouts (bars + values) and
+  bounded rolling traces.
+- Each input channel degrades independently: a missing channel shows `--` and its trace
+  stops while the others keep rendering. Traces are bounded ring buffers (120 samples)
+  rebuilt at the poll cadence and cleared on signal loss so a stale line is never drawn
+  as if live.
+- Uses the central `Services/Display` formatter for units (no hard-coded assumptions).
+- `Themes/OverlayClassic.xaml` gains throttle/brake/steering brushes.
+- Registered in `OverlayManager` as panel `inputs` (default 300,40 240x210, hidden).
+
+## Controls
 
 - **Ctrl+Alt+O** - show / hide all panels.
 - **Ctrl+Alt+E** - toggle edit (unlock) mode.
@@ -84,7 +97,7 @@ While locked the panels are click-through, so mouse input reaches the simulator.
 edit mode drag a header to move a panel and the bottom-right grip to resize; placement,
 size and opacity are saved automatically and restored on restart.
 
-### Manual checklist
+## Manual checklist
 
 - [ ] Panels render over the sim with no title bar and stay on top.
 - [ ] Locked: clicks pass through to the simulator.
@@ -93,7 +106,8 @@ size and opacity are saved automatically and restored on restart.
 - [ ] Empty state shows `--` for every value and a non-live status dot.
 - [ ] Placement survives an app restart.
 - [ ] When values are unavailable they read `--` (never a fabricated zero).
-- [ ] Demo data moves the timing + relative panels so the layout can be tuned offline.
+- [ ] Demo data moves the timing + relative panels and drives the inputs panel so the
+      layout can be tuned offline.
 
 > Note: live-over-simulator behaviour (click-through, topmost, hotkeys) can only be
 > verified with ACC running; the checks above are manual.
