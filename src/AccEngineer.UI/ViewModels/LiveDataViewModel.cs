@@ -329,22 +329,7 @@ public sealed class LiveDataViewModel : PageViewModel
         }
 
         var recent = _telemetry.SnapshotRecent(MapPathPoints);
-        var line = new List<(double X, double Z, double? Progress)>(recent.Count);
-        var pathMeters = 0.0;
-        for (var i = 0; i < recent.Count; i++)
-        {
-            var s = recent[i];
-            if (s.PositionXMeters is not { } lx || s.PositionZMeters is not { } lz) continue;
-            if (line.Count > 0)
-            {
-                var prev = line[^1];
-                pathMeters += Math.Sqrt(((lx - prev.X) * (lx - prev.X)) + ((lz - prev.Z) * (lz - prev.Z)));
-            }
-
-            line.Add((lx, lz, s.TrackProgressMeters is { } progress
-                ? progress
-                : line.Count > 0 ? pathMeters : 0));
-        }
+        var line = TrackLineProjection.BuildLine(recent);
 
         if (line.Count < 2)
         {
@@ -367,12 +352,12 @@ public sealed class LiveDataViewModel : PageViewModel
                 : playerX is { } byX && playerZ is { } byZ
                     && Math.Abs(car.XMeters - byX) < 4f && Math.Abs(car.ZMeters - byZ) < 4f;
             if (isPlayer) hasPlayer = true;
-            entries.Add((car.CarId, isPlayer, ProjectToLine(car.XMeters, car.ZMeters, line)));
+            entries.Add((car.CarId, isPlayer, TrackLineProjection.ProjectToLine(car.XMeters, car.ZMeters, line)));
         }
 
         if (!hasPlayer && playerX is { } x && playerZ is { } z)
         {
-            entries.Add((playerId ?? 0, true, sample.TrackProgressMeters is { } p ? p : ProjectToLine(x, z, line)));
+            entries.Add((playerId ?? 0, true, sample.TrackProgressMeters is { } p ? p : TrackLineProjection.ProjectToLine(x, z, line)));
         }
 
         var sorted = entries
@@ -398,31 +383,6 @@ public sealed class LiveDataViewModel : PageViewModel
         Leaderboard = rows;
         HasLeaderboard = true;
         LeaderboardWindowText = $"last {MapPathPoints} positions";
-    }
-
-    /// <summary>
-    /// Progress of the nearest point on the player's recent line. When ACC progress
-    /// is missing for that point, the line's cumulative path length serves as the
-    /// estimate so the ordering stays meaningful and the units stay real metres.
-    /// </summary>
-    private static double? ProjectToLine(float x, float z, List<(double X, double Z, double? Progress)> line)
-    {
-        double? best = null;
-        var bestSquared = double.MaxValue;
-        for (var i = 0; i < line.Count; i++)
-        {
-            var vertex = line[i];
-            var dx = vertex.X - x;
-            var dz = vertex.Z - z;
-            var squared = (dx * dx) + (dz * dz);
-            if (squared < bestSquared)
-            {
-                bestSquared = squared;
-                best = vertex.Progress;
-            }
-        }
-
-        return best;
     }
 
     private void BuildTraces()
