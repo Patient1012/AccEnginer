@@ -89,4 +89,91 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <!-- ===================================================================
+         Phase 2 visual primitives. These are the shared building blocks every
+         overlay panel uses so styling stays consistent and centralised here.
+         =================================================================== -->
+
+    <SolidColorBrush x:Key="OverlaySelectedRowBrush" Color="#22B7F34A" />
+    <SolidColorBrush x:Key="OverlayPitBrush" Color="#4D9AA0A6" />
+    <SolidColorBrush x:Key="OverlayClassProBrush" Color="#FF4FA3FF" />
+    <SolidColorBrush x:Key="OverlayClassAmBrush" Color="#FFFFC24D" />
+    <SolidColorBrush x:Key="OverlayClassSilverBrush" Color="#FFD0D4DA" />
+
+    <!-- Session/section heading: small, dim, uppercase-like emphasis. -->
+    <Style x:Key="OverlaySectionHeader" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="9" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{StaticResource OverlayMutedBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Dense table header cell. -->
+    <Style x:Key="OverlayTableHeaderText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="9" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{StaticResource OverlayMutedBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+
+    <!-- Standard dense cell text. -->
+    <Style x:Key="OverlayCellText" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="Foreground" Value="{StaticResource OverlayTextBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+
+    <Style x:Key="OverlayCellMuted" TargetType="TextBlock" BasedOn="{StaticResource OverlayCellText}">
+        <Setter Property="Foreground" Value="{StaticResource OverlayMutedBrush}" />
+    </Style>
+
+    <!-- Monospaced cell for numbers such as gaps and positions. -->
+    <Style x:Key="OverlayCellMono" TargetType="TextBlock" BasedOn="{StaticResource OverlayCellText}">
+        <Setter Property="FontFamily" Value="{StaticResource OverlayValueFont}" />
+    </Style>
+
+    <!-- One standings/relative row. Highlights itself when the bound row is the
+         player, using a DataTrigger so no per-row code is needed. -->
+    <Style x:Key="OverlayRowBorder" TargetType="Border">
+        <Setter Property="Padding" Value="4,1" />
+        <Setter Property="BorderBrush" Value="{StaticResource OverlaySeparatorBrush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsPlayer}" Value="True">
+                <Setter Property="Background" Value="{StaticResource OverlaySelectedRowBrush}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Thin class/driver colour marker at the left edge of a row. The colour is
+         supplied per row via Background; this only fixes the shape. -->
+    <Style x:Key="OverlayColourStripe" TargetType="Border">
+        <Setter Property="Width" Value="3" />
+        <Setter Property="Margin" Value="0,0,6,0" />
+        <Setter Property="CornerRadius" Value="1" />
+    </Style>
+
+    <Style x:Key="OverlaySeparator" TargetType="Rectangle">
+        <Setter Property="Height" Value="1" />
+        <Setter Property="Fill" Value="{StaticResource OverlaySeparatorBrush}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+    </Style>
+
+    <!-- Recessed track behind an OverlayBar. -->
+    <Style x:Key="OverlayBarTrack" TargetType="Border">
+        <Setter Property="Background" Value="#33FFFFFF" />
+        <Setter Property="CornerRadius" Value="1" />
+    </Style>
+
+    <!-- Gear badge: a compact boxed number/symbol. -->
+    <Style x:Key="OverlayGearBadge" TargetType="Border">
+        <Setter Property="Background" Value="#14FFFFFF" />
+        <Setter Property="BorderBrush" Value="{StaticResource OverlayBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="2" />
+        <Setter Property="Padding" Value="8,2" />
+    </Style>
 </ResourceDictionary>

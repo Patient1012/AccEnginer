@@ -2,6 +2,7 @@
                            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                            xmlns:overlay="clr-namespace:AccEngineer.UI.Overlay"
+                           xmlns:oc="clr-namespace:AccEngineer.UI.Overlay.Controls"
                            xmlns:conv="clr-namespace:AccEngineer.UI.Converters"
                            Title="ACC Engineer Overlay (test)"
                            Width="300"
@@ -30,10 +31,10 @@
                     <Border Grid.Column="0" Width="3" Background="{StaticResource OverlayAccentBrush}" Margin="0,0,8,0" />
                     <TextBlock Grid.Column="1" Text="ACC ENGINEER" Style="{StaticResource OverlayHeader}" VerticalAlignment="Center" />
 
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Ellipse Style="{StaticResource OverlayLiveDot}" />
-                        <TextBlock Text="{Binding StatusText}" Style="{StaticResource OverlayHeader}" Margin="6,0,0,0" />
-                    </StackPanel>
+                    <oc:OverlayStatusIndicator Grid.Column="2"
+                                               Text="{Binding StatusText}"
+                                               IsActive="{Binding IsLive}"
+                                               VerticalAlignment="Center" />
                 </Grid>
             </Border>
 
