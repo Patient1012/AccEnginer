@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="100%" height="100%" style="background-color:transparent;" aria-label="Sim-Racing Engineer Logo">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#C8F64E" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Background dark circle -->
+  <circle cx="120" cy="120" r="108" fill="#0F1115" stroke="#181B22" stroke-width="1.5"/>
+
+  <!-- Subtle track-map outline (abstract circuit) -->
+  <path d="M 60 140 Q 90 80 140 100 T 190 130" fill="none" stroke="#C8F64E" stroke-width="0.75" stroke-opacity="0.25" stroke-linecap="round"/>
+  <circle cx="140" cy="100" r="2.5" fill="#C8F64E" fill-opacity="0.7"/>
+  <circle cx="190" cy="130" r="2" fill="#C8F64E" fill-opacity="0.5"/>
+
+  <!-- Telemetry / dash lines -->
+  <line x1="55" y1="160" x2="95" y2="160" stroke="#C8F64E" stroke-width="1" stroke-opacity="0.5"/>
+  <line x1="55" y1="168" x2="80" y2="168" stroke="#C8F64E" stroke-width="0.75" stroke-opacity="0.3"/>
+
+  <!-- Sharp racing monogram / emblem -->
+  <g filter="url(#glow)">
+    <!-- Main geometric mark: stylized chevron / track segment -->
+    <polygon points="120,62 160,110 120,140 80,110" fill="#C8F64E" opacity="0.95"/>
+    <polygon points="120,72 148,110 120,132 92,110" fill="#0F1115"/>
+    <!-- Inner accent point -->
+    <circle cx="120" cy="110" r="3.5" fill="#C8F64E"/>
+  </g>
+
+  <!-- Typography -->
+  <g font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-weight="800" letter-spacing="4">
+    <!-- Main word -->
+    <text x="120" y="174" text-anchor="middle" fill="#F2F3F5" font-size="14.5" font-style="italic">SIM-RACING</text>
+    <!-- Sub line -->
+    <text x="120" y="190" text-anchor="middle" fill="#C8F64E" font-size="7.5" font-weight="700" letter-spacing="6">ENGINEER</text>
+  </g>
+
+  <!-- Small decorative tick marks -->
+  <line x1="52" y1="110" x2="58" y2="110" stroke="#C8F64E" stroke-width="1.5" stroke-opacity="0.7"/>
+  <line x1="182" y1="110" x2="188" y2="110" stroke="#C8F64E" stroke-width="1.5" stroke-opacity="0.7"/>
+</svg>

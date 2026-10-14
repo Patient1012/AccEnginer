@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:AccEngineer.UI.ViewModels"
         xmlns:views="clr-namespace:AccEngineer.UI.Views"
+        xmlns:controls="clr-namespace:AccEngineer.UI.Controls"
         Title="ACC Engineer" Height="820" Width="1280"
         MinHeight="600" MinWidth="1000"
         Background="{DynamicResource BrushBackground}"
@@ -97,8 +98,7 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Border Width="10" Height="10" CornerRadius="3" Background="{DynamicResource BrushAccent}"
-                            Margin="0,0,10,0" VerticalAlignment="Center" />
+                    <controls:Logo Width="34" Height="34" Margin="0,0,10,0" VerticalAlignment="Center" />
                     <TextBlock Text="ACC Engineer" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" />
                 </StackPanel>
 
