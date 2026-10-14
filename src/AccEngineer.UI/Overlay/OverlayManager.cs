@@ -13,7 +13,7 @@ public sealed class OverlayManager : IDisposable
 {
     private const string TestPanelId = "test";
 
-    private readonly LiveTelemetryService _telemetry;
+    private readonly IOverlayTelemetrySource _telemetry;
     private readonly OverlayLayoutStore _store;
     private readonly OverlayHotkeys _hotkeys;
     private readonly OverlayLayout _layout;
@@ -21,7 +21,7 @@ public sealed class OverlayManager : IDisposable
     private TestOverlayPanel? _panel;
     private bool _disposed;
 
-    public OverlayManager(LiveTelemetryService telemetry)
+    public OverlayManager(IOverlayTelemetrySource telemetry)
     {
         _telemetry = telemetry;
         _store = new OverlayLayoutStore();

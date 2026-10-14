@@ -6,16 +6,16 @@ using AccEngineer.UI.Services;
 namespace AccEngineer.UI.Overlay;
 
 /// <summary>
-/// Minimal data source for the Phase 1 test overlay. Reads the latest sample from the
-/// existing live telemetry service at a fixed display cadence. Unavailable values
+/// Minimal data source for the Phase 1 test overlay. Reads the latest sample from
+/// the provided telemetry source at a fixed display cadence. Unavailable values
 /// render as "--" and are never invented.
 /// </summary>
 public sealed class TestPanelViewModel : ObservableObject, IDisposable
 {
-    private readonly LiveTelemetryService _telemetry;
+    private readonly IOverlayTelemetrySource _telemetry;
     private readonly DispatcherTimer _timer;
 
-    public TestPanelViewModel(LiveTelemetryService telemetry)
+    public TestPanelViewModel(IOverlayTelemetrySource telemetry)
     {
         _telemetry = telemetry;
         Refresh();
@@ -49,15 +49,7 @@ public sealed class TestPanelViewModel : ObservableObject, IDisposable
     {
         var sample = _telemetry.Latest;
         IsLive = sample is not null;
-        StatusText = _telemetry.Connection switch
-        {
-            ConnectionState.Connected => "LIVE",
-            ConnectionState.Replay => "REPLAY",
-            ConnectionState.WaitingForAcc => "WAITING",
-            ConnectionState.Error => "ERROR",
-            ConnectionState.Stopped => "STOPPED",
-            _ => "STARTING"
-        };
+        StatusText = "LIVE";
 
         if (sample is null)
         {
