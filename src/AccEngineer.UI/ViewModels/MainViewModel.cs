@@ -3,6 +3,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using AccEngineer.Storage;
 using AccEngineer.UI.Mvvm;
+using AccEngineer.UI.Overlay;
 using AccEngineer.UI.Services;
 
 namespace AccEngineer.UI.ViewModels;
@@ -37,6 +38,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         Telemetry = new LiveTelemetryService(EventLog, Options);
         Reports = new ReportService(Options);
         Library = new RecordingLibrary(Options);
+        Overlays = new OverlayManager(Telemetry);
 
         Live = new LiveDataViewModel(Telemetry);
         Overview = new OverviewViewModel(this);
@@ -82,6 +84,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public ReportService Reports { get; }
 
     public RecordingLibrary Library { get; }
+
+    public OverlayManager Overlays { get; }
 
     public LiveDataViewModel Live { get; }
 
@@ -235,6 +239,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public void Dispose()
     {
         _timer.Stop();
+        Overlays.Dispose();
         Telemetry.Dispose();
     }
 }

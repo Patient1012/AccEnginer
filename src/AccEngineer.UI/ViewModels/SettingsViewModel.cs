@@ -39,6 +39,22 @@ public sealed class SettingsViewModel : PageViewModel
         SaveCommand = new RelayCommand(Save);
         OpenRecordingsCommand = new RelayCommand(() => Open(RecordingsDirectory));
         OpenReportsCommand = new RelayCommand(() => Open(ReportsDirectory));
+
+        ToggleOverlayCommand = new RelayCommand(() =>
+        {
+            _shell.Overlays.Toggle();
+            RefreshOverlayStatus();
+        });
+        EditOverlayCommand = new RelayCommand(() =>
+        {
+            _shell.Overlays.ToggleEdit();
+            RefreshOverlayStatus();
+        });
+        ResetOverlayCommand = new RelayCommand(() =>
+        {
+            _shell.Overlays.ResetToDefault();
+            RefreshOverlayStatus();
+        });
     }
 
     public int PollIntervalMs
@@ -130,11 +146,29 @@ public sealed class SettingsViewModel : PageViewModel
 
     public string SettingsPathText => AppSettings.SettingsPath;
 
+    public string OverlayStatusText
+    {
+        get
+        {
+            var overlay = _shell.Overlays;
+            var hotkeys = overlay.HotkeysActive
+                ? "Global hotkeys: Ctrl+Alt+O show/hide, Ctrl+Alt+E toggle edit."
+                : "Global hotkeys are unavailable (already registered by another app); use the buttons.";
+            return $"{overlay.StatusText}. {hotkeys}";
+        }
+    }
+
     public ICommand SaveCommand { get; }
 
     public ICommand OpenRecordingsCommand { get; }
 
     public ICommand OpenReportsCommand { get; }
+
+    public ICommand ToggleOverlayCommand { get; }
+
+    public ICommand EditOverlayCommand { get; }
+
+    public ICommand ResetOverlayCommand { get; }
 
     public string StatusText
     {
@@ -159,7 +193,10 @@ public sealed class SettingsViewModel : PageViewModel
         OnPropertyChanged(nameof(AiEndpoint));
         OnPropertyChanged(nameof(IsAiConfigured));
         OnPropertyChanged(nameof(AiStatusText));
+        RefreshOverlayStatus();
     }
+
+    private void RefreshOverlayStatus() => OnPropertyChanged(nameof(OverlayStatusText));
 
     private void Save()
     {
