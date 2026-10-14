@@ -1,0 +1,51 @@
+<UserControl x:Class="AccEngineer.UI.Overlay.Panels.RelativeOverlayPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:oc="clr-namespace:AccEngineer.UI.Overlay.Controls">
+    <Border Style="{StaticResource OverlayPanelBorder}">
+        <Grid Margin="6,4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="3" Background="{StaticResource OverlayAccentBrush}" Margin="0,0,6,0" />
+                    <TextBlock Text="{Binding HeaderText}" Style="{StaticResource OverlayHeader}" VerticalAlignment="Center" />
+                </StackPanel>
+                <oc:OverlayStatusIndicator Grid.Column="1" Text="{Binding StatusText}" IsActive="{Binding IsLive}" />
+            </Grid>
+
+            <Rectangle Grid.Row="1" Style="{StaticResource OverlaySeparator}" />
+
+            <!-- Rows -->
+            <ItemsControl Grid.Row="2" ItemsSource="{Binding Rows}" Margin="0,2,0,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource OverlayRowBorder}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="20" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding Position}" Style="{StaticResource OverlayCellMono}" />
+                                <Border Grid.Column="1" Style="{StaticResource OverlayColourStripe}" Background="{Binding Stripe}" />
+                                <TextBlock Grid.Column="2" Text="{Binding Name}" Style="{StaticResource OverlayCellText}" />
+                                <TextBlock Grid.Column="3" Text="{Binding GapText}" Style="{StaticResource OverlayCellMono}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+    </Border>
+</UserControl>

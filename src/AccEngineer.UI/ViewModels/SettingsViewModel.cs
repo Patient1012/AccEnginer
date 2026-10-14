@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows.Input;
 using AccEngineer.AI;
 using AccEngineer.UI.Mvvm;
+using AccEngineer.UI.Overlay;
 using AccEngineer.UI.Services;
 
 namespace AccEngineer.UI.ViewModels;
@@ -42,17 +43,23 @@ public sealed class SettingsViewModel : PageViewModel
 
         ToggleOverlayCommand = new RelayCommand(() =>
         {
-            _shell.Overlays.Toggle();
+            _shell.Overlays.ToggleAll();
             RefreshOverlayStatus();
         });
         EditOverlayCommand = new RelayCommand(() =>
         {
-            _shell.Overlays.ToggleEdit();
+            _shell.Overlays.ToggleEditAll();
             RefreshOverlayStatus();
         });
         ResetOverlayCommand = new RelayCommand(() =>
         {
             _shell.Overlays.ResetToDefault();
+            RefreshOverlayStatus();
+        });
+        ToggleDemoOverlayCommand = new RelayCommand(() =>
+        {
+            // Feed the panels synthetic data so the layout can be tuned without ACC.
+            _shell.Overlays.SetDemoMode(!_shell.Overlays.IsDemoMode);
             RefreshOverlayStatus();
         });
     }
@@ -170,6 +177,11 @@ public sealed class SettingsViewModel : PageViewModel
 
     public ICommand ResetOverlayCommand { get; }
 
+    public ICommand ToggleDemoOverlayCommand { get; }
+
+    /// <summary>Panels and their current visibility, for the per-panel toggles.</summary>
+    public IReadOnlyList<OverlayPanelInfo> OverlayPanels => _shell.Overlays.Panels;
+
     public string StatusText
     {
         get => _status;
@@ -196,7 +208,11 @@ public sealed class SettingsViewModel : PageViewModel
         RefreshOverlayStatus();
     }
 
-    private void RefreshOverlayStatus() => OnPropertyChanged(nameof(OverlayStatusText));
+    private void RefreshOverlayStatus()
+    {
+        OnPropertyChanged(nameof(OverlayStatusText));
+        OnPropertyChanged(nameof(OverlayPanels));
+    }
 
     private void Save()
     {

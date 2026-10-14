@@ -9,18 +9,20 @@ namespace AccEngineer.UI.Overlay;
 /// </summary>
 public abstract class OverlayPanelViewModel : ObservableObject, IDisposable
 {
-    private readonly IOverlayTelemetrySource _telemetry;
     private readonly DispatcherTimer _timer;
     private bool _disposed;
 
     protected OverlayPanelViewModel(IOverlayTelemetrySource telemetry, int refreshMs = 50)
     {
-        _telemetry = telemetry ?? throw new ArgumentNullException(nameof(telemetry));
+        Telemetry = telemetry ?? throw new ArgumentNullException(nameof(telemetry));
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(refreshMs) };
-        _timer.Tick += (_, _) => Refresh(_telemetry.Latest);
+        _timer.Tick += (_, _) => Refresh(Telemetry.Latest);
         _timer.Start();
-        Refresh(_telemetry.Latest);
+        Refresh(Telemetry.Latest);
     }
+
+    /// <summary>The telemetry source this panel reads from (also exposes recent samples).</summary>
+    protected IOverlayTelemetrySource Telemetry { get; }
 
     /// <summary>Called on each tick with the latest sample. The sample may be null.</summary>
     protected abstract void Refresh(AccEngineer.Telemetry.TelemetrySample? sample);

@@ -10,6 +10,8 @@ namespace AccEngineer.UI.Overlay;
 public interface IOverlayTelemetrySource
 {
     TelemetrySample? Latest { get; }
+    /// <summary>Recent samples for projection/trace purposes (may be empty if unsupported).</summary>
+    IReadOnlyList<TelemetrySample> Recent(int maxCount);
 }
 
 /// <summary>
@@ -26,4 +28,5 @@ public sealed class LiveOverlayTelemetrySource : IOverlayTelemetrySource
     }
 
     public TelemetrySample? Latest => _telemetry.Latest;
+    public IReadOnlyList<TelemetrySample> Recent(int maxCount) => _telemetry.SnapshotRecent(maxCount);
 }
