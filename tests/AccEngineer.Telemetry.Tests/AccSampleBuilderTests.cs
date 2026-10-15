@@ -24,6 +24,39 @@ public class AccSampleBuilderTests
     }
 
     [Fact]
+    public void Build_MapsPerWheelSuspensionTravel()
+    {
+        var builder = new AccSampleBuilder();
+        var physics = new AccPhysicsPage
+        {
+            SuspensionTravel = new[] { 0.021f, 0.019f, 0.034f, 0.033f }
+        };
+        var graphics = new AccGraphicsPage
+        {
+            Status = AccStatus.Live,
+            SessionIndex = 0,
+            CompletedLaps = 0,
+            IsValidLap = 1,
+            DistanceTraveled = 10f
+        };
+
+        var sample = builder.Build(physics, graphics, default, T0, 0);
+
+        Assert.NotNull(sample.SuspensionTravelMeters);
+        Assert.Equal(new[] { 0.021f, 0.019f, 0.034f, 0.033f }, sample.SuspensionTravelMeters);
+    }
+
+    [Fact]
+    public void Build_WithoutSuspensionChannel_LeavesTravelNull()
+    {
+        var builder = new AccSampleBuilder();
+
+        var sample = Build(builder, laps: 0, distance: 10f);
+
+        Assert.Null(sample.SuspensionTravelMeters);
+    }
+
+    [Fact]
     public void Build_MapsCorePhysicsGraphicsAndStaticFields()
     {
         var builder = new AccSampleBuilder();

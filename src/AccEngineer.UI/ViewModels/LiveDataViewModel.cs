@@ -142,6 +142,14 @@ public sealed class LiveDataViewModel : PageViewModel
 
     public string TyreWearRr { get; private set; } = Display.Missing;
 
+    public string SuspensionFl { get; private set; } = Display.Missing;
+
+    public string SuspensionFr { get; private set; } = Display.Missing;
+
+    public string SuspensionRl { get; private set; } = Display.Missing;
+
+    public string SuspensionRr { get; private set; } = Display.Missing;
+
     public string LateralAccelerationText { get; private set; } = Display.Missing;
 
     public string LongitudinalAccelerationText { get; private set; } = Display.Missing;
@@ -211,6 +219,12 @@ public sealed class LiveDataViewModel : PageViewModel
         TyreWearFr = WearAt(wear, 1);
         TyreWearRl = WearAt(wear, 2);
         TyreWearRr = WearAt(wear, 3);
+
+        var suspension = sample.SuspensionTravelMeters;
+        SuspensionFl = TravelAt(suspension, 0);
+        SuspensionFr = TravelAt(suspension, 1);
+        SuspensionRl = TravelAt(suspension, 2);
+        SuspensionRr = TravelAt(suspension, 3);
 
         BuildTraces();
         BuildMap(sample);
@@ -440,6 +454,7 @@ public sealed class LiveDataViewModel : PageViewModel
         TempFl = TempFr = TempRl = TempRr = Display.Missing;
         BrakeTempFl = BrakeTempFr = BrakeTempRl = BrakeTempRr = Display.Missing;
         TyreWearFl = TyreWearFr = TyreWearRl = TyreWearRr = Display.Missing;
+        SuspensionFl = SuspensionFr = SuspensionRl = SuspensionRr = Display.Missing;
         SpeedTrace = ThrottleTrace = BrakeTrace = Array.Empty<double>();
         MapPoints = MapPath = Array.Empty<MapPoint>();
         Cars = Array.Empty<CarRow>();
@@ -457,6 +472,9 @@ public sealed class LiveDataViewModel : PageViewModel
 
     private static string WearAt(float[]? values, int index) =>
         values is not null && index < values.Length ? Display.Percent(values[index]) : Display.Missing;
+
+    private static string TravelAt(float[]? values, int index) =>
+        values is not null && index < values.Length ? Display.Millimetres(values[index]) : Display.Missing;
 
     private static string At(float[]? values, int index) =>
         values is not null && index < values.Length ? Display.Pressure(values[index]) : Display.Missing;

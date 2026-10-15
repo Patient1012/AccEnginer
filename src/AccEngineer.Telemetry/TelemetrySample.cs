@@ -141,6 +141,14 @@ public sealed record TelemetrySample
     public float[]? WheelLoad { get; init; }
 
     /// <summary>
+    /// Raw per-wheel suspension travel in metres exactly as reported by ACC shared
+    /// memory (source field <c>suspensionTravel</c>, order FL, FR, RL, RR). Larger
+    /// values indicate more compression. Validate against live ACC data before using
+    /// it in analysis.
+    /// </summary>
+    public float[]? SuspensionTravelMeters { get; init; }
+
+    /// <summary>
     /// Raw per-wheel pressure values exactly as reported by ACC shared memory
     /// (source field <c>wheelsPressure</c>, order FL, FR, RL, RR).
     /// The official ACC shared-memory documentation does not state a unit for this

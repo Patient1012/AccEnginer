@@ -49,6 +49,13 @@ public static class Display
 
     public static string Metres(float? metres) => metres is null ? Missing : metres.Value.ToString("0", Inv);
 
+    /// <summary>
+    /// Formats a length given in metres as whole millimetres (for example suspension
+    /// travel). Values are not clamped; missing data stays <see cref="Missing"/>.
+    /// </summary>
+    public static string Millimetres(float? metres) =>
+        metres is null ? Missing : (metres.Value * 1000.0).ToString("0", Inv);
+
     public static string Fuel(float? kg) => kg is null ? Missing : kg.Value.ToString("0.0", Inv);
 
     public static string Litres(float? litres) => litres is null ? Missing : litres.Value.ToString("0.0", Inv);

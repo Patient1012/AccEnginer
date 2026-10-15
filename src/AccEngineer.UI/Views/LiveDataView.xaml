@@ -471,6 +471,51 @@
                             </StackPanel>
                         </Border>
 
+                        <!-- Suspension telemetry -->
+                        <Border Style="{StaticResource StatCard}" Margin="0,8,0,0">
+                            <StackPanel>
+                                <TextBlock Text="SUSPENSION TRAVEL (mm)" Style="{StaticResource SectionHeader}" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,0,1,0" Padding="10,0">
+                                        <StackPanel>
+                                            <TextBlock Text="FL" Style="{StaticResource BannerValue}" Foreground="{DynamicResource BrushAccent}" />
+                                            <TextBlock Text="{Binding SuspensionFl}" Style="{StaticResource StatValue}" FontSize="18" />
+                                            <TextBlock Text="mm" Style="{StaticResource StatUnit}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="1" BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,0,1,0" Padding="10,0">
+                                        <StackPanel>
+                                            <TextBlock Text="FR" Style="{StaticResource BannerValue}" Foreground="{DynamicResource BrushAccent}" />
+                                            <TextBlock Text="{Binding SuspensionFr}" Style="{StaticResource StatValue}" FontSize="18" />
+                                            <TextBlock Text="mm" Style="{StaticResource StatUnit}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="2" BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,0,1,0" Padding="10,0">
+                                        <StackPanel>
+                                            <TextBlock Text="RL" Style="{StaticResource BannerValue}" Foreground="{DynamicResource BrushAccent}" />
+                                            <TextBlock Text="{Binding SuspensionRl}" Style="{StaticResource StatValue}" FontSize="18" />
+                                            <TextBlock Text="mm" Style="{StaticResource StatUnit}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Grid.Column="3" Padding="10,0">
+                                        <StackPanel>
+                                            <TextBlock Text="RR" Style="{StaticResource BannerValue}" Foreground="{DynamicResource BrushAccent}" />
+                                            <TextBlock Text="{Binding SuspensionRr}" Style="{StaticResource StatValue}" FontSize="18" />
+                                            <TextBlock Text="mm" Style="{StaticResource StatUnit}" />
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,10,0,0"
+                                           Text="Per-wheel suspension travel as reported by ACC, converted from metres to millimetres. Larger values mean more compression. Shown as — when the channel is unavailable." />
+                            </StackPanel>
+                        </Border>
+
                         <!-- Traces -->
                         <Border Style="{StaticResource StatCard}" Margin="0,8,0,0">
                             <StackPanel>

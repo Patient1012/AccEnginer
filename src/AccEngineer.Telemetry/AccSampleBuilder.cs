@@ -91,6 +91,7 @@ internal sealed class AccSampleBuilder
             WheelSlip = physics.WheelSlip,
             WheelLoad = physics.WheelLoad,
             WheelPressure = physics.WheelsPressure,
+            SuspensionTravelMeters = physics.SuspensionTravel,
             TyreCoreTempC = physics.TyreCoreTemperature,
             TyreTempInnerC = physics.TyreTempI,
             TyreTempMiddleC = physics.TyreTempM,
