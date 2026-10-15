@@ -10,9 +10,9 @@
     <Border Style="{StaticResource OverlayPanelBorder}">
         <Grid Margin="8,6">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" MinWidth="220" />
+                <ColumnDefinition Width="*" MinWidth="180" />
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="64" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 

@@ -68,5 +68,76 @@ public sealed class OverlayPanelWindow : OverlayWindowBase
         _panel.LayoutTransform = Math.Abs(clamped - 1.0) < 0.001
             ? Transform.Identity
             : new ScaleTransform(clamped, clamped);
+
+        // Scaled content can need more room than the window has, so re-derive the
+        // minimum immediately; otherwise the panel overflows and its columns collide.
+        SyncMinimumToContent();
+    }
+
+    protected override void OnContentRendered(EventArgs e)
+    {
+        base.OnContentRendered(e);
+        SyncMinimumToContent();
+    }
+
+    /// <summary>
+    /// Keeps the window big enough for its own content. A frame smaller than the content
+    /// clips and overlaps (shrinking the window, or scaling the content up, would silently
+    /// break the layout), so the minimum follows the measured size. The visible frame is
+    /// the larger of the user's requested size and what the content needs: scaling content
+    /// up grows the window, scaling it back down returns to the user's size, and the saved
+    /// size stays the user's choice.
+    /// </summary>
+    private void SyncMinimumToContent()
+    {
+        if (Content is not UIElement root) return;
+
+        // Force a re-measure at infinite size to learn the true desired size (this includes
+        // the panel's layout transform). Invalidation has to happen first: Measure on an
+        // element whose cache is still valid would hand back the pre-transform size. Then
+        // invalidate again so the normal layout pass runs with the window's constraints.
+        root.InvalidateMeasure();
+        root.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        root.InvalidateMeasure();
+
+        var desiredWidth = Math.Ceiling(root.DesiredSize.Width);
+        var desiredHeight = Math.Ceiling(root.DesiredSize.Height);
+        if (!double.IsFinite(desiredWidth) || !double.IsFinite(desiredHeight)) return;
+        if (desiredWidth <= 0 || desiredHeight <= 0) return;
+
+        // Never below the base minimums, never beyond a sane cap (guards a degenerate
+        // measurement from ballooning the window).
+        var minWidth = Math.Clamp(desiredWidth, 120, 4000);
+        var minHeight = Math.Clamp(desiredHeight, 80, 4000);
+
+        var changed = false;
+
+        if (MinWidth != minWidth || MinHeight != minHeight)
+        {
+            MinWidth = minWidth;
+            MinHeight = minHeight;
+            changed = true;
+        }
+
+        var userWidth = double.IsFinite(UserWidth) ? UserWidth : Width;
+        var userHeight = double.IsFinite(UserHeight) ? UserHeight : Height;
+        var targetWidth = Math.Max(userWidth, minWidth);
+        var targetHeight = Math.Max(userHeight, minHeight);
+
+        if (!double.IsFinite(Width) || Math.Abs(Width - targetWidth) > 0.5)
+        {
+            Width = targetWidth;
+            changed = true;
+        }
+
+        if (!double.IsFinite(Height) || Math.Abs(Height - targetHeight) > 0.5)
+        {
+            Height = targetHeight;
+            changed = true;
+        }
+
+        // Only persists when the frame actually moved; CaptureState reports the user
+        // frame, so a content-driven growth never inflates the stored size.
+        if (changed) RaiseLayoutChanged();
     }
 }

@@ -145,6 +145,13 @@ per-simulator profiles.
 - **Appearance plumbing** - `OverlayPanelViewModelBase.ApplyAppearance` (overridden by the
   inputs + relative panels) and `OverlayWindowBase.SetContentScale` (uniform
   `LayoutTransform` on the panel content, clamped 0.6-2.0).
+- **Content-driven minimum** - after an appearance change (and on first render) each
+  `OverlayPanelWindow` measures its content and raises the window minimum to fit, so a
+  larger font scale grows the panel instead of clipping its columns. The window keeps the
+  size the user chose (`OverlayWindowBase.UserWidth`/`UserHeight`) separately from the
+  content minimum: the visible frame is `max(user, content)`, and only the user frame is
+  persisted - scaling back down shrinks the panel to the user's size, so a font-scale
+  bump can never permanently inflate the saved layout.
 - **`OverlayManagerViewModel`** + **`Views/OverlayManagerWindow.xaml(.cs)`** - the editor:
   profile/layout selection (add/save-as/delete), per-resolution pinning, appearance sliders,
   a panel list with visibility + opacity, and Show/Hide/Edit/Reset actions with a status

@@ -20,6 +20,11 @@ public abstract class OverlayWindowBase : Window
     private const int WsExNoActivate = 0x08000000;
     private const int WsExToolWindow = 0x00000080;
 
+    /// <summary>Floor applied to every overlay window before content sizing is considered.</summary>
+    private const double BaseMinWidth = 120;
+
+    private const double BaseMinHeight = 80;
+
     public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register(
         nameof(IsEditing), typeof(bool), typeof(OverlayWindowBase),
         new PropertyMetadata(false, OnIsEditingChanged));
@@ -47,9 +52,19 @@ public abstract class OverlayWindowBase : Window
         ResizeMode = ResizeMode.NoResize;
         SnapsToDevicePixels = true;
         WindowStartupLocation = WindowStartupLocation.Manual;
-        MinWidth = 120;
-        MinHeight = 80;
+        MinWidth = BaseMinWidth;
+        MinHeight = BaseMinHeight;
     }
+
+    /// <summary>
+    /// The frame size the user asked for (restored from the layout, or set by dragging),
+    /// independent of any size imposed by the content itself. This is what gets persisted,
+    /// so scaling content up can grow the window without permanently inflating the saved
+    /// size - and scaling back down shrinks it to this again.
+    /// </summary>
+    public double UserWidth { get; private set; } = double.NaN;
+
+    public double UserHeight { get; private set; } = double.NaN;
 
     /// <summary>Stable identity used to persist this panel's placement.</summary>
     public string PanelId { get; set; } = string.Empty;
@@ -74,6 +89,9 @@ public abstract class OverlayWindowBase : Window
     /// <summary>Allows the window to close for real (used during shutdown).</summary>
     public void AllowClose() => _allowClose = true;
 
+    /// <summary>Raises <see cref="LayoutChanged"/> from derived types.</summary>
+    protected void RaiseLayoutChanged() => LayoutChanged?.Invoke(this, EventArgs.Empty);
+
     /// <summary>
     /// Applies a uniform content scale (used by the layout editor's font scale). The
     /// base does nothing; panel-hosting windows override it.
@@ -83,7 +101,8 @@ public abstract class OverlayWindowBase : Window
     /// <summary>
     /// Captures the current placement and appearance for persistence. Sanitized because
     /// Left/Top/Width/Height are NaN until the window is first arranged, and this runs
-    /// from the layout-changed handler during initial show.
+    /// from the layout-changed handler during initial show. Reports the frame the user
+    /// chose rather than any temporary content-driven enlargement.
     /// </summary>
     public OverlayPanelState CaptureState() => new OverlayPanelState
     {
@@ -91,16 +110,25 @@ public abstract class OverlayWindowBase : Window
         Visible = IsVisible,
         X = Left,
         Y = Top,
-        Width = Width,
-        Height = Height,
+        Width = double.IsFinite(UserWidth) ? UserWidth : Width,
+        Height = double.IsFinite(UserHeight) ? UserHeight : Height,
         Opacity = Opacity
     }.Sanitize();
 
     /// <summary>Applies persisted placement and appearance, clamped to the visible desktop.</summary>
     public void ApplyState(OverlayPanelState state)
     {
-        Width = Math.Max(MinWidth, state.Width);
-        Height = Math.Max(MinHeight, state.Height);
+        // Record the requested frame before any content-driven minimum is applied, so the
+        // window can shrink back to it later without the saved size drifting upward.
+        UserWidth = double.IsFinite(state.Width) && state.Width >= BaseMinWidth
+            ? state.Width
+            : BaseMinWidth;
+        UserHeight = double.IsFinite(state.Height) && state.Height >= BaseMinHeight
+            ? state.Height
+            : BaseMinHeight;
+
+        Width = Math.Max(MinWidth, UserWidth);
+        Height = Math.Max(MinHeight, UserHeight);
         Opacity = Math.Clamp(state.Opacity, 0.2, 1.0);
         var (x, y) = ClampToVirtualScreen(state.X, state.Y, Width, Height);
         Left = x;
@@ -149,6 +177,11 @@ public abstract class OverlayWindowBase : Window
 
         Width = Math.Max(MinWidth, Width + e.HorizontalChange);
         Height = Math.Max(MinHeight, Height + e.VerticalChange);
+
+        // A drag is a deliberate size choice, so it becomes the persisted user frame.
+        UserWidth = Width;
+        UserHeight = Height;
+
         LayoutChanged?.Invoke(this, EventArgs.Empty);
     }
 
