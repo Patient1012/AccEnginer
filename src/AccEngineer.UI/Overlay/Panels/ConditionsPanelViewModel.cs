@@ -76,13 +76,16 @@ public sealed class ConditionsPanelViewModel : OverlayPanelViewModel
     private static (string text, Brush brush) FlagDisplay(SessionFlag flag) => flag switch
     {
         SessionFlag.None => ("NONE", Brushes.Transparent),
-        SessionFlag.Blue => ("BLUE", System.Windows.Application.Current?.Resources["OverlayFlagBlueBrush"] as Brush ?? Brushes.DodgerBlue),
-        SessionFlag.Yellow => ("YELLOW", System.Windows.Application.Current?.Resources["OverlayFlagYellowBrush"] as Brush ?? Brushes.Gold),
-        SessionFlag.Black => ("BLACK", System.Windows.Application.Current?.Resources["OverlayFlagBlackBrush"] as Brush ?? Brushes.Gray),
-        SessionFlag.White => ("WHITE", System.Windows.Application.Current?.Resources["OverlayFlagWhiteBrush"] as Brush ?? Brushes.White),
-        SessionFlag.Checkered => ("CHECKERED", System.Windows.Application.Current?.Resources["OverlayFlagCheckeredBrush"] as Brush ?? Brushes.Goldenrod),
-        SessionFlag.Red => ("RED", System.Windows.Application.Current?.Resources["OverlayFlagRedBrush"] as Brush ?? Brushes.IndianRed),
-        SessionFlag.Green => ("GREEN", System.Windows.Application.Current?.Resources["OverlayFlagGreenBrush"] as Brush ?? Brushes.SeaGreen),
+        SessionFlag.Blue => ("BLUE", Resolve("OverlayFlagBlueBrush")),
+        SessionFlag.Yellow => ("YELLOW", Resolve("OverlayFlagYellowBrush")),
+        SessionFlag.Black => ("BLACK", Resolve("OverlayFlagBlackBrush")),
+        SessionFlag.White => ("WHITE", Resolve("OverlayFlagWhiteBrush")),
+        SessionFlag.Checkered => ("CHECKERED", Resolve("OverlayFlagCheckeredBrush")),
+        SessionFlag.Red => ("RED", Resolve("OverlayFlagRedBrush")),
+        SessionFlag.Green => ("GREEN", Resolve("OverlayFlagGreenBrush")),
         _ => ("--", Brushes.Transparent)
     };
+
+    private static Brush Resolve(string key) =>
+        System.Windows.Application.Current?.TryFindResource(key) as Brush ?? Brushes.Transparent;
 }

@@ -2,32 +2,56 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-      Phase 1 classic overlay theme (circa-2020 broadcast / RaceLab legacy look).
-      Colours are centralised here so later phases can add alt themes without
-      touching panel markup. Keys are Prefixed "Overlay" to avoid clashing with the
-      main app palette.
+      Classic overlay theme (circa-2020 broadcast / RaceLab legacy look).
+
+      This file no longer owns any colours. Each Overlay* brush is a thin alias
+      whose Color tracks a semantic token from the active theme, so the overlay
+      follows the application theme and live theme switches reach the panels.
+      The aliases exist because the panel markup and the Conditions panel have
+      always looked these keys up by name; keeping the names means the panel
+      markup is untouched.
+
+      The Colour* tokens are supplied by whatever theme ThemeManager has applied.
+      App.OnStartup applies the saved theme before the main window (and therefore
+      any overlay window) is created, so the tokens are always present by the
+      time a panel resolves them.
     -->
-    <SolidColorBrush x:Key="OverlayPanelBrush" Color="#E6101012" />
-    <SolidColorBrush x:Key="OverlayHeaderBrush" Color="#FF161718" />
-    <SolidColorBrush x:Key="OverlayBorderBrush" Color="#FF4A4A4E" />
-    <SolidColorBrush x:Key="OverlaySeparatorBrush" Color="#33FFFFFF" />
-    <SolidColorBrush x:Key="OverlayTextBrush" Color="#FFF0F0F0" />
-    <SolidColorBrush x:Key="OverlayMutedBrush" Color="#FFA6ACB4" />
-    <SolidColorBrush x:Key="OverlayAccentBrush" Color="#FFB7F34A" />
-    <SolidColorBrush x:Key="OverlaySuccessBrush" Color="#FF63D67F" />
-    <SolidColorBrush x:Key="OverlayWarningBrush" Color="#FFE7C34A" />
-    <SolidColorBrush x:Key="OverlayFlagBlueBrush" Color="#FF4FA3FF" />
-    <SolidColorBrush x:Key="OverlayFlagYellowBrush" Color="#FFE7C34A" />
-    <SolidColorBrush x:Key="OverlayFlagRedBrush" Color="#FFE4574C" />
-    <SolidColorBrush x:Key="OverlayFlagGreenBrush" Color="#FF63D67F" />
-    <SolidColorBrush x:Key="OverlayFlagWhiteBrush" Color="#FFF5F5F5" />
-    <SolidColorBrush x:Key="OverlayFlagBlackBrush" Color="#FF9AA0A6" />
-    <SolidColorBrush x:Key="OverlayFlagCheckeredBrush" Color="#B3B7F34A" />
+    <SolidColorBrush x:Key="OverlayPanelBrush" Color="{DynamicResource ColorOverlayPanel}" />
+    <SolidColorBrush x:Key="OverlayHeaderBrush" Color="{DynamicResource ColorOverlayHeader}" />
+    <SolidColorBrush x:Key="OverlayBorderBrush" Color="{DynamicResource ColorOverlayBorder}" />
+    <SolidColorBrush x:Key="OverlaySeparatorBrush" Color="{DynamicResource ColorOverlaySeparator}" />
+    <SolidColorBrush x:Key="OverlayTextBrush" Color="{DynamicResource ColorOverlayText}" />
+    <SolidColorBrush x:Key="OverlayMutedBrush" Color="{DynamicResource ColorOverlayMuted}" />
+    <SolidColorBrush x:Key="OverlayAccentBrush" Color="{DynamicResource ColorOverlayAccent}" />
+    <SolidColorBrush x:Key="OverlaySuccessBrush" Color="{DynamicResource ColorOverlaySuccess}" />
+    <SolidColorBrush x:Key="OverlayWarningBrush" Color="{DynamicResource ColorOverlayWarning}" />
+    <SolidColorBrush x:Key="OverlayFlagBlueBrush" Color="{DynamicResource ColorFlagBlue}" />
+    <SolidColorBrush x:Key="OverlayFlagYellowBrush" Color="{DynamicResource ColorFlagYellow}" />
+    <SolidColorBrush x:Key="OverlayFlagRedBrush" Color="{DynamicResource ColorFlagRed}" />
+    <SolidColorBrush x:Key="OverlayFlagGreenBrush" Color="{DynamicResource ColorFlagGreen}" />
+    <SolidColorBrush x:Key="OverlayFlagWhiteBrush" Color="{DynamicResource ColorFlagWhite}" />
+    <SolidColorBrush x:Key="OverlayFlagBlackBrush" Color="{DynamicResource ColorFlagBlack}" />
+    <SolidColorBrush x:Key="OverlayFlagCheckeredBrush" Color="{DynamicResource ColorFlagCheckered}" />
+    <SolidColorBrush x:Key="OverlaySelectedRowBrush" Color="{DynamicResource ColorOverlaySelectedRow}" />
+    <SolidColorBrush x:Key="OverlayPitBrush" Color="{DynamicResource ColorOverlayPit}" />
+    <SolidColorBrush x:Key="OverlayBarTrackBrush" Color="{DynamicResource ColorOverlayBarTrack}" />
+    <SolidColorBrush x:Key="OverlayGearBadgeBrush" Color="{DynamicResource ColorOverlayGearBadge}" />
+    <SolidColorBrush x:Key="OverlayGraphBgBrush" Color="{DynamicResource ColorOverlayGraphBg}" />
+    <!-- Timing readout conventions: green = personal best, purple = session best. -->
+    <SolidColorBrush x:Key="OverlayPersonalBestBrush" Color="{DynamicResource ColorOverlayPersonalBest}" />
+    <SolidColorBrush x:Key="OverlaySessionBestBrush" Color="{DynamicResource ColorOverlaySessionBest}" />
+    <!-- Input channel colours (throttle/brake/steering) shared by bars and traces. -->
+    <SolidColorBrush x:Key="OverlayThrottleBrush" Color="{DynamicResource ColorChartThrottle}" />
+    <SolidColorBrush x:Key="OverlayBrakeBrush" Color="{DynamicResource ColorChartBrake}" />
+    <SolidColorBrush x:Key="OverlaySteerBrush" Color="{DynamicResource ColorChartSteer}" />
+    <SolidColorBrush x:Key="OverlayClassProBrush" Color="{DynamicResource ColorClassPro}" />
+    <SolidColorBrush x:Key="OverlayClassAmBrush" Color="{DynamicResource ColorClassAm}" />
+    <SolidColorBrush x:Key="OverlayClassSilverBrush" Color="{DynamicResource ColorClassSilver}" />
     <FontFamily x:Key="OverlayValueFont">Consolas</FontFamily>
 
     <Style x:Key="OverlayPanelBorder" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource OverlayPanelBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource OverlayBorderBrush}" />
+        <Setter Property="Background" Value="{DynamicResource OverlayPanelBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource OverlayBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="2" />
     </Style>
@@ -35,19 +59,19 @@
     <Style x:Key="OverlayHeader" TargetType="TextBlock">
         <Setter Property="FontSize" Value="11" />
         <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="Foreground" Value="{StaticResource OverlayTextBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
     </Style>
 
     <Style x:Key="OverlayLabel" TargetType="TextBlock">
         <Setter Property="FontSize" Value="11" />
-        <Setter Property="Foreground" Value="{StaticResource OverlayMutedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource OverlayMutedBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
     <Style x:Key="OverlayValue" TargetType="TextBlock">
         <Setter Property="FontSize" Value="13" />
         <Setter Property="FontFamily" Value="{StaticResource OverlayValueFont}" />
-        <Setter Property="Foreground" Value="{StaticResource OverlayTextBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
         <Setter Property="HorizontalAlignment" Value="Right" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
@@ -58,7 +82,7 @@
     </Style>
 
     <Style x:Key="OverlayEditOutline" TargetType="Border">
-        <Setter Property="BorderBrush" Value="{StaticResource OverlayAccentBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource OverlayAccentBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Margin" Value="1" />
         <Setter Property="IsHitTestVisible" Value="False" />
@@ -67,10 +91,10 @@
     <Style x:Key="OverlayLiveDot" TargetType="Ellipse">
         <Setter Property="Width" Value="7" />
         <Setter Property="Height" Value="7" />
-        <Setter Property="Fill" Value="{StaticResource OverlayWarningBrush}" />
+        <Setter Property="Fill" Value="{DynamicResource OverlayWarningBrush}" />
         <Style.Triggers>
             <DataTrigger Binding="{Binding IsLive}" Value="True">
-                <Setter Property="Fill" Value="{StaticResource OverlaySuccessBrush}" />
+                <Setter Property="Fill" Value="{DynamicResource OverlaySuccessBrush}" />
             </DataTrigger>
         </Style.Triggers>
     </Style>
@@ -86,7 +110,7 @@
                 <ControlTemplate TargetType="Thumb">
                     <Border Background="Transparent">
                         <Path Data="M0,13 L13,0 M5,13 L13,5 M9,13 L13,9"
-                              Stroke="{StaticResource OverlayAccentBrush}"
+                              Stroke="{DynamicResource OverlayAccentBrush}"
                               StrokeThickness="1.5"
                               HorizontalAlignment="Right"
                               VerticalAlignment="Bottom"
@@ -98,25 +122,15 @@
     </Style>
 
     <!-- ===================================================================
-         Phase 2 visual primitives. These are the shared building blocks every
-         overlay panel uses so styling stays consistent and centralised here.
+         Shared visual primitives every overlay panel uses so styling stays
+         consistent and centralised here.
          =================================================================== -->
-
-    <SolidColorBrush x:Key="OverlaySelectedRowBrush" Color="#22B7F34A" />
-    <SolidColorBrush x:Key="OverlayPitBrush" Color="#4D9AA0A6" />
-    <!-- Input channel colours (throttle/brake/steering) shared by bars and traces. -->
-    <SolidColorBrush x:Key="OverlayThrottleBrush" Color="#FF63D67F" />
-    <SolidColorBrush x:Key="OverlayBrakeBrush" Color="#FFE4574C" />
-    <SolidColorBrush x:Key="OverlaySteerBrush" Color="#FF4FA3FF" />
-    <SolidColorBrush x:Key="OverlayClassProBrush" Color="#FF4FA3FF" />
-    <SolidColorBrush x:Key="OverlayClassAmBrush" Color="#FFFFC24D" />
-    <SolidColorBrush x:Key="OverlayClassSilverBrush" Color="#FFD0D4DA" />
 
     <!-- Session/section heading: small, dim, uppercase-like emphasis. -->
     <Style x:Key="OverlaySectionHeader" TargetType="TextBlock">
         <Setter Property="FontSize" Value="9" />
         <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="Foreground" Value="{StaticResource OverlayMutedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource OverlayMutedBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
@@ -124,7 +138,7 @@
     <Style x:Key="OverlayTableHeaderText" TargetType="TextBlock">
         <Setter Property="FontSize" Value="9" />
         <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="Foreground" Value="{StaticResource OverlayMutedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource OverlayMutedBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     </Style>
@@ -132,13 +146,13 @@
     <!-- Standard dense cell text. -->
     <Style x:Key="OverlayCellText" TargetType="TextBlock">
         <Setter Property="FontSize" Value="11" />
-        <Setter Property="Foreground" Value="{StaticResource OverlayTextBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     </Style>
 
     <Style x:Key="OverlayCellMuted" TargetType="TextBlock" BasedOn="{StaticResource OverlayCellText}">
-        <Setter Property="Foreground" Value="{StaticResource OverlayMutedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource OverlayMutedBrush}" />
     </Style>
 
     <!-- Monospaced cell for numbers such as gaps and positions. -->
@@ -150,11 +164,11 @@
          player, using a DataTrigger so no per-row code is needed. -->
     <Style x:Key="OverlayRowBorder" TargetType="Border">
         <Setter Property="Padding" Value="4,1" />
-        <Setter Property="BorderBrush" Value="{StaticResource OverlaySeparatorBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource OverlaySeparatorBrush}" />
         <Setter Property="BorderThickness" Value="0,0,0,1" />
         <Style.Triggers>
             <DataTrigger Binding="{Binding IsPlayer}" Value="True">
-                <Setter Property="Background" Value="{StaticResource OverlaySelectedRowBrush}" />
+                <Setter Property="Background" Value="{DynamicResource OverlaySelectedRowBrush}" />
             </DataTrigger>
         </Style.Triggers>
     </Style>
@@ -169,20 +183,20 @@
 
     <Style x:Key="OverlaySeparator" TargetType="Rectangle">
         <Setter Property="Height" Value="1" />
-        <Setter Property="Fill" Value="{StaticResource OverlaySeparatorBrush}" />
+        <Setter Property="Fill" Value="{DynamicResource OverlaySeparatorBrush}" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
     </Style>
 
     <!-- Recessed track behind an OverlayBar. -->
     <Style x:Key="OverlayBarTrack" TargetType="Border">
-        <Setter Property="Background" Value="#33FFFFFF" />
+        <Setter Property="Background" Value="{DynamicResource OverlayBarTrackBrush}" />
         <Setter Property="CornerRadius" Value="1" />
     </Style>
 
     <!-- Gear badge: a compact boxed number/symbol. -->
     <Style x:Key="OverlayGearBadge" TargetType="Border">
-        <Setter Property="Background" Value="#14FFFFFF" />
-        <Setter Property="BorderBrush" Value="{StaticResource OverlayBorderBrush}" />
+        <Setter Property="Background" Value="{DynamicResource OverlayGearBadgeBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource OverlayBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="2" />
         <Setter Property="Padding" Value="8,2" />

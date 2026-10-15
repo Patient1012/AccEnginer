@@ -1,4 +1,4 @@
-<UserControl x:Class="AccEngineer.UI.Overlay.Controls.OverlayStatusIndicator"
+﻿<UserControl x:Class="AccEngineer.UI.Overlay.Controls.OverlayStatusIndicator"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:AccEngineer.UI.Overlay.Controls">
@@ -7,11 +7,11 @@
         <Ellipse Width="7" Height="7" VerticalAlignment="Center">
             <Ellipse.Style>
                 <Style TargetType="Ellipse">
-                    <Setter Property="Fill" Value="{StaticResource OverlayWarningBrush}" />
+                    <Setter Property="Fill" Value="{DynamicResource OverlayWarningBrush}" />
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding IsActive, RelativeSource={RelativeSource AncestorType=local:OverlayStatusIndicator}}"
                                      Value="True">
-                            <Setter Property="Fill" Value="{StaticResource OverlaySuccessBrush}" />
+                            <Setter Property="Fill" Value="{DynamicResource OverlaySuccessBrush}" />
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>

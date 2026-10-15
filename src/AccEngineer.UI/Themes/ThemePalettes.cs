@@ -70,6 +70,8 @@ internal static class ThemePalettes
         OverlayBarTrack = "#33EBDBB2",
         OverlayGearBadge = "#14EBDBB2",
         OverlayGraphBg = "#FF1D2021",
+        OverlayPersonalBest = "#FFB8BB26",
+        OverlaySessionBest = "#FFD3869B",
 
         FlagBlue = "#FF83A598",
         FlagYellow = "#FFFABD2F",
@@ -145,6 +147,8 @@ internal static class ThemePalettes
         OverlayBarTrack = "#333C3836",
         OverlayGearBadge = "#143C3836",
         OverlayGraphBg = "#FFF9F1D6",
+        OverlayPersonalBest = "#FF79740E",
+        OverlaySessionBest = "#FF8F3F71",
 
         FlagBlue = "#FF076678",
         FlagYellow = "#FFB57614",
@@ -220,6 +224,8 @@ internal static class ThemePalettes
         OverlayBarTrack = "#33F8F8F2",
         OverlayGearBadge = "#14F8F8F2",
         OverlayGraphBg = "#FF21222C",
+        OverlayPersonalBest = "#FF50FA7B",
+        OverlaySessionBest = "#FFBD93F9",
 
         FlagBlue = "#FF8BE9FD",
         FlagYellow = "#FFF1FA8C",
@@ -295,6 +301,8 @@ internal static class ThemePalettes
         OverlayBarTrack = "#33CDD6F4",
         OverlayGearBadge = "#14CDD6F4",
         OverlayGraphBg = "#FF181825",
+        OverlayPersonalBest = "#FFA6E3A1",
+        OverlaySessionBest = "#FFCBA6F7",
 
         FlagBlue = "#FF89B4FA",
         FlagYellow = "#FFF9E2AF",
@@ -370,6 +378,8 @@ internal static class ThemePalettes
         OverlayBarTrack = "#33CAD3F5",
         OverlayGearBadge = "#14CAD3F5",
         OverlayGraphBg = "#FF1E2030",
+        OverlayPersonalBest = "#FFA6DA95",
+        OverlaySessionBest = "#FFC6A0F6",
 
         FlagBlue = "#FF8AADF4",
         FlagYellow = "#FFEED49F",
@@ -445,6 +455,8 @@ internal static class ThemePalettes
         OverlayBarTrack = "#334C4F69",
         OverlayGearBadge = "#144C4F69",
         OverlayGraphBg = "#FFE6E9EF",
+        OverlayPersonalBest = "#FF40A02B",
+        OverlaySessionBest = "#FF8839EF",
 
         FlagBlue = "#FF1E66F5",
         FlagYellow = "#FFDF8E1D",
@@ -520,6 +532,8 @@ internal static class ThemePalettes
         OverlayBarTrack = "#33ECEFF4",
         OverlayGearBadge = "#14ECEFF4",
         OverlayGraphBg = "#FF3B4252",
+        OverlayPersonalBest = "#FFA3BE8C",
+        OverlaySessionBest = "#FFB48EAD",
 
         FlagBlue = "#FF81A1C1",
         FlagYellow = "#FFEBCB8B",
@@ -595,6 +609,8 @@ internal static class ThemePalettes
         OverlayBarTrack = "#33C0CAF5",
         OverlayGearBadge = "#14C0CAF5",
         OverlayGraphBg = "#FF16161E",
+        OverlayPersonalBest = "#FF9ECE6A",
+        OverlaySessionBest = "#FFBB9AF7",
 
         FlagBlue = "#FF7AA2F7",
         FlagYellow = "#FFE0AF68",
@@ -670,6 +686,8 @@ internal static class ThemePalettes
         OverlayBarTrack = "#33ABB2BF",
         OverlayGearBadge = "#14ABB2BF",
         OverlayGraphBg = "#FF21252B",
+        OverlayPersonalBest = "#FF98C379",
+        OverlaySessionBest = "#FFC678DD",
 
         FlagBlue = "#FF61AFEF",
         FlagYellow = "#FFE5C07B",

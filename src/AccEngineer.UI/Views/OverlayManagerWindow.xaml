@@ -31,7 +31,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Profile" VerticalAlignment="Center" />
-                            <ComboBox Grid.Column="1" ItemsSource="{Binding Profiles}"
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding Profiles}" Style="{StaticResource InputCombo}"
                                       SelectedItem="{Binding SelectedProfile, Mode=TwoWay}" />
                             <TextBox Grid.Column="2" Width="120" Margin="8,0,0,0" Style="{StaticResource InputBox}"
                                      Text="{Binding NewProfileName, UpdateSourceTrigger=PropertyChanged}"
@@ -48,7 +48,7 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Layout" VerticalAlignment="Center" />
-                            <ComboBox Grid.Column="1" ItemsSource="{Binding Layouts}"
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding Layouts}" Style="{StaticResource InputCombo}"
                                       SelectedItem="{Binding SelectedLayout, Mode=TwoWay}" />
                             <TextBox Grid.Column="2" Width="120" Margin="8,0,0,0" Style="{StaticResource InputBox}"
                                      Text="{Binding NewLayoutName, UpdateSourceTrigger=PropertyChanged}"

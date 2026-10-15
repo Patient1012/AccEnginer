@@ -141,6 +141,15 @@ public sealed record ThemePalette
     /// <summary>Backdrop behind the throttle/brake trace chart.</summary>
     public required string OverlayGraphBg { get; init; }
 
+    /// <summary>
+    /// Timing readout conventions: green for the driver's own best lap, purple for the
+    /// overall session best. Kept separate from the status colours so a fast lap never
+    /// reads as a warning.
+    /// </summary>
+    public required string OverlayPersonalBest { get; init; }
+
+    public required string OverlaySessionBest { get; init; }
+
     // ---- Flags ----------------------------------------------------------------------
     public required string FlagBlue { get; init; }
 

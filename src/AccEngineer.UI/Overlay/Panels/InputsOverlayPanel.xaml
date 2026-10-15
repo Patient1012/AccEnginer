@@ -1,4 +1,4 @@
-<UserControl x:Class="AccEngineer.UI.Overlay.Panels.InputsOverlayPanel"
+﻿<UserControl x:Class="AccEngineer.UI.Overlay.Panels.InputsOverlayPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:oc="clr-namespace:AccEngineer.UI.Overlay.Controls"
@@ -17,16 +17,16 @@
             </Grid.ColumnDefinitions>
 
             <!-- Throttle (green) and brake (red) traces over a faint grid. -->
-            <Border Grid.Column="0" Height="72" Background="#FF0A0A0A"
-                    BorderBrush="{StaticResource OverlaySeparatorBrush}" BorderThickness="1"
+            <Border Grid.Column="0" Height="72" Background="{DynamicResource OverlayGraphBgBrush}"
+                    BorderBrush="{DynamicResource OverlaySeparatorBrush}" BorderThickness="1"
                     VerticalAlignment="Center">
                 <Grid Margin="1">
                     <ctl:TraceChart Minimum="0" Maximum="1" ShowGrid="True"
-                                    GridBrush="{StaticResource OverlaySeparatorBrush}"
-                                    Stroke="{StaticResource OverlayThrottleBrush}"
+                                    GridBrush="{DynamicResource OverlaySeparatorBrush}"
+                                    Stroke="{DynamicResource OverlayThrottleBrush}"
                                     LineThickness="1.5" Values="{Binding ThrottleTrace}" />
                     <ctl:TraceChart Minimum="0" Maximum="1"
-                                    Stroke="{StaticResource OverlayBrakeBrush}"
+                                    Stroke="{DynamicResource OverlayBrakeBrush}"
                                     LineThickness="1.5" Values="{Binding BrakeTrace}" />
                 </Grid>
             </Border>
@@ -41,37 +41,37 @@
 
                 <StackPanel Grid.Column="0" ToolTip="Clutch">
                     <StackPanel Orientation="Horizontal" Height="6">
-                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Fill="{StaticResource OverlayMutedBrush}" />
-                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Margin="3,0,0,0" Fill="{StaticResource OverlayMutedBrush}" />
-                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Margin="3,0,0,0" Fill="{StaticResource OverlayMutedBrush}" />
+                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Fill="{DynamicResource OverlayMutedBrush}" />
+                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Margin="3,0,0,0" Fill="{DynamicResource OverlayMutedBrush}" />
+                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Margin="3,0,0,0" Fill="{DynamicResource OverlayMutedBrush}" />
                     </StackPanel>
                     <Border Style="{StaticResource OverlayBarTrack}" Width="14" Height="66">
                         <oc:OverlayBar Orientation="Vertical" Value="{Binding ClutchBar}"
-                                       Fill="{StaticResource OverlayTextBrush}" />
+                                       Fill="{DynamicResource OverlayTextBrush}" />
                     </Border>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Margin="6,0,0,0" ToolTip="Brake">
                     <StackPanel Orientation="Horizontal" Height="6">
-                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Fill="{StaticResource OverlayMutedBrush}" />
-                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Margin="3,0,0,0" Fill="{StaticResource OverlayMutedBrush}" />
-                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Margin="3,0,0,0" Fill="{StaticResource OverlayMutedBrush}" />
+                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Fill="{DynamicResource OverlayMutedBrush}" />
+                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Margin="3,0,0,0" Fill="{DynamicResource OverlayMutedBrush}" />
+                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Margin="3,0,0,0" Fill="{DynamicResource OverlayMutedBrush}" />
                     </StackPanel>
                     <Border Style="{StaticResource OverlayBarTrack}" Width="14" Height="66">
                         <oc:OverlayBar Orientation="Vertical" Value="{Binding BrakeBar}"
-                                       Fill="{StaticResource OverlayBrakeBrush}" />
+                                       Fill="{DynamicResource OverlayBrakeBrush}" />
                     </Border>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Margin="6,0,0,0" ToolTip="Throttle">
                     <StackPanel Orientation="Horizontal" Height="6">
-                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Fill="{StaticResource OverlayMutedBrush}" />
-                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Margin="3,0,0,0" Fill="{StaticResource OverlayMutedBrush}" />
-                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Margin="3,0,0,0" Fill="{StaticResource OverlayMutedBrush}" />
+                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Fill="{DynamicResource OverlayMutedBrush}" />
+                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Margin="3,0,0,0" Fill="{DynamicResource OverlayMutedBrush}" />
+                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Margin="3,0,0,0" Fill="{DynamicResource OverlayMutedBrush}" />
                     </StackPanel>
                     <Border Style="{StaticResource OverlayBarTrack}" Width="14" Height="66">
                         <oc:OverlayBar Orientation="Vertical" Value="{Binding ThrottleBar}"
-                                       Fill="{StaticResource OverlayThrottleBrush}" />
+                                       Fill="{DynamicResource OverlayThrottleBrush}" />
                     </Border>
                 </StackPanel>
             </Grid>
@@ -90,10 +90,10 @@
             <oc:SteeringWheel Grid.Column="3" Margin="18,0,0,0" Width="64" Height="64"
                               VerticalAlignment="Center"
                               Value="{Binding SteeringAngle}"
-                              RimBrush="{StaticResource OverlayTextBrush}"
-                              SpokeBrush="{StaticResource OverlayMutedBrush}"
-                              HubBrush="{StaticResource OverlayTextBrush}"
-                              MarkerBrush="{StaticResource OverlayBrakeBrush}" />
+                              RimBrush="{DynamicResource OverlayTextBrush}"
+                              SpokeBrush="{DynamicResource OverlayMutedBrush}"
+                              HubBrush="{DynamicResource OverlayTextBrush}"
+                              MarkerBrush="{DynamicResource OverlayBrakeBrush}" />
         </Grid>
     </Border>
 </UserControl>

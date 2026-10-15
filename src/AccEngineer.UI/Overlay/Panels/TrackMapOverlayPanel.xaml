@@ -1,4 +1,4 @@
-<UserControl x:Class="AccEngineer.UI.Overlay.Panels.TrackMapOverlayPanel"
+﻿<UserControl x:Class="AccEngineer.UI.Overlay.Panels.TrackMapOverlayPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:oc="clr-namespace:AccEngineer.UI.Overlay.Controls"
@@ -24,7 +24,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal">
-                    <Border Width="3" Background="{StaticResource OverlayAccentBrush}" Margin="0,0,6,0" />
+                    <Border Width="3" Background="{DynamicResource OverlayAccentBrush}" Margin="0,0,6,0" />
                     <TextBlock Text="MAP" Style="{StaticResource OverlayHeader}" VerticalAlignment="Center" />
                     <TextBlock Text="{Binding TrackText}" Margin="8,0,0,0"
                                Style="{StaticResource OverlayCellMuted}" VerticalAlignment="Center" />
@@ -41,9 +41,9 @@
                           FitPath="{Binding Outline}"
                           Path="{Binding Outline}"
                           Markers="{Binding Markers}"
-                          PathBrush="{StaticResource OverlayMutedBrush}"
-                          MarkerBrush="{StaticResource OverlayWarningBrush}"
-                          PlayerBrush="{StaticResource OverlayAccentBrush}" />
+                          PathBrush="{DynamicResource OverlayMutedBrush}"
+                          MarkerBrush="{DynamicResource OverlayWarningBrush}"
+                          PlayerBrush="{DynamicResource OverlayAccentBrush}" />
 
             <TextBlock Grid.Row="3" Text="{Binding NoteText}" Margin="0,3,0,0" TextWrapping="Wrap"
                        Style="{StaticResource OverlayCellMuted}"
