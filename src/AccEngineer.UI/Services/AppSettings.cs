@@ -22,8 +22,6 @@ public sealed class AppSettings
     public string ReportsDirectory { get; set; } =
         Path.Combine(Environment.CurrentDirectory, "reports");
 
-    public string AccentColor { get; set; } = "#B7F34A";
-
     /// <summary>
     /// Id of the selected UI theme (the <see cref="AppTheme"/> name). Unknown or missing
     /// values resolve to the default theme, so an old or hand-edited settings file can

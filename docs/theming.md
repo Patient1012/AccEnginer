@@ -16,9 +16,13 @@ RaceLab-style overlay windows).
 | MVVM | `Mvvm/ObservableObject.cs`, `Mvvm/RelayCommand.cs` | Manual composition, no DI container. |
 | Tests | `tests/AccEngineer.UI.Tests` | xunit on `net10.0-windows` with `UseWPF`. |
 
-Hard-coded colours outside the theme files: `Controls.xaml` (`PrimaryButton` foreground
-`#FF0B0F14`), `InputsOverlayPanel.xaml` (graph backdrop `#FF0A0A0A`), and `Controls/Logo.xaml`
-(brand artwork). `AppSettings.AccentColor` is persisted but unused.
+Hard-coded colours outside the theme files: `Controls/Logo.xaml` (brand artwork, kept on
+purpose). `Controls.xaml` and every view already referenced brushes through
+`{DynamicResource …}`, so the only fix needed was `PrimaryButton`'s foreground, which was a
+literal `#FF0B0F14` and is now the `TextOnAccent` token. `InputsOverlayPanel.xaml`'s graph
+backdrop and the rest of the overlay chrome are handled by the overlay theme (stage 7). The
+dead `AppSettings.AccentColor` field has been removed; an old settings file that still
+contains `accentColor` is unaffected because unknown JSON members are skipped.
 
 ## 2. Design
 
@@ -46,7 +50,7 @@ opaque is introduced.
 Surfaces `Background`, `Surface`, `SurfaceAlt`, `SurfaceHigh` ·
 Text `TextPrimary`, `TextSecondary`, `TextMuted`, `TextOnAccent` ·
 Lines `Border`, `Divider` ·
-Accent `Accent`, `AccentHover`, `AccentSubtle` ·
+Accent `Accent`, `AccentHover`, `AccentDim` ·
 Controls `ControlBg`, `ControlBgHover`, `ControlBgPressed`, `ControlDisabled`,
 `InputBg`, `InputBorder`, `TooltipBg`, `TooltipText` ·
 States `Selection`, `Focus` ·
@@ -80,7 +84,7 @@ setting; `SettingsViewModel` exposes the list, the current selection and live sw
 ## 4. Stages
 
 1. Plan (this document).
-2. Theme architecture: `AppTheme`, `ThemePalette`, `ThemeTokens`, `ThemeManager`,
+2. Theme architecture: `AppTheme`, `ThemePalette`, `ThemeCatalog`, `ThemeManager`,
    `AppSettings.Theme`, startup wiring. `Default` only.
 3. All ten theme definitions in `ThemeCatalog`.
 4. Runtime switching.
@@ -88,3 +92,18 @@ setting; `SettingsViewModel` exposes the list, the current selection and live sw
 6. Migrate application screens, controls and charts.
 7. Migrate overlay windows and telemetry visualisations.
 8. Tests, documentation, final validation.
+
+## 5. Progress
+
+- [x] 1. Plan.
+- [x] 2. Architecture (`AppTheme`, `ThemePalette`, `ThemeCatalog`, `ThemeManager`,
+      `AppSettings.Theme`, `App.OnStartup`).
+- [x] 3. Ten themes registered in `ThemeCatalog.All`, with per-theme palettes in
+      `ThemePalettes`. Checked against WCAG contrast for text, on-accent and overlay text.
+- [x] 4. Runtime switching via `ThemeManager.Apply`, exercised for all ten themes.
+- [x] 5. Settings **Appearance** selector: applies on selection, persists immediately,
+      live preview built only from `{DynamicResource …}`, themed `ComboBox`.
+- [x] 6. Application screens — already theme-aware; `PrimaryButton` foreground and the
+      dead `AccentColor` field fixed.
+- [ ] 7. Overlay windows and telemetry visualisations.
+- [ ] 8. Tests and final validation.
