@@ -10,6 +10,83 @@
             <TextBlock Text="Settings" Style="{StaticResource PageTitle}" />
             <TextBlock Text="{Binding StatusText}" Style="{StaticResource Caption}" Margin="0,4,0,0" TextWrapping="Wrap" />
 
+            <TextBlock Text="APPEARANCE" Style="{StaticResource SectionHeader}" Margin="0,20,0,8" />
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Theme" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1" Width="280" HorizontalAlignment="Left"
+                                  Style="{StaticResource InputCombo}"
+                                  ItemsSource="{Binding Themes}"
+                                  SelectedItem="{Binding SelectedTheme}"
+                                  DisplayMemberPath="Name" />
+                    </Grid>
+
+                    <TextBlock Text="Preview" Style="{StaticResource Caption}" Margin="0,14,0,6" />
+
+                    <!-- Every value below is a live resource reference, so this follows the
+                         selected theme with no second palette defined anywhere. -->
+                    <Border Background="{DynamicResource BrushBackground}"
+                            BorderBrush="{DynamicResource BrushBorder}" BorderThickness="1"
+                            CornerRadius="8" Padding="14">
+                        <StackPanel>
+                            <TextBlock Text="SESSION" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource BrushTextSecondary}" />
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                <TextBlock Text="P1" FontSize="22" FontWeight="Bold"
+                                           Foreground="{DynamicResource BrushTextPrimary}" />
+                                <TextBlock Text="&#160;&#160;·&#160;&#160;" FontSize="22"
+                                           Foreground="{DynamicResource BrushTextMuted}" />
+                                <TextBlock Text="3rd" FontSize="22" FontWeight="Bold"
+                                           Foreground="{DynamicResource BrushAccent}" />
+                                <TextBlock Text="&#160;&#160;·&#160;&#160;" FontSize="22"
+                                           Foreground="{DynamicResource BrushTextMuted}" />
+                                <TextBlock Text="1:42.318" FontSize="22" FontWeight="Bold"
+                                           Foreground="{DynamicResource BrushTextPrimary}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <Button Content="Primary" Style="{StaticResource PrimaryButton}" />
+                                <Button Content="Ghost" Style="{StaticResource GhostButton}" Margin="8,0,0,0" />
+                                <Border Margin="8,0,0,0" Padding="10,5" CornerRadius="5"
+                                        Background="{DynamicResource BrushAccentDim}">
+                                    <TextBlock Text="GREEN FLAG" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource BrushAccent}" />
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <Border Width="46" Height="28" CornerRadius="5" BorderThickness="1"
+                                Background="{DynamicResource BrushBackground}"
+                                BorderBrush="{DynamicResource BrushBorder}" />
+                        <Border Width="46" Height="28" CornerRadius="5" Margin="6,0,0,0" BorderThickness="1"
+                                Background="{DynamicResource BrushSurface}"
+                                BorderBrush="{DynamicResource BrushBorder}" />
+                        <Border Width="46" Height="28" CornerRadius="5" Margin="6,0,0,0" BorderThickness="1"
+                                Background="{DynamicResource BrushSurfaceAlt}"
+                                BorderBrush="{DynamicResource BrushBorder}" />
+                        <Border Width="46" Height="28" CornerRadius="5" Margin="6,0,0,0"
+                                Background="{DynamicResource BrushAccent}" />
+                        <Border Width="46" Height="28" CornerRadius="5" Margin="6,0,0,0"
+                                Background="{DynamicResource BrushSuccess}" />
+                        <Border Width="46" Height="28" CornerRadius="5" Margin="6,0,0,0"
+                                Background="{DynamicResource BrushWarning}" />
+                        <Border Width="46" Height="28" CornerRadius="5" Margin="6,0,0,0"
+                                Background="{DynamicResource BrushError}" />
+                        <Border Width="46" Height="28" CornerRadius="5" Margin="6,0,0,0"
+                                Background="{DynamicResource BrushInfo}" />
+                    </StackPanel>
+
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,12,0,0" TextWrapping="Wrap"
+                               Text="Applies as soon as it is picked and is saved to settings.json. Overlay panels use the same theme. A theme name that is missing or no longer recognised falls back to Default rather than leaving the application unstyled." />
+                </StackPanel>
+            </Border>
+
             <TextBlock Text="TELEMETRY READER" Style="{StaticResource SectionHeader}" Margin="0,20,0,8" />
             <Border Style="{StaticResource Card}">
                 <Grid>

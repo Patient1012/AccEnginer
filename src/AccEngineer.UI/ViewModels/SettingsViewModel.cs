@@ -5,6 +5,7 @@ using AccEngineer.AI;
 using AccEngineer.UI.Mvvm;
 using AccEngineer.UI.Overlay;
 using AccEngineer.UI.Services;
+using AccEngineer.UI.Themes;
 
 namespace AccEngineer.UI.ViewModels;
 
@@ -13,8 +14,11 @@ namespace AccEngineer.UI.ViewModels;
 /// the source tree. AI provider/model/endpoint are editable here; the API key is
 /// never stored and is read from environment variables at use time. Report
 /// generation and copy do not depend on AI configuration.
+///
+/// The theme is the one setting that applies as soon as it is picked, because
+/// judging a theme on a static screenshot is the whole point of a selector.
 /// </summary>
-public sealed class SettingsViewModel : PageViewModel
+public sealed class SettingsViewModel : PageViewModel, IDisposable
 {
     private readonly MainViewModel _shell;
     private int _poll;
@@ -24,6 +28,8 @@ public sealed class SettingsViewModel : PageViewModel
     private string _aiModel = string.Empty;
     private string _aiEndpoint = string.Empty;
     private string _status = string.Empty;
+    private ThemeDefinition _selectedTheme = ThemeCatalog.Default;
+    private bool _applyingTheme;
 
     public SettingsViewModel(MainViewModel shell)
         : base("Settings")
@@ -36,6 +42,11 @@ public sealed class SettingsViewModel : PageViewModel
         _aiProvider = options.AiProvider ?? string.Empty;
         _aiModel = options.AiModel ?? string.Empty;
         _aiEndpoint = options.AiEndpoint ?? string.Empty;
+
+        // Show what is actually in effect, which is the resolved value rather than
+        // whatever the file happened to contain.
+        _selectedTheme = ThemeCatalog.TryResolve(options.Theme, out var theme) ? theme : ThemeCatalog.Default;
+        ThemeManager.Changed += OnThemeChanged;
 
         SaveCommand = new RelayCommand(Save);
         OpenRecordingsCommand = new RelayCommand(() => Open(RecordingsDirectory));
@@ -154,6 +165,24 @@ public sealed class SettingsViewModel : PageViewModel
 
     public string SettingsPathText => AppSettings.SettingsPath;
 
+    /// <summary>Every known theme, in the order the selector should list them.</summary>
+    public IReadOnlyList<ThemeDefinition> Themes => ThemeCatalog.All;
+
+    /// <summary>The theme currently in effect. Setting it applies and persists immediately.</summary>
+    public ThemeDefinition SelectedTheme
+    {
+        get => _selectedTheme;
+        set
+        {
+            if (!SetProperty(ref _selectedTheme, value) || value is null)
+            {
+                return;
+            }
+
+            ApplyTheme(value);
+        }
+    }
+
     public string OverlayStatusText
     {
         get
@@ -199,6 +228,7 @@ public sealed class SettingsViewModel : PageViewModel
         _aiProvider = _shell.Options.AiProvider ?? string.Empty;
         _aiModel = _shell.Options.AiModel ?? string.Empty;
         _aiEndpoint = _shell.Options.AiEndpoint ?? string.Empty;
+        _selectedTheme = ThemeCatalog.TryResolve(_shell.Options.Theme, out var theme) ? theme : ThemeCatalog.Default;
 
         OnPropertyChanged(nameof(PollIntervalMs));
         OnPropertyChanged(nameof(RecordingsDirectory));
@@ -208,6 +238,7 @@ public sealed class SettingsViewModel : PageViewModel
         OnPropertyChanged(nameof(AiEndpoint));
         OnPropertyChanged(nameof(IsAiConfigured));
         OnPropertyChanged(nameof(AiStatusText));
+        OnPropertyChanged(nameof(SelectedTheme));
         RefreshOverlayStatus();
     }
 
@@ -227,6 +258,7 @@ public sealed class SettingsViewModel : PageViewModel
         options.AiProvider = string.IsNullOrWhiteSpace(AiProvider) ? null : AiProvider.Trim();
         options.AiModel = string.IsNullOrWhiteSpace(AiModel) ? null : AiModel.Trim();
         options.AiEndpoint = string.IsNullOrWhiteSpace(AiEndpoint) ? null : AiEndpoint.Trim();
+        options.Theme = SelectedTheme.Id.ToString();
 
         PollIntervalMs = options.PollIntervalMs;
         RecordingsDirectory = options.RecordingsDirectory;
@@ -243,6 +275,49 @@ public sealed class SettingsViewModel : PageViewModel
         {
             StatusText = $"Could not save settings: {ex.Message}";
         }
+    }
+
+    private void ApplyTheme(ThemeDefinition definition)
+    {
+        _applyingTheme = true;
+        try
+        {
+            ThemeManager.Apply(definition);
+            _shell.Options.Theme = definition.Id.ToString();
+            StatusText = $"Theme: {definition.Name}.";
+        }
+        finally
+        {
+            _applyingTheme = false;
+        }
+
+        try
+        {
+            _shell.Options.Save();
+            StatusText = $"Theme: {definition.Name}. Saved to {AppSettings.SettingsPath}";
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Theme: {definition.Name}, but it could not be saved: {ex.Message}";
+        }
+    }
+
+    private void OnThemeChanged(object? sender, EventArgs e)
+    {
+        // Only reached when something other than this selector changed the theme;
+        // re-sync the highlighted item without writing the settings file back.
+        if (_applyingTheme || ThemeManager.CurrentDefinition == _selectedTheme)
+        {
+            return;
+        }
+
+        _selectedTheme = ThemeManager.CurrentDefinition;
+        OnPropertyChanged(nameof(SelectedTheme));
+    }
+
+    public void Dispose()
+    {
+        ThemeManager.Changed -= OnThemeChanged;
     }
 
     private void RefreshAiStatus()

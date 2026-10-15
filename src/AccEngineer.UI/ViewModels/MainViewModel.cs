@@ -270,6 +270,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         Overlays.EditorRequested -= OpenOverlayManager;
         _overlayManagerWindow?.Close();
         _overlayManagerWindow = null;
+        SettingsPage.Dispose();
         Overlays.Dispose();
         Telemetry.Dispose();
     }
