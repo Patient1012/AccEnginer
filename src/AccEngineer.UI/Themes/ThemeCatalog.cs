@@ -35,7 +35,19 @@ public static class ThemeCatalog
         Palette: DefaultPalette());
 
     /// <summary>Every theme, in the order the Settings selector should list them.</summary>
-    public static IReadOnlyList<ThemeDefinition> All { get; } = new[] { Default };
+    public static IReadOnlyList<ThemeDefinition> All { get; } = new[]
+    {
+        Default,
+        new ThemeDefinition(AppTheme.GruvboxDark, "Gruvbox Dark", "Warm charcoal with cream text and earthy orange, yellow, red and green.", true, ThemePalettes.GruvboxDark),
+        new ThemeDefinition(AppTheme.GruvboxLight, "Gruvbox Light", "Warm off-white with the same earthy accents.", false, ThemePalettes.GruvboxLight),
+        new ThemeDefinition(AppTheme.Dracula, "Dracula", "Dark purple-grey with purple, pink, cyan and green.", true, ThemePalettes.Dracula),
+        new ThemeDefinition(AppTheme.CatppuccinMocha, "Catppuccin Mocha", "Dark blue-grey with pastel accents.", true, ThemePalettes.CatppuccinMocha),
+        new ThemeDefinition(AppTheme.CatppuccinMacchiato, "Catppuccin Macchiato", "Softer dark surfaces with balanced pastels.", true, ThemePalettes.CatppuccinMacchiato),
+        new ThemeDefinition(AppTheme.CatppuccinLatte, "Catppuccin Latte", "Light with readable pastel accents.", false, ThemePalettes.CatppuccinLatte),
+        new ThemeDefinition(AppTheme.Nord, "Nord", "Cool blue-grey with subdued accents.", true, ThemePalettes.Nord),
+        new ThemeDefinition(AppTheme.TokyoNight, "Tokyo Night", "Deep navy with blue, cyan and purple.", true, ThemePalettes.TokyoNight),
+        new ThemeDefinition(AppTheme.OneDark, "One Dark", "Charcoal with familiar editor-inspired colours.", true, ThemePalettes.OneDark)
+    };
 
     /// <summary>The resource key a token is published under, e.g. <c>ColorAccent</c>.</summary>
     public static string ColorKey(string token) => "Color" + token;
@@ -55,17 +67,30 @@ public static class ThemeCatalog
     }
 
     /// <summary>
-    /// Resolves a persisted theme id. Missing, unparseable and out-of-range values all
+    /// Resolves a persisted theme id. Accepts either the stable enum name (what this
+    /// application writes) or the display name (so a hand-edited settings file using
+    /// "Gruvbox Dark" still works). Missing, unparseable and out-of-range values all
     /// fall back to <see cref="Default"/>, so a stale or hand-edited settings file can
     /// never leave the application unstyled.
     /// </summary>
     public static bool TryResolve(string? id, out ThemeDefinition definition)
     {
-        if (!string.IsNullOrWhiteSpace(id) &&
-            Enum.TryParse(id.Trim(), ignoreCase: true, out AppTheme parsed) &&
-            Enum.IsDefined(parsed))
+        if (!string.IsNullOrWhiteSpace(id))
         {
-            return TryGet(parsed, out definition);
+            var text = id.Trim();
+
+            if (Enum.TryParse(text, ignoreCase: true, out AppTheme parsed) && Enum.IsDefined(parsed))
+            {
+                return TryGet(parsed, out definition);
+            }
+
+            var byName = All.FirstOrDefault(t =>
+                string.Equals(t.Name, text, StringComparison.OrdinalIgnoreCase));
+            if (byName is not null)
+            {
+                definition = byName;
+                return true;
+            }
         }
 
         definition = Default;
