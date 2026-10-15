@@ -2,6 +2,7 @@ using System.Globalization;
 using System.IO;
 using System.Text.Json;
 using AccEngineer.AI;
+using AccEngineer.UI.Themes;
 
 namespace AccEngineer.UI.Services;
 
@@ -22,6 +23,13 @@ public sealed class AppSettings
         Path.Combine(Environment.CurrentDirectory, "reports");
 
     public string AccentColor { get; set; } = "#B7F34A";
+
+    /// <summary>
+    /// Id of the selected UI theme (the <see cref="AppTheme"/> name). Unknown or missing
+    /// values resolve to the default theme, so an old or hand-edited settings file can
+    /// never leave the application unstyled.
+    /// </summary>
+    public string Theme { get; set; } = nameof(AppTheme.Default);
 
     public string? AiProvider { get; set; }
 
@@ -53,6 +61,13 @@ public sealed class AppSettings
                 if (loaded is not null)
                 {
                     loaded.PollIntervalMs = Math.Clamp(loaded.PollIntervalMs, 10, 2000);
+                    // A missing, renamed or hand-edited theme id falls back to the default
+                    // rather than failing to load or leaving the UI unstyled.
+                    if (!ThemeCatalog.TryResolve(loaded.Theme, out var theme))
+                    {
+                        loaded.Theme = theme.Id.ToString();
+                    }
+
                     return loaded;
                 }
             }
