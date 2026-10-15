@@ -242,7 +242,10 @@
                                             BorderThickness="{Binding BorderThickness, RelativeSource={RelativeSource AncestorType=ComboBox}}"
                                             CornerRadius="6">
                                         <Grid>
-                                            <ContentPresenter Margin="{Binding Padding, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                            <ContentPresenter Content="{Binding SelectionBoxItem, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                                              ContentTemplate="{Binding SelectionBoxItemTemplate, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                                              ContentTemplateSelector="{Binding ItemTemplateSelector, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                                              Margin="{Binding Padding, RelativeSource={RelativeSource AncestorType=ComboBox}}"
                                                               VerticalAlignment="Center" HorizontalAlignment="Left" />
                                             <Path HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0"
                                                   Data="M 0 0 L 4 4 L 8 0" Stroke="{DynamicResource BrushTextSecondary}"
