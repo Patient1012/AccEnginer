@@ -94,6 +94,8 @@ public sealed class OverlayLayoutStore
     /// <summary>Guarantees the document always has a valid active profile and layout.</summary>
     private static OverlayLayoutDocument Normalize(OverlayLayoutDocument document)
     {
+        var originalVersion = document.SchemaVersion;
+
         if (document.Profiles.Count == 0)
         {
             document.Profiles[OverlayLayoutDocument.DefaultProfileName] = new OverlayLayoutProfile
@@ -118,6 +120,36 @@ public sealed class OverlayLayoutStore
             profile.ActiveLayout = profile.Layouts.Keys.First();
         }
 
+        MigrateToV3(document, originalVersion);
+
         return document;
+    }
+
+    /// <summary>
+    /// v3 reshaped the inputs panel from a tall portrait stack to a landscape strip, so
+    /// any previously saved inputs geometry is re-based to the new default size. Other
+    /// panels and the user's placement of them are left untouched.
+    /// </summary>
+    private static void MigrateToV3(OverlayLayoutDocument document, int originalVersion)
+    {
+        if (originalVersion >= OverlayLayoutSchema.Version) return;
+
+        foreach (var profile in document.Profiles.Values)
+        {
+            foreach (var layout in profile.Layouts.Values)
+            {
+                var inputs = layout.Panels.FirstOrDefault(
+                    p => string.Equals(p.Id, "inputs", StringComparison.Ordinal));
+                if (inputs is not null)
+                {
+                    inputs.Width = OverlayLayoutSchema.InputsDefaultWidth;
+                    inputs.Height = OverlayLayoutSchema.InputsDefaultHeight;
+                }
+
+                layout.SchemaVersion = OverlayLayoutSchema.Version;
+            }
+        }
+
+        document.SchemaVersion = OverlayLayoutSchema.Version;
     }
 }

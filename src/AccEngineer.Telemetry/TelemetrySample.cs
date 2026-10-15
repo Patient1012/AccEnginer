@@ -71,6 +71,9 @@ public sealed record TelemetrySample
     /// <summary>Brake pedal input, 0.0 to 1.0.</summary>
     public float? BrakeInput { get; init; }
 
+    /// <summary>Clutch pedal input, 0.0 to 1.0.</summary>
+    public float? ClutchInput { get; init; }
+
     /// <summary>
     /// Gear as reported by ACC raw encoding: 0 = reverse, 1 = neutral, 2+ = gear (value - 1).
     /// </summary>

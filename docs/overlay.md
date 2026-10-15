@@ -75,16 +75,24 @@ labels the gaps as estimates. Ground plane is X-Z.
 
 ## Phase 4 - inputs / gear panel
 
-- `Overlay/Panels/InputsPanelViewModel.cs` + `InputsOverlayPanel.xaml(.cs)` - gear badge,
-  speed and RPM headline plus throttle, brake and steering readouts (bars + values) and
-  bounded rolling traces.
+- `Overlay/Panels/InputsPanelViewModel.cs` + `InputsOverlayPanel.xaml(.cs)` - a compact
+  horizontal strip: a throttle (green) / brake (red) trace graph on the left over a faint
+  grid, then vertical clutch / brake / throttle pedal columns, the gear and speed (kph)
+  block, and a circular steering wheel at the right that rotates with the steering angle.
 - Each input channel degrades independently: a missing channel shows `--` and its trace
   stops while the others keep rendering. Traces are bounded ring buffers (120 samples)
   rebuilt at the poll cadence and cleared on signal loss so a stale line is never drawn
   as if live.
+- Clutch input is sourced from the shared-memory physics page (`ClutchInput`). Steering
+  exposes both a magnitude (`SteeringBar`) and a signed `SteeringAngle` (-1..+1) for the
+  wheel graphic.
+- `Overlay/Controls/SteeringWheel.cs` - rim, three spokes and hub that rotate to the
+  current angle, with a fixed red reference marker on the upper-right rim.
+- `Overlay/Controls/OverlayBar.cs` gained an `Orientation` (horizontal or vertical) for the
+  pedal columns. `Controls/TraceChart.cs` gained optional gridlines (`ShowGrid`).
 - Uses the central `Services/Display` formatter for units (no hard-coded assumptions).
 - `Themes/OverlayClassic.xaml` gains throttle/brake/steering brushes.
-- Registered in `OverlayManager` as panel `inputs` (default 300,40 240x210, hidden).
+- Registered in `OverlayManager` as panel `inputs` (default 40,40 420x104, hidden).
 
 ## Phase 5 - track map
 
@@ -121,6 +129,10 @@ per-simulator profiles.
   Each `OverlayLayout` now also carries an `OverlayAppearance` (font scale, trace length,
   relative rows, relative gap/name columns). **v1 files are migrated** into the default
   `acc` profile / `Default` layout on load.
+- **Document v3** (`OverlayLayoutSchema`) - the inputs panel changed from a portrait stack
+  to a landscape strip, so on load any document older than v3 has its saved `inputs`
+  geometry re-based to the new landscape default (`OverlayLayoutStore.MigrateToV3`). Other
+  panels keep their placement. v1/v2 files still load and are stamped as v3.
 - **Sanitisation** - `OverlayPanelState.Sanitize()` / `OverlayAppearance.Sanitize()` clamp
   and coerce values (including non-finite `NaN`/`Infinity` from un-arranged windows) before
   serialization, because `System.Text.Json` refuses non-finite doubles. Called from

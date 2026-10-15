@@ -75,6 +75,7 @@ internal sealed class AccSampleBuilder
             SteeringInput = physics.SteerAngle,
             ThrottleInput = physics.Gas,
             BrakeInput = physics.Brake,
+            ClutchInput = physics.Clutch,
             Gear = physics.Gear,
             EngineRpm = physics.Rpms,
             LateralAccelerationG = At(physics.AccG, 0),

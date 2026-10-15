@@ -46,6 +46,30 @@ public sealed class TraceChart : FrameworkElement
         typeof(TraceChart),
         new FrameworkPropertyMetadata(1.5, FrameworkPropertyMetadataOptions.AffectsRender));
 
+    public static readonly DependencyProperty ShowGridProperty = DependencyProperty.Register(
+        nameof(ShowGrid),
+        typeof(bool),
+        typeof(TraceChart),
+        new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public static readonly DependencyProperty GridBrushProperty = DependencyProperty.Register(
+        nameof(GridBrush),
+        typeof(Brush),
+        typeof(TraceChart),
+        new FrameworkPropertyMetadata(Brushes.DimGray, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public static readonly DependencyProperty GridRowsProperty = DependencyProperty.Register(
+        nameof(GridRows),
+        typeof(int),
+        typeof(TraceChart),
+        new FrameworkPropertyMetadata(4, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public static readonly DependencyProperty GridColumnsProperty = DependencyProperty.Register(
+        nameof(GridColumns),
+        typeof(int),
+        typeof(TraceChart),
+        new FrameworkPropertyMetadata(6, FrameworkPropertyMetadataOptions.AffectsRender));
+
     public IEnumerable<double>? Values
     {
         get => (IEnumerable<double>?)GetValue(ValuesProperty);
@@ -82,6 +106,31 @@ public sealed class TraceChart : FrameworkElement
         set => SetValue(LineThicknessProperty, value);
     }
 
+    /// <summary>Draws a faint evenly spaced grid behind the trace.</summary>
+    public bool ShowGrid
+    {
+        get => (bool)GetValue(ShowGridProperty);
+        set => SetValue(ShowGridProperty, value);
+    }
+
+    public Brush GridBrush
+    {
+        get => (Brush)GetValue(GridBrushProperty);
+        set => SetValue(GridBrushProperty, value);
+    }
+
+    public int GridRows
+    {
+        get => (int)GetValue(GridRowsProperty);
+        set => SetValue(GridRowsProperty, value);
+    }
+
+    public int GridColumns
+    {
+        get => (int)GetValue(GridColumnsProperty);
+        set => SetValue(GridColumnsProperty, value);
+    }
+
     protected override void OnRender(DrawingContext drawingContext)
     {
         base.OnRender(drawingContext);
@@ -89,6 +138,11 @@ public sealed class TraceChart : FrameworkElement
         var width = ActualWidth;
         var height = ActualHeight;
         if (width <= 1 || height <= 1 || Values is null) return;
+
+        if (ShowGrid)
+        {
+            DrawGrid(drawingContext, width, height);
+        }
 
         var points = Values as IReadOnlyList<double> ?? Values.ToArray();
         if (points.Count < 2) return;
@@ -136,6 +190,27 @@ public sealed class TraceChart : FrameworkElement
         var pen = new Pen(Stroke, LineThickness);
         if (Stroke.CanFreeze) Stroke.Freeze();
         drawingContext.DrawGeometry(null, pen, geometry);
+    }
+
+    private void DrawGrid(DrawingContext drawingContext, double width, double height)
+    {
+        var pen = new Pen(GridBrush, 1);
+        if (GridBrush.CanFreeze) GridBrush.Freeze();
+        if (pen.CanFreeze) pen.Freeze();
+
+        var rows = Math.Max(1, GridRows);
+        for (var r = 1; r < rows; r++)
+        {
+            var y = height * r / rows;
+            drawingContext.DrawLine(pen, new Point(0, y), new Point(width, y));
+        }
+
+        var columns = Math.Max(1, GridColumns);
+        for (var c = 1; c < columns; c++)
+        {
+            var x = width * c / columns;
+            drawingContext.DrawLine(pen, new Point(x, 0), new Point(x, height));
+        }
     }
 
     private double MapY(double value, double height, double range)

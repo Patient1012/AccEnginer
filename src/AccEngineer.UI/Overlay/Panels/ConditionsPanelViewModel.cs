@@ -76,13 +76,13 @@ public sealed class ConditionsPanelViewModel : OverlayPanelViewModel
     private static (string text, Brush brush) FlagDisplay(SessionFlag flag) => flag switch
     {
         SessionFlag.None => ("NONE", Brushes.Transparent),
-        SessionFlag.Blue => ("BLUE", (Brush)System.Windows.Application.Current?.Resources["OverlayFlagBlueBrush"] ?? Brushes.DodgerBlue),
-        SessionFlag.Yellow => ("YELLOW", (Brush)System.Windows.Application.Current?.Resources["OverlayFlagYellowBrush"] ?? Brushes.Gold),
-        SessionFlag.Black => ("BLACK", (Brush)System.Windows.Application.Current?.Resources["OverlayFlagBlackBrush"] ?? Brushes.Gray),
-        SessionFlag.White => ("WHITE", (Brush)System.Windows.Application.Current?.Resources["OverlayFlagWhiteBrush"] ?? Brushes.White),
-        SessionFlag.Checkered => ("CHECKERED", (Brush)System.Windows.Application.Current?.Resources["OverlayFlagCheckeredBrush"] ?? Brushes.Goldenrod),
-        SessionFlag.Red => ("RED", (Brush)System.Windows.Application.Current?.Resources["OverlayFlagRedBrush"] ?? Brushes.IndianRed),
-        SessionFlag.Green => ("GREEN", (Brush)System.Windows.Application.Current?.Resources["OverlayFlagGreenBrush"] ?? Brushes.SeaGreen),
+        SessionFlag.Blue => ("BLUE", System.Windows.Application.Current?.Resources["OverlayFlagBlueBrush"] as Brush ?? Brushes.DodgerBlue),
+        SessionFlag.Yellow => ("YELLOW", System.Windows.Application.Current?.Resources["OverlayFlagYellowBrush"] as Brush ?? Brushes.Gold),
+        SessionFlag.Black => ("BLACK", System.Windows.Application.Current?.Resources["OverlayFlagBlackBrush"] as Brush ?? Brushes.Gray),
+        SessionFlag.White => ("WHITE", System.Windows.Application.Current?.Resources["OverlayFlagWhiteBrush"] as Brush ?? Brushes.White),
+        SessionFlag.Checkered => ("CHECKERED", System.Windows.Application.Current?.Resources["OverlayFlagCheckeredBrush"] as Brush ?? Brushes.Goldenrod),
+        SessionFlag.Red => ("RED", System.Windows.Application.Current?.Resources["OverlayFlagRedBrush"] as Brush ?? Brushes.IndianRed),
+        SessionFlag.Green => ("GREEN", System.Windows.Application.Current?.Resources["OverlayFlagGreenBrush"] as Brush ?? Brushes.SeaGreen),
         _ => ("--", Brushes.Transparent)
     };
 }

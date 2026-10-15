@@ -1,12 +1,29 @@
 namespace AccEngineer.UI.Overlay;
 
 /// <summary>
+/// Current overlay layout schema version. v1 was a bare single layout, v2 introduced
+/// simulator profiles + named layouts + resolution pinning, and v3 reshaped the inputs
+/// panel from a portrait stack to a landscape strip (so saved inputs geometry is
+/// re-based on load).
+/// </summary>
+public static class OverlayLayoutSchema
+{
+    public const int Version = 3;
+
+    /// <summary>Landscape default size for the inputs panel introduced in v3.</summary>
+    public const double InputsDefaultWidth = 480;
+
+    public const double InputsDefaultHeight = 92;
+}
+
+
+/// <summary>
 /// One named overlay layout: theme, panel placement and global appearance. Versioned
 /// so the schema can migrate later. Position and size are device-independent pixels.
 /// </summary>
 public sealed class OverlayLayout
 {
-    public int SchemaVersion { get; set; } = 2;
+    public int SchemaVersion { get; set; } = OverlayLayoutSchema.Version;
 
     public string Theme { get; set; } = "ClassicRacelabInspired";
 
@@ -98,7 +115,7 @@ public sealed class OverlayLayoutDocument
 
     public const string DefaultLayoutName = "Default";
 
-    public int SchemaVersion { get; set; } = 2;
+    public int SchemaVersion { get; set; } = OverlayLayoutSchema.Version;
 
     public string ActiveProfile { get; set; } = DefaultProfileName;
 

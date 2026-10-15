@@ -539,7 +539,7 @@ public sealed class OverlayManager : IDisposable
     {
         "timing" => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 40, Width = 260, Height = 158, Opacity = 0.92 },
         "relative" => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 210, Width = 232, Height = 178, Opacity = 0.92 },
-        "inputs" => new OverlayPanelState { Id = id, Visible = false, X = 300, Y = 40, Width = 240, Height = 210, Opacity = 0.92 },
+        "inputs" => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 40, Width = OverlayLayoutSchema.InputsDefaultWidth, Height = OverlayLayoutSchema.InputsDefaultHeight, Opacity = 0.92 },
         "map" => new OverlayPanelState { Id = id, Visible = false, X = 560, Y = 40, Width = 250, Height = 250, Opacity = 0.92 },
         "conditions" => new OverlayPanelState { Id = id, Visible = false, X = 560, Y = 300, Width = 220, Height = 172, Opacity = 0.92 },
         _ => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 400, Width = 300, Height = 230, Opacity = 0.92 }

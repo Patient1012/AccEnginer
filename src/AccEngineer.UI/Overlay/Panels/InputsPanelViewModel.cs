@@ -4,7 +4,7 @@ using AccEngineer.UI.Services;
 namespace AccEngineer.UI.Overlay.Panels;
 
 /// <summary>
-/// Inputs / gear panel: gear, speed and RPM plus throttle, brake and steering.
+/// Inputs / gear panel: gear, speed plus throttle/brake/clutch inputs and steering.
 /// Each channel degrades independently - a missing channel shows "--" and its trace
 /// simply stops, while the others keep rendering. Input traces are bounded rolling
 /// buffers (no unbounded growth) rebuilt at the poll cadence.
@@ -47,6 +47,8 @@ public sealed class InputsPanelViewModel : OverlayPanelViewModel
 
     public string BrakeText { get; private set; } = "--";
 
+    public string ClutchText { get; private set; } = "--";
+
     public string SteeringText { get; private set; } = "--";
 
     /// <summary>Throttle fill 0..1 for the bar (0 when unavailable).</summary>
@@ -55,8 +57,13 @@ public sealed class InputsPanelViewModel : OverlayPanelViewModel
     /// <summary>Brake fill 0..1 for the bar (0 when unavailable).</summary>
     public double BrakeBar { get; private set; }
 
+    public double ClutchBar { get; private set; }
+
     /// <summary>Steering magnitude 0..1 for the bar (0 when unavailable).</summary>
     public double SteeringBar { get; private set; }
+
+    /// <summary>Signed steering input -1..1 (left negative, right positive; 0 when unavailable).</summary>
+    public double SteeringAngle { get; private set; }
 
     public IReadOnlyList<double> ThrottleTrace { get; private set; } = Array.Empty<double>();
 
@@ -75,10 +82,13 @@ public sealed class InputsPanelViewModel : OverlayPanelViewModel
             RpmText = "--";
             ThrottleText = "--";
             BrakeText = "--";
+            ClutchText = "--";
             SteeringText = "--";
             ThrottleBar = 0;
             BrakeBar = 0;
+            ClutchBar = 0;
             SteeringBar = 0;
+            SteeringAngle = 0;
 
             // Drop history on signal loss so we never draw a stale line as if live.
             _throttle.Clear();
@@ -97,6 +107,17 @@ public sealed class InputsPanelViewModel : OverlayPanelViewModel
         GearText = Display.Gear(sample.Gear);
         SpeedText = Display.Kmh(sample.SpeedKph);
         RpmText = Display.Rpm(sample.EngineRpm);
+
+        if (sample.ClutchInput is { } clutch)
+        {
+            ClutchText = Display.Percent(clutch);
+            ClutchBar = Math.Clamp(clutch, 0, 1);
+        }
+        else
+        {
+            ClutchText = "--";
+            ClutchBar = 0;
+        }
 
         if (sample.ThrottleInput is { } throttle)
         {
@@ -128,6 +149,7 @@ public sealed class InputsPanelViewModel : OverlayPanelViewModel
         {
             SteeringText = Display.Steering(steering);
             SteeringBar = Math.Clamp(Math.Abs(steering), 0, 1);
+            SteeringAngle = Math.Clamp(steering, -1, 1);
             Push(_steering, steering);
             Trim(_steering);
         }
@@ -135,6 +157,7 @@ public sealed class InputsPanelViewModel : OverlayPanelViewModel
         {
             SteeringText = "--";
             SteeringBar = 0;
+            SteeringAngle = 0;
         }
 
         ThrottleTrace = _throttle.ToArray();

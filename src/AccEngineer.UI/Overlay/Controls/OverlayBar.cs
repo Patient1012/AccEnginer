@@ -1,12 +1,14 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace AccEngineer.UI.Overlay.Controls;
 
 /// <summary>
-/// Horizontal 0..1 bar used for throttle, brake and fuel style readouts. Draws a
-/// recessed track plus a fill. A NaN or non-positive value renders an empty bar
-/// rather than a misleading sliver of data.
+/// 0..1 bar used for throttle, brake and fuel style readouts. Draws a recessed
+/// track plus a fill, either horizontally (left to right) or vertically (bottom
+/// to top). A NaN or non-positive value renders an empty bar rather than a
+/// misleading sliver of data.
 /// </summary>
 public sealed class OverlayBar : FrameworkElement
 {
@@ -21,6 +23,10 @@ public sealed class OverlayBar : FrameworkElement
     public static readonly DependencyProperty TrackProperty = DependencyProperty.Register(
         nameof(Track), typeof(Brush), typeof(OverlayBar),
         new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public static readonly DependencyProperty OrientationProperty = DependencyProperty.Register(
+        nameof(Orientation), typeof(Orientation), typeof(OverlayBar),
+        new FrameworkPropertyMetadata(Orientation.Horizontal, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public double Value
     {
@@ -40,6 +46,13 @@ public sealed class OverlayBar : FrameworkElement
         set => SetValue(TrackProperty, value);
     }
 
+    /// <summary>Fill direction: Horizontal grows left-to-right, Vertical grows bottom-to-top.</summary>
+    public Orientation Orientation
+    {
+        get => (Orientation)GetValue(OrientationProperty);
+        set => SetValue(OrientationProperty, value);
+    }
+
     protected override void OnRender(DrawingContext drawingContext)
     {
         base.OnRender(drawingContext);
@@ -56,8 +69,11 @@ public sealed class OverlayBar : FrameworkElement
         var value = Value;
         if (double.IsNaN(value) || value <= 0) return;
 
-        var fillWidth = Math.Clamp(value, 0, 1) * width;
-        if (fillWidth <= 0) return;
-        drawingContext.DrawRectangle(Fill, null, new Rect(0, 0, fillWidth, height));
+        var fraction = Math.Clamp(value, 0, 1);
+        var rect = Orientation == Orientation.Vertical
+            ? new Rect(0, height * (1 - fraction), width, height * fraction)
+            : new Rect(0, 0, width * fraction, height);
+        if (rect.Width <= 0 || rect.Height <= 0) return;
+        drawingContext.DrawRectangle(Fill, null, rect);
     }
 }

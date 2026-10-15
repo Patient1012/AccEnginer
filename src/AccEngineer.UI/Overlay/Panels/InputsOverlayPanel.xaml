@@ -3,122 +3,97 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:oc="clr-namespace:AccEngineer.UI.Overlay.Controls"
              xmlns:ctl="clr-namespace:AccEngineer.UI.Controls">
-    <!-- Gear + speed headline, live input bars and bounded rolling traces. -->
+    <!-- Compact horizontal inputs strip. One row, everything vertically centred on a
+         shared 72px band so the graph, pedal columns, gear/speed and wheel read as a
+         single cohesive HUD: throttle/brake graph, then clutch/brake/throttle pedals,
+         then gear over speed, then the steering wheel. -->
     <Border Style="{StaticResource OverlayPanelBorder}">
-        <Grid Margin="6,4">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />   <!-- header -->
-                <RowDefinition Height="Auto" />   <!-- separator -->
-                <RowDefinition Height="Auto" />   <!-- gear / speed -->
-                <RowDefinition Height="Auto" />   <!-- throttle -->
-                <RowDefinition Height="Auto" />   <!-- brake -->
-                <RowDefinition Height="Auto" />   <!-- steering -->
-                <RowDefinition Height="Auto" />   <!-- separator -->
-                <RowDefinition Height="*" />      <!-- traces -->
-            </Grid.RowDefinitions>
+        <Grid Margin="8,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="220" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-            <!-- Header -->
-            <Grid Grid.Row="0" Margin="0,0,0,2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel Orientation="Horizontal">
-                    <Border Width="3" Background="{StaticResource OverlayAccentBrush}" Margin="0,0,6,0" />
-                    <TextBlock Text="INPUTS" Style="{StaticResource OverlayHeader}" VerticalAlignment="Center" />
-                </StackPanel>
-                <oc:OverlayStatusIndicator Grid.Column="1" Text="{Binding StatusText}" IsActive="{Binding IsLive}" />
-            </Grid>
+            <!-- Throttle (green) and brake (red) traces over a faint grid. -->
+            <Border Grid.Column="0" Height="72" Background="#FF0A0A0A"
+                    BorderBrush="{StaticResource OverlaySeparatorBrush}" BorderThickness="1"
+                    VerticalAlignment="Center">
+                <Grid Margin="1">
+                    <ctl:TraceChart Minimum="0" Maximum="1" ShowGrid="True"
+                                    GridBrush="{StaticResource OverlaySeparatorBrush}"
+                                    Stroke="{StaticResource OverlayThrottleBrush}"
+                                    LineThickness="1.5" Values="{Binding ThrottleTrace}" />
+                    <ctl:TraceChart Minimum="0" Maximum="1"
+                                    Stroke="{StaticResource OverlayBrakeBrush}"
+                                    LineThickness="1.5" Values="{Binding BrakeTrace}" />
+                </Grid>
+            </Border>
 
-            <Rectangle Grid.Row="1" Style="{StaticResource OverlaySeparator}" Margin="0,2,0,2" />
-
-            <!-- Gear badge, speed, RPM -->
-            <Grid Grid.Row="2" Margin="0,0,0,3">
+            <!-- Pedal columns on the same band, left to right: clutch, brake, throttle. -->
+            <Grid Grid.Column="1" Height="72" Margin="12,0,0,0" VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" Style="{StaticResource OverlayGearBadge}" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding GearText}" Style="{StaticResource OverlayValueBig}"
-                               HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Border>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
-                    <TextBlock Text="{Binding SpeedText}" Style="{StaticResource OverlayValueBig}" />
-                    <TextBlock Text=" km/h" Style="{StaticResource OverlayLabel}" VerticalAlignment="Bottom" Margin="2,0,0,3" />
+
+                <StackPanel Grid.Column="0" ToolTip="Clutch">
+                    <StackPanel Orientation="Horizontal" Height="6">
+                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Fill="{StaticResource OverlayMutedBrush}" />
+                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Margin="3,0,0,0" Fill="{StaticResource OverlayMutedBrush}" />
+                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Margin="3,0,0,0" Fill="{StaticResource OverlayMutedBrush}" />
+                    </StackPanel>
+                    <Border Style="{StaticResource OverlayBarTrack}" Width="14" Height="66">
+                        <oc:OverlayBar Orientation="Vertical" Value="{Binding ClutchBar}"
+                                       Fill="{StaticResource OverlayTextBrush}" />
+                    </Border>
                 </StackPanel>
-                <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
-                    <TextBlock Text="{Binding RpmText}" Style="{StaticResource OverlayCellMono}" HorizontalAlignment="Right" />
-                    <TextBlock Text="RPM" Style="{StaticResource OverlaySectionHeader}" HorizontalAlignment="Right" />
+
+                <StackPanel Grid.Column="1" Margin="6,0,0,0" ToolTip="Brake">
+                    <StackPanel Orientation="Horizontal" Height="6">
+                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Fill="{StaticResource OverlayMutedBrush}" />
+                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Margin="3,0,0,0" Fill="{StaticResource OverlayMutedBrush}" />
+                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Margin="3,0,0,0" Fill="{StaticResource OverlayMutedBrush}" />
+                    </StackPanel>
+                    <Border Style="{StaticResource OverlayBarTrack}" Width="14" Height="66">
+                        <oc:OverlayBar Orientation="Vertical" Value="{Binding BrakeBar}"
+                                       Fill="{StaticResource OverlayBrakeBrush}" />
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Margin="6,0,0,0" ToolTip="Throttle">
+                    <StackPanel Orientation="Horizontal" Height="6">
+                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Fill="{StaticResource OverlayMutedBrush}" />
+                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Margin="3,0,0,0" Fill="{StaticResource OverlayMutedBrush}" />
+                        <Rectangle Width="3" Height="5" VerticalAlignment="Bottom" Margin="3,0,0,0" Fill="{StaticResource OverlayMutedBrush}" />
+                    </StackPanel>
+                    <Border Style="{StaticResource OverlayBarTrack}" Width="14" Height="66">
+                        <oc:OverlayBar Orientation="Vertical" Value="{Binding ThrottleBar}"
+                                       Fill="{StaticResource OverlayThrottleBrush}" />
+                    </Border>
                 </StackPanel>
             </Grid>
 
-            <!-- Throttle -->
-            <Grid Grid.Row="3" Margin="0,0,0,2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="52" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="34" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="THROTTLE" Style="{StaticResource OverlayLabel}" />
-                <Border Grid.Column="1" Style="{StaticResource OverlayBarTrack}" Height="8" VerticalAlignment="Center">
-                    <oc:OverlayBar Value="{Binding ThrottleBar}" Fill="{StaticResource OverlayThrottleBrush}" />
-                </Border>
-                <TextBlock Grid.Column="2" Text="{Binding ThrottleText}" Style="{StaticResource OverlayCellMono}"
-                           HorizontalAlignment="Right" />
-            </Grid>
+            <!-- Gear over speed (kph label above the number), same vertical centre. -->
+            <StackPanel Grid.Column="2" Margin="18,0,0,0" VerticalAlignment="Center">
+                <TextBlock Text="{Binding GearText}" Style="{StaticResource OverlayValueBig}"
+                           FontSize="28" HorizontalAlignment="Center" />
+                <TextBlock Text="kph" Style="{StaticResource OverlaySectionHeader}"
+                           HorizontalAlignment="Center" Margin="0,2,0,0" />
+                <TextBlock Text="{Binding SpeedText}" Style="{StaticResource OverlayValueBig}"
+                           FontSize="20" HorizontalAlignment="Center" />
+            </StackPanel>
 
-            <!-- Brake -->
-            <Grid Grid.Row="4" Margin="0,0,0,2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="52" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="34" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="BRAKE" Style="{StaticResource OverlayLabel}" />
-                <Border Grid.Column="1" Style="{StaticResource OverlayBarTrack}" Height="8" VerticalAlignment="Center">
-                    <oc:OverlayBar Value="{Binding BrakeBar}" Fill="{StaticResource OverlayBrakeBrush}" />
-                </Border>
-                <TextBlock Grid.Column="2" Text="{Binding BrakeText}" Style="{StaticResource OverlayCellMono}"
-                           HorizontalAlignment="Right" />
-            </Grid>
-
-            <!-- Steering -->
-            <Grid Grid.Row="5">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="52" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="34" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="STEERING" Style="{StaticResource OverlayLabel}" />
-                <Border Grid.Column="1" Style="{StaticResource OverlayBarTrack}" Height="8" VerticalAlignment="Center">
-                    <Grid>
-                        <!-- Centre reference so the magnitude bar reads as a steering axis. -->
-                        <Rectangle Width="1" Fill="{StaticResource OverlaySeparatorBrush}"
-                                   HorizontalAlignment="Center" />
-                        <oc:OverlayBar Value="{Binding SteeringBar}" Fill="{StaticResource OverlaySteerBrush}" />
-                    </Grid>
-                </Border>
-                <TextBlock Grid.Column="2" Text="{Binding SteeringText}" Style="{StaticResource OverlayCellMono}"
-                           HorizontalAlignment="Right" />
-            </Grid>
-
-            <Rectangle Grid.Row="6" Style="{StaticResource OverlaySeparator}" Margin="0,3,0,3" />
-
-            <!-- Bounded rolling traces (throttle/brake 0..1, steering -1..1). -->
-            <Grid Grid.Row="7">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <ctl:TraceChart Grid.Row="0" Minimum="0" Maximum="1"
-                                Stroke="{StaticResource OverlayThrottleBrush}" Values="{Binding ThrottleTrace}" />
-                <ctl:TraceChart Grid.Row="1" Minimum="0" Maximum="1"
-                                Stroke="{StaticResource OverlayBrakeBrush}" Values="{Binding BrakeTrace}" />
-                <ctl:TraceChart Grid.Row="2" Minimum="-1" Maximum="1"
-                                Stroke="{StaticResource OverlaySteerBrush}" Values="{Binding SteeringTrace}" />
-            </Grid>
+            <!-- Steering wheel: rotates to the current steering angle. -->
+            <oc:SteeringWheel Grid.Column="3" Margin="18,0,0,0" Width="64" Height="64"
+                              VerticalAlignment="Center"
+                              Value="{Binding SteeringAngle}"
+                              RimBrush="{StaticResource OverlayTextBrush}"
+                              SpokeBrush="{StaticResource OverlayMutedBrush}"
+                              HubBrush="{StaticResource OverlayTextBrush}"
+                              MarkerBrush="{StaticResource OverlayBrakeBrush}" />
         </Grid>
     </Border>
 </UserControl>

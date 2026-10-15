@@ -32,6 +32,7 @@ public class AccSampleBuilderTests
             SpeedKmh = 180f,
             Gas = 1f,
             Brake = 0.25f,
+            Clutch = 0.4f,
             Gear = 4,
             Rpms = 7000,
             SteerAngle = -0.5f,
@@ -77,6 +78,7 @@ public class AccSampleBuilderTests
         Assert.Equal(150.25f, sample.TrackProgressMeters);
         Assert.Equal(1f, sample.ThrottleInput);
         Assert.Equal(0.25f, sample.BrakeInput);
+        Assert.Equal(0.4f, sample.ClutchInput);
         Assert.Equal(-0.5f, sample.SteeringInput);
         Assert.Equal(42.5f, sample.FuelLevel);
         Assert.Equal(7000, sample.EngineRpm);

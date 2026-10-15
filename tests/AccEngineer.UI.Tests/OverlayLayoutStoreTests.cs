@@ -100,6 +100,49 @@ public class OverlayLayoutStoreTests : IDisposable
     }
 
     [Fact]
+    public void Load_PreV3InputsPanel_IsRebasedToLandscape()
+    {
+        var path = PathFor("overlay.json");
+        Directory.CreateDirectory(_directory);
+        File.WriteAllText(path,
+            """
+            {
+              "schemaVersion": 2,
+              "activeProfile": "acc",
+              "profiles": {
+                "acc": {
+                  "simulator": "acc",
+                  "activeLayout": "Default",
+                  "layouts": {
+                    "Default": {
+                      "schemaVersion": 2,
+                      "panels": [
+                        { "id": "inputs", "visible": true, "x": 300, "y": 40, "width": 240, "height": 210, "opacity": 0.92 },
+                        { "id": "timing", "visible": true, "x": 40, "y": 40, "width": 260, "height": 158, "opacity": 0.92 }
+                      ]
+                    }
+                  },
+                  "resolutionLayouts": {}
+                }
+              }
+            }
+            """);
+
+        var document = new OverlayLayoutStore(path).Load();
+
+        var layout = document.Profiles["acc"].Layouts["Default"];
+        var inputs = layout.Panels.Single(p => p.Id == "inputs");
+        Assert.Equal(OverlayLayoutSchema.InputsDefaultWidth, inputs.Width);
+        Assert.Equal(OverlayLayoutSchema.InputsDefaultHeight, inputs.Height);
+
+        // Other panels keep their saved geometry and the document is stamped as current.
+        var timing = layout.Panels.Single(p => p.Id == "timing");
+        Assert.Equal(260, timing.Width);
+        Assert.Equal(158, timing.Height);
+        Assert.Equal(OverlayLayoutSchema.Version, document.SchemaVersion);
+    }
+
+    [Fact]
     public void Load_CorruptJson_FallsBackToDefault()
     {
         var path = PathFor("overlay.json");
