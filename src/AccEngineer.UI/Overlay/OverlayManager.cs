@@ -604,7 +604,7 @@ public sealed class OverlayManager : IDisposable
     private static OverlayPanelState DefaultState(string id) => id switch
     {
         "timing" => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 40, Width = 260, Height = 190, Opacity = 0.92 },
-        "relative" => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 210, Width = 232, Height = 178, Opacity = 0.92 },
+        "relative" => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 210, Width = 340, Height = 250, Opacity = 0.92 },
         "standings" => new OverlayPanelState { Id = id, Visible = false, X = 300, Y = 210, Width = 300, Height = 300, Opacity = 0.92 },
         "inputs" => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 40, Width = OverlayLayoutSchema.InputsDefaultWidth, Height = OverlayLayoutSchema.InputsDefaultHeight, Opacity = 0.92 },
         "map" => new OverlayPanelState { Id = id, Visible = false, X = 560, Y = 40, Width = 250, Height = 250, Opacity = 0.92 },

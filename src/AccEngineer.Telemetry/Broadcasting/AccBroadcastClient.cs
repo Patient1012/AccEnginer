@@ -249,7 +249,14 @@ public sealed class AccBroadcastClient : IDisposable
                     break;
 
                 case AccBroadcastRealtimeUpdate update:
-                    _session = new SessionInfo(update.FocusedCarIndex, update.SessionTimeMs, update.SessionPhase);
+                    if (_session is { } session && session.SessionIndex != update.SessionIndex)
+                    {
+                        // A new session makes every stored car state (laps, spline,
+                        // position) a leftover from the previous session. Drop them
+                        // so nothing stale survives into the standings snapshot.
+                        _cars.Clear();
+                    }
+                    _session = new SessionInfo(update.SessionIndex, update.FocusedCarIndex, update.SessionTimeMs, update.SessionPhase);
                     break;
 
                 case AccBroadcastRealtimeCarUpdate update:
@@ -386,5 +393,5 @@ public sealed class AccBroadcastClient : IDisposable
 
     private sealed record TrackInfo(string Name, int Meters);
 
-    private sealed record SessionInfo(int FocusedCarIndex, float SessionTimeMs, byte Phase);
+    private sealed record SessionInfo(int SessionIndex, int FocusedCarIndex, float SessionTimeMs, byte Phase);
 }

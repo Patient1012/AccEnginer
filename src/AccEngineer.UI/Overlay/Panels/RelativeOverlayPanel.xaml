@@ -1,50 +1,201 @@
 ﻿<UserControl x:Class="AccEngineer.UI.Overlay.Panels.RelativeOverlayPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:oc="clr-namespace:AccEngineer.UI.Overlay.Controls">
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+        <!-- Panel-local design constants for the broadcast leaderboard language:
+             the position block, car-number block, class badge and player highlight
+             are fixed by the design; the surface/text/separator colours track the
+             active theme through the shared Overlay* brush aliases. -->
+        <SolidColorBrush x:Key="RelPositionCellBrush" Color="#FFF4F4F4" />
+        <SolidColorBrush x:Key="RelPositionTextBrush" Color="#FF101010" />
+        <SolidColorBrush x:Key="RelBadgeBrush" Color="#FF2387E8" />
+        <SolidColorBrush x:Key="RelBadgeTextBrush" Color="#FFFFFFFF" />
+        <SolidColorBrush x:Key="RelPlayerNameBrush" Color="#FFF0C400" />
+
+        <!-- Row: consistent height, thin low-contrast separator, square corners. -->
+        <Style x:Key="RelRow" TargetType="Border">
+            <Setter Property="Height" Value="28" />
+            <Setter Property="BorderBrush" Value="{DynamicResource OverlaySeparatorBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+        </Style>
+
+        <!-- Strongly separated position block: white cell, black bold number. -->
+        <Style x:Key="RelPositionCell" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource RelPositionCellBrush}" />
+        </Style>
+        <Style x:Key="RelPositionText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{StaticResource RelPositionTextBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Car-number block: dark grey cell, white bold '#nn'. -->
+        <Style x:Key="RelCarCell" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource OverlayHeaderBrush}" />
+        </Style>
+        <Style x:Key="RelCarNumberText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Driver name: primary element, bold near-white, amber for the player. -->
+        <Style x:Key="RelNameText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="5,0,2,0" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsPlayer}" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource RelPlayerNameBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Cup-class badge: compact blue block, omitted cleanly when unknown. -->
+        <Style x:Key="RelClassBadge" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource RelBadgeBrush}" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="Height" Value="15" />
+            <Setter Property="MinWidth" Value="30" />
+            <Setter Property="Padding" Value="4,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ClassText}" Value="">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="RelClassText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="9.5" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{StaticResource RelBadgeTextBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Gap: right-aligned, tabular digits so changing values never jitter. -->
+        <Style x:Key="RelGapText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontFamily" Value="{StaticResource OverlayValueFont}" />
+            <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,2,0" />
+        </Style>
+
+        <!-- Header slot text: small, bold, near-white. -->
+        <Style x:Key="RelHeaderText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
     </UserControl.Resources>
-    <Border Style="{StaticResource OverlayPanelBorder}">
-        <Grid Margin="6,4">
+
+    <Border Background="{DynamicResource OverlayPanelBrush}">
+        <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
+                <RowDefinition Height="24" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <!-- Header -->
-            <Grid Grid.Row="0" Margin="0,0,0,1">
+            <!-- Header: one compact strip — air temp left, TEST/NO SIGNAL centre,
+                 position/active-cars right. SoF is omitted: no ratings exist. -->
+            <Grid Grid.Row="0" Background="{DynamicResource OverlayHeaderBrush}">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <StackPanel Orientation="Horizontal">
-                    <Border Width="3" Background="{DynamicResource OverlayAccentBrush}" Margin="0,0,6,0" />
-                    <TextBlock Text="{Binding HeaderText}" Style="{StaticResource OverlayHeader}" VerticalAlignment="Center" />
-                </StackPanel>
-                    <oc:OverlayStatusIndicator Grid.Column="1" Text="{Binding StatusText}" IsActive="{Binding IsLive}" TestData="{Binding IsTestData}" />
+                <TextBlock Grid.Column="0" Text="{Binding HeaderLeftText}" Style="{StaticResource RelHeaderText}" Margin="6,0" />
+                <TextBlock Grid.Column="1" Text="{Binding HeaderCentreText}" HorizontalAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock" BasedOn="{StaticResource RelHeaderText}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HeaderCentreText}" Value="NO SIGNAL">
+                                    <Setter Property="Foreground" Value="{DynamicResource OverlayMutedBrush}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding HeaderCentreText}" Value="TEST">
+                                    <Setter Property="Foreground" Value="{DynamicResource OverlayWarningBrush}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBlock Grid.Column="2" Text="{Binding HeaderRightText}" Style="{StaticResource RelHeaderText}" Margin="6,0" />
             </Grid>
+            <Rectangle Grid.Row="0" Height="1" VerticalAlignment="Bottom"
+                       Fill="{DynamicResource OverlaySeparatorBrush}" />
 
-            <Rectangle Grid.Row="1" Style="{StaticResource OverlaySeparator}" />
-
-            <!-- Rows -->
-            <ItemsControl Grid.Row="2" ItemsSource="{Binding Rows}" Margin="0,1,0,0">
+            <!-- Rows: fixed-width data columns, flexible name column, identical
+                 structure on every row so nothing ever drifts out of alignment. -->
+            <ItemsControl Grid.Row="1" ItemsSource="{Binding Rows}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Style="{StaticResource OverlayRowBorder}">
+                        <Border Style="{StaticResource RelRow}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                     <ColumnDefinition Width="18" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="23" />
+                                    <ColumnDefinition Width="2" />
+                                    <ColumnDefinition Width="29" />
+                                    <ColumnDefinition Width="4" />
+                                    <ColumnDefinition Width="*">
+                                        <ColumnDefinition.Style>
+                                            <Style TargetType="ColumnDefinition">
+                                                <Setter Property="Width" Value="*" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding DataContext.ShowNameColumn, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="False">
+                                                        <Setter Property="Width" Value="0" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ColumnDefinition.Style>
+                                    </ColumnDefinition>
+                                    <ColumnDefinition Width="34" />
+                                    <ColumnDefinition Width="4" />
+                                    <ColumnDefinition Width="50">
+                                        <ColumnDefinition.Style>
+                                            <Style TargetType="ColumnDefinition">
+                                                <Setter Property="Width" Value="50" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding DataContext.ShowGapColumn, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="False">
+                                                        <Setter Property="Width" Value="0" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ColumnDefinition.Style>
+                                    </ColumnDefinition>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="{Binding Position}" Style="{StaticResource OverlayCellMono}" />
-                                <Border Grid.Column="1" Style="{StaticResource OverlayColourStripe}" Background="{Binding Stripe}" />
-                                <TextBlock Grid.Column="2" Text="{Binding Name}" Style="{StaticResource OverlayCellText}"
+
+                                <Border Grid.Column="0" Style="{StaticResource RelPositionCell}">
+                                    <TextBlock Text="{Binding Position}" Style="{StaticResource RelPositionText}" />
+                                </Border>
+
+                                <Border Grid.Column="2" Style="{StaticResource RelCarCell}">
+                                    <TextBlock Text="{Binding CarNumberText}" Style="{StaticResource RelCarNumberText}" />
+                                </Border>
+
+                                <TextBlock Grid.Column="4" Text="{Binding Name}" Style="{StaticResource RelNameText}"
                                            Visibility="{Binding DataContext.ShowNameColumn, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}" />
-                                <TextBlock Grid.Column="3" Text="{Binding GapText}" Style="{StaticResource OverlayCellMono}"
+
+                                <Border Grid.Column="5" Style="{StaticResource RelClassBadge}">
+                                    <TextBlock Text="{Binding ClassText}" Style="{StaticResource RelClassText}" />
+                                </Border>
+
+                                <TextBlock Grid.Column="7" Text="{Binding GapText}" Style="{StaticResource RelGapText}"
                                            Visibility="{Binding DataContext.ShowGapColumn, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}" />
                             </Grid>
                         </Border>
