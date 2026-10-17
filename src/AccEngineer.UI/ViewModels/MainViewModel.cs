@@ -150,7 +150,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
 
         if (_overlayManagerWindow is null)
         {
-            var window = new OverlayManagerWindow(new OverlayManagerViewModel(Overlays));
+            var window = new OverlayManagerWindow(new OverlayManagerViewModel(Overlays, Options));
             if (Application.Current.MainWindow is { } owner && !owner.Equals(window))
             {
                 window.Owner = owner;

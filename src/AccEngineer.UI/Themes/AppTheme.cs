@@ -18,5 +18,8 @@ public enum AppTheme
     CatppuccinLatte,
     Nord,
     TokyoNight,
-    OneDark
+    OneDark,
+
+    /// <summary>Racing HUD preset: dark panels, light text, motorsport amber accents.</summary>
+    ClassicRacing
 }

@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using AccEngineer.UI.Mvvm;
 using AccEngineer.UI.Overlay;
+using AccEngineer.UI.Services;
+using AccEngineer.UI.Themes;
 
 namespace AccEngineer.UI.ViewModels;
 
@@ -66,6 +68,7 @@ public sealed class OverlayPanelRow : ObservableObject
 public sealed class OverlayManagerViewModel : ObservableObject, IDisposable
 {
     private readonly OverlayManager _manager;
+    private readonly AppSettings _options;
     private bool _disposed;
 
     private string _selectedProfile;
@@ -78,11 +81,15 @@ public sealed class OverlayManagerViewModel : ObservableObject, IDisposable
     private bool _relativeShowGap;
     private bool _relativeShowName;
     private bool _isDemoMode;
+    private ThemeDefinition _selectedTheme;
 
-    public OverlayManagerViewModel(OverlayManager manager)
+    public OverlayManagerViewModel(OverlayManager manager, AppSettings options)
     {
         _manager = manager;
+        _options = options;
         _manager.Changed += OnManagerChanged;
+        ThemeManager.Changed += OnThemeChanged;
+        _selectedTheme = ThemeManager.CurrentDefinition;
 
         _selectedProfile = manager.ActiveProfileName;
         _selectedLayout = manager.ActiveLayoutName;
@@ -212,6 +219,28 @@ public sealed class OverlayManagerViewModel : ObservableObject, IDisposable
 
     public bool IsResolutionPinned => _manager.IsResolutionPinned;
 
+    /// <summary>Every built-in theme; overlays follow the app-wide theme.</summary>
+    public IReadOnlyList<ThemeDefinition> Themes => ThemeCatalog.All;
+
+    public ThemeDefinition SelectedTheme
+    {
+        get => _selectedTheme;
+        set
+        {
+            if (value is null || !SetProperty(ref _selectedTheme, value)) return;
+            ApplyTheme(value);
+        }
+    }
+
+    private string _themeStatusText = string.Empty;
+
+    /// <summary>Result of the last theme change, shown under the theme selector.</summary>
+    public string ThemeStatusText
+    {
+        get => _themeStatusText;
+        private set => SetProperty(ref _themeStatusText, value);
+    }
+
     public string ResolutionText => _manager.CurrentResolution;
 
     public string StatusText => _manager.StatusText;
@@ -245,6 +274,42 @@ public sealed class OverlayManagerViewModel : ObservableObject, IDisposable
         if (_disposed) return;
         _disposed = true;
         _manager.Changed -= OnManagerChanged;
+        ThemeManager.Changed -= OnThemeChanged;
+    }
+
+    /// <summary>
+    /// Applies the theme app-wide (overlays use the same resources) and persists it,
+    /// mirroring the Settings page selector. Failures surface in <see cref="ThemeStatusText"/>.
+    /// </summary>
+    private void ApplyTheme(ThemeDefinition definition)
+    {
+        try
+        {
+            ThemeManager.Apply(definition);
+            _options.Theme = definition.Id.ToString();
+        }
+        catch (Exception ex)
+        {
+            ThemeStatusText = $"Theme: {definition.Name}, but it could not be applied: {ex.Message}";
+            return;
+        }
+
+        try
+        {
+            _options.Save();
+            ThemeStatusText = $"Theme: {definition.Name}. Saved to {AppSettings.SettingsPath}.";
+        }
+        catch (Exception ex)
+        {
+            ThemeStatusText = $"Theme: {definition.Name}, but it could not be saved: {ex.Message}";
+        }
+    }
+
+    private void OnThemeChanged(object? sender, EventArgs e)
+    {
+        if (ThemeManager.CurrentDefinition == _selectedTheme) return;
+        _selectedTheme = ThemeManager.CurrentDefinition;
+        OnPropertyChanged(nameof(SelectedTheme));
     }
 
     private void SaveLayoutAs()

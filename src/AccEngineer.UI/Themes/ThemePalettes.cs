@@ -701,4 +701,83 @@ internal static class ThemePalettes
         ClassAm = "#FFE5C07B",
         ClassSilver = "#FFABB2BF"
     };
+
+    public static ThemePalette ClassicRacing { get; } = new()
+    {
+        // Racing HUD preset: near-black panels, white text, motorsport amber accent
+        // with conventional green/purple best-lap colours and racing red for brake.
+        Background = "#FF0B0B0C",
+        Surface = "#FF141416",
+        SurfaceAlt = "#FF1E1E21",
+        SurfaceHigh = "#FF2A2A2E",
+
+        TextPrimary = "#FFF5F5F5",
+        TextSecondary = "#FFC8C8CC",
+        TextMuted = "#FF8E8E94",
+        TextOnAccent = "#FF0B0B0C",
+
+        Border = "#FF48484E",
+        Divider = "#FF323236",
+
+        Accent = "#FFFFB000",
+        AccentHover = "#FFFFC233",
+        AccentDim = "#33FFB000",
+
+        ControlBg = "#FF1E1E21",
+        ControlBgHover = "#FF2A2A2E",
+        ControlBgPressed = "#FF36363B",
+        ControlDisabled = "#FF48484E",
+        InputBg = "#FF101012",
+        InputBorder = "#FF48484E",
+        TooltipBg = "#FF2A2A2E",
+        TooltipText = "#FFF5F5F5",
+
+        Selection = "#33FFB000",
+        Focus = "#FFFFB000",
+
+        Success = "#FF2ECC40",
+        Warning = "#FFFFB000",
+        Error = "#FFE10600",
+        Info = "#FF00A8E8",
+
+        ChartGrid = "#FF2A2A2E",
+        ChartAxis = "#FF48484E",
+        ChartLine = "#FFFFB000",
+        ChartFill = "#33FFB000",
+        ChartThrottle = "#FF2ECC40",
+        ChartBrake = "#FFE10600",
+        ChartSteer = "#FF00A8E8",
+        ChartMapPath = "#FF8E8E94",
+        ChartMapMarker = "#FFC8C8CC",
+        ChartMapPlayer = "#FFFFB000",
+
+        OverlayPanel = "#E60B0B0C",
+        OverlayHeader = "#FF161618",
+        OverlayBorder = "#FF48484E",
+        OverlaySeparator = "#33FFFFFF",
+        OverlayText = "#FFF5F5F5",
+        OverlayMuted = "#FF9A9AA0",
+        OverlayAccent = "#FFFFB000",
+        OverlaySuccess = "#FF2ECC40",
+        OverlayWarning = "#FFFFB000",
+        OverlaySelectedRow = "#33FFB000",
+        OverlayPit = "#4D8E8E94",
+        OverlayBarTrack = "#33FFFFFF",
+        OverlayGearBadge = "#14FFFFFF",
+        OverlayGraphBg = "#FF0A0A0A",
+        OverlayPersonalBest = "#FF2ECC40",
+        OverlaySessionBest = "#FFB36BFF",
+
+        FlagBlue = "#FF00A8E8",
+        FlagYellow = "#FFFFB000",
+        FlagRed = "#FFE10600",
+        FlagGreen = "#FF2ECC40",
+        FlagWhite = "#FFF5F5F5",
+        FlagBlack = "#FF9A9AA0",
+        FlagCheckered = "#80FFB000",
+
+        ClassPro = "#FF00A8E8",
+        ClassAm = "#FFFFB000",
+        ClassSilver = "#FFC8C8CC"
+    };
 }

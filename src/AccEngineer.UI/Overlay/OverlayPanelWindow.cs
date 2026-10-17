@@ -28,15 +28,18 @@ public sealed class OverlayPanelWindow : OverlayWindowBase
 
         var outline = new Border
         {
-            Style = (Style)Application.Current.FindResource("OverlayEditOutline"),
             Visibility = Visibility.Collapsed
         };
 
+        // Resource references (not a one-shot FindResource) so a live theme swap
+        // restyles the edit affordances like the rest of the overlay.
+        outline.SetResourceReference(StyleProperty, "OverlayEditOutline");
+
         var grip = new Thumb
         {
-            Style = (Style)Application.Current.FindResource("OverlayResizeGrip"),
             Visibility = Visibility.Collapsed
         };
+        grip.SetResourceReference(StyleProperty, "OverlayResizeGrip");
         grip.DragDelta += ResizeGripDragDelta;
 
         root.Children.Add(outline);

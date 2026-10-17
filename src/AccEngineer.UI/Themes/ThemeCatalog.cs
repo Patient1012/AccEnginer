@@ -46,7 +46,8 @@ public static class ThemeCatalog
         new ThemeDefinition(AppTheme.CatppuccinLatte, "Catppuccin Latte", "Light with readable pastel accents.", false, ThemePalettes.CatppuccinLatte),
         new ThemeDefinition(AppTheme.Nord, "Nord", "Cool blue-grey with subdued accents.", true, ThemePalettes.Nord),
         new ThemeDefinition(AppTheme.TokyoNight, "Tokyo Night", "Deep navy with blue, cyan and purple.", true, ThemePalettes.TokyoNight),
-        new ThemeDefinition(AppTheme.OneDark, "One Dark", "Charcoal with familiar editor-inspired colours.", true, ThemePalettes.OneDark)
+        new ThemeDefinition(AppTheme.OneDark, "One Dark", "Charcoal with familiar editor-inspired colours.", true, ThemePalettes.OneDark),
+        new ThemeDefinition(AppTheme.ClassicRacing, "Classic Racing", "Racing HUD preset: near-black panels, light text, motorsport amber accents.", true, ThemePalettes.ClassicRacing)
     };
 
     /// <summary>The resource key a token is published under, e.g. <c>ColorAccent</c>.</summary>

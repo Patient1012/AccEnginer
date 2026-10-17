@@ -39,6 +39,21 @@ public abstract class OverlayWindowBase : Window
     [DllImport("user32.dll", SetLastError = true)]
     private static extern int SetWindowLong(IntPtr hwnd, int index, int value);
 
+    [DllImport("user32.dll")]
+    private static extern IntPtr MonitorFromRect(ref NativeRect rect, uint flags);
+
+    /// <summary>Returns null when the rectangle does not intersect any monitor.</summary>
+    private const uint MonitorDefaultToNull = 0;
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct NativeRect
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
+
     private bool _allowClose;
 
     protected OverlayWindowBase()
@@ -131,6 +146,10 @@ public abstract class OverlayWindowBase : Window
         Height = Math.Max(MinHeight, UserHeight);
         Opacity = Math.Clamp(state.Opacity, 0.2, 1.0);
         var (x, y) = ClampToVirtualScreen(state.X, state.Y, Width, Height);
+
+        // A saved position can fall in dead space between monitors, or off every
+        // monitor entirely after a display was unplugged; recover onto a real screen.
+        (x, y) = EnsureOnMonitor(x, y, Width, Height);
         Left = x;
         Top = y;
     }
@@ -216,5 +235,31 @@ public abstract class OverlayWindowBase : Window
         var clampedX = Math.Clamp(x, left, Math.Max(left, right - width));
         var clampedY = Math.Clamp(y, top, Math.Max(top, bottom - height));
         return (clampedX, clampedY);
+    }
+
+    /// <summary>
+    /// Moves the window onto a real monitor when its rect intersects none. The virtual
+    /// screen spans all monitors, so clamping alone can leave a panel in dead space
+    /// between displays or stranded after a monitor was unplugged.
+    /// </summary>
+    private static (double X, double Y) EnsureOnMonitor(double x, double y, double width, double height)
+    {
+        var rect = new NativeRect
+        {
+            Left = (int)Math.Round(x),
+            Top = (int)Math.Round(y),
+            Right = (int)Math.Round(x + width),
+            Bottom = (int)Math.Round(y + height)
+        };
+
+        if (MonitorFromRect(ref rect, MonitorDefaultToNull) != IntPtr.Zero)
+        {
+            return (x, y);
+        }
+
+        var area = SystemParameters.WorkArea;
+        var recoveredX = Math.Max(area.Left, Math.Min(x, area.Left + Math.Max(0, area.Width - width)));
+        var recoveredY = Math.Max(area.Top, Math.Min(y, area.Top + Math.Max(0, area.Height - height)));
+        return (recoveredX, recoveredY);
     }
 }
