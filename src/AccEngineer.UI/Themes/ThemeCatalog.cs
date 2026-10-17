@@ -233,9 +233,9 @@ public static class ThemeCatalog
         OverlayPit = "#4D9AA0A6",
         OverlayBarTrack = "#33FFFFFF",
         OverlayGearBadge = "#14FFFFFF",
-            OverlayGraphBg = "#FF0A0A0A",
-            OverlayPersonalBest = "#FF6FE39A",
-            OverlaySessionBest = "#FFC08CFF",
+        OverlayGraphBg = "#FF0A0A0A",
+        OverlayPersonalBest = "#FF6FE39A",
+        OverlaySessionBest = "#FFC08CFF",
 
 
         // Flags

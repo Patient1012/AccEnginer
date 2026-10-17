@@ -211,7 +211,11 @@ public class OverlayLayoutStoreTests : IDisposable
     {
         var state = new OverlayPanelState
         {
-            X = 12, Y = 34, Width = 0, Height = -5, Opacity = 9
+            X = 12,
+            Y = 34,
+            Width = 0,
+            Height = -5,
+            Opacity = 9
         }.Sanitize();
 
         Assert.Equal(12, state.X);
@@ -226,7 +230,9 @@ public class OverlayLayoutStoreTests : IDisposable
     {
         var appearance = new OverlayAppearance
         {
-            FontScale = 99, TraceLength = 5, RelativeRows = 100
+            FontScale = 99,
+            TraceLength = 5,
+            RelativeRows = 100
         }.Sanitize();
 
         Assert.Equal(2.0, appearance.FontScale);
