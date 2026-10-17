@@ -190,3 +190,62 @@ size and opacity are saved automatically and restored on restart.
 
 > Note: live-over-simulator behaviour (click-through, topmost, hotkeys) can only be
 > verified with ACC running; the checks above are manual.
+
+## Stage 1 audit - gaps and telemetry-source policy
+
+An audit of the overlay system (this section was written before implementing the
+finish work) found the following, grouped by the telemetry source each fix relies on.
+
+### Telemetry-source policy
+
+Every displayed value is one of:
+
+1. a real value from **ACC shared memory** (`AccSharedMemoryReader` -> `TelemetrySample`),
+2. a value from the **ACC UDP Broadcast API** (competitor names, numbers, official
+   gaps and splits - fields ACC shared memory does not expose for other cars),
+3. a **deterministic derivation** from those (projection ordering, metre gaps, map
+   outline from the driven line),
+4. a clearly flagged **test-data** value from the built-in simulator, or
+5. an explicit unavailable marker (`--`).
+
+ACC does not expose other drivers' names, official gaps, sector splits or pit state
+through shared memory; those fields therefore come from the UDP broadcast feed when it
+is available and show as unavailable otherwise. They are never invented.
+
+### Bugs and dead code found
+
+- `TimingOverlayPanel.xaml` declares 6 grid rows but places PERSONAL BEST on row 6,
+  so it overlaps the LAST row.
+- `OverlayLayout.Theme` is persisted and cloned but never read; there is no theme
+  selection in the overlay editor.
+- `OverlayManagerViewModel.DeleteProfileCommand` exists but has no button in the
+  editor XAML.
+- `OverlayPanelWindow` resolves its edit-outline/grip brushes with `FindResource`
+  (static), so a live theme swap does not restyle them.
+- Resolution keys and off-screen recovery use the primary screen only.
+- The docs referenced an overlay plan document that does not exist in this repo.
+
+### Missing features found
+
+- No **ACC UDP Broadcast** source, so no real driver names/numbers, official gaps,
+  or sector splits anywhere in the app.
+- No **standings/timing-tower overlay panel** (the tower exists only on the Live Data
+  page, computed from shared-memory positions).
+- The **conditions panel** is a flat list, not a four-wheel layout, and omits brake
+  temperatures and the other ACC-exposed wheel channels.
+- The **timing panel** shows no sector times and no live delta even though ACC
+  shared memory carries `LastSectorTime`, `IDeltaLapTime` and `IsDeltaPositive`
+  (currently unmapped by `AccSampleBuilder`).
+- No **suspension / vehicle-dynamics panel** despite the data existing in
+  `TelemetrySample`.
+- The **test-data simulator** produces a positional field but no competitor feed,
+  no sector times and no live delta, so several panels cannot be exercised in test
+  mode.
+
+### Already complete (no work needed)
+
+Window system (transparency, always-on-top, click-through, edit drag/resize, virtual-
+screen clamping), layout persistence with migration + sanitisation, profiles and named
+layouts, appearance scaling, global hotkeys, theme token system with nine themes,
+relative panel (positional), inputs panel, track map (driven-line outline), and the
+test-data mode plumbing.
