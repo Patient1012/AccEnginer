@@ -21,7 +21,7 @@ public class TestCompetitorFeedTests
     }
 
     [Fact]
-    public void Snapshot_FlagsPlayerAndUsesGenericNames()
+    public void Snapshot_FlagsPlayerAndUsesSimulatedNames()
     {
         var feed = new TestCompetitorFeed();
 
@@ -30,8 +30,36 @@ public class TestCompetitorFeedTests
         var player = Assert.Single(standings.Competitors, c => c.IsPlayer);
         Assert.Equal(3, player.CarIndex);
         Assert.Equal(3, standings.FocusedCarIndex);
-        Assert.Equal("CAR 03", player.DisplayName);
-        Assert.All(standings.Competitors, c => Assert.Null(c.DriverFullName));
+        // Names are simulated but must be usable, non-generic labels.
+        Assert.All(standings.Competitors, c => Assert.False(string.IsNullOrWhiteSpace(c.DriverFullName)));
+        Assert.DoesNotContain(standings.Competitors, c => c.DisplayName.StartsWith("CAR ", StringComparison.Ordinal));
+        var names = standings.Competitors.Select(c => c.DisplayName).ToArray();
+        Assert.Equal(names.Length, names.Distinct().Count());
+    }
+
+    [Fact]
+    public void Snapshot_DefaultCarCountFillsAField()
+    {
+        var feed = new TestCompetitorFeed();
+
+        var standings = feed.Snapshot(T0);
+
+        Assert.Equal(20, standings.Competitors.Count);
+    }
+
+    [Fact]
+    public void Snapshot_ExposesEveryCupCategory()
+    {
+        var feed = new TestCompetitorFeed();
+
+        var standings = feed.Snapshot(T0);
+
+        var categories = standings.Competitors.Select(c => c.CupCategory).Distinct().ToArray();
+        Assert.Contains(AccCupCategory.Overall, categories);
+        Assert.Contains(AccCupCategory.ProAm, categories);
+        Assert.Contains(AccCupCategory.Am, categories);
+        Assert.Contains(AccCupCategory.Silver, categories);
+        Assert.Contains(AccCupCategory.National, categories);
     }
 
     [Fact]

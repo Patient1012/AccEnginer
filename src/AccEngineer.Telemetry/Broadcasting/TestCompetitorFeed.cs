@@ -3,17 +3,28 @@ namespace AccEngineer.Telemetry.Broadcasting;
 /// <summary>
 /// Deterministic synthetic standings for the built-in test-data mode. Positions,
 /// laps, gaps and pit states are a pure function of the supplied time so the same
-/// session always produces the same tower, and every driver falls back to a generic
-/// <c>CAR nn</c> label - real names are never invented.
+/// session always produces the same tower. Driver names are clearly fictional
+/// simulated entries (the overlay also shows a TEST DATA badge); this feed is only
+/// ever used when the generated provider is active, never for a real session.
 /// </summary>
 public sealed class TestCompetitorFeed
 {
     private const int LapTimeMs = 100_000;
 
+    // Fictional, clearly-simulated driver names. Fixed so the feed stays deterministic
+    // and so nothing resembling a real competitor is ever invented for live data.
+    private static readonly string[] SimulatedDriverNames =
+    {
+        "K. Aldrin", "M. Vasquez", "T. Okafor", "R. Lindqvist", "J. Moreau",
+        "D. Petrov", "S. Nakamura", "L. Rossi", "A. Brennan", "P. Kowalski",
+        "H. Meier", "N. Abara", "G. Santos", "E. Laurent", "V. Novak",
+        "B. Wilson", "F. Delgado", "I. Haugen", "W. Zhang", "O. Reyes"
+    };
+
     private readonly int _carCount;
     private readonly int _trackMeters;
 
-    public TestCompetitorFeed(int carCount = 8, int trackMeters = 4300)
+    public TestCompetitorFeed(int carCount = 20, int trackMeters = 4300)
     {
         _carCount = Math.Clamp(carCount, 2, 30);
         _trackMeters = trackMeters;
@@ -56,10 +67,10 @@ public sealed class TestCompetitorFeed
                 (ushort)i,
                 IsPlayer: i == focusedCarIndex,
                 DriverShortName: null,
-                DriverFullName: null,
+                DriverFullName: SimulatedDriverNames[(i - 1) % SimulatedDriverNames.Length],
                 RaceNumber: (i * 7) % 99 + 1,
                 TeamName: null,
-                CupCategory: (AccCupCategory)(i % 4),
+                CupCategory: (AccCupCategory)(i % 5),
                 Location: inPit ? AccCarLocation.Pitlane : AccCarLocation.Track,
                 Position: positions[i],
                 TrackPosition: positions[i],
