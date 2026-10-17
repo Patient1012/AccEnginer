@@ -57,13 +57,13 @@
     </Style>
 
     <Style x:Key="OverlayHeader" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontSize" Value="10" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
     </Style>
 
     <Style x:Key="OverlayLabel" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontSize" Value="10" />
         <Setter Property="Foreground" Value="{DynamicResource OverlayMutedBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
@@ -145,7 +145,7 @@
 
     <!-- Standard dense cell text. -->
     <Style x:Key="OverlayCellText" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontSize" Value="10" />
         <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="TextTrimming" Value="CharacterEllipsis" />
@@ -163,7 +163,7 @@
     <!-- One standings/relative row. Highlights itself when the bound row is the
          player, using a DataTrigger so no per-row code is needed. -->
     <Style x:Key="OverlayRowBorder" TargetType="Border">
-        <Setter Property="Padding" Value="4,1" />
+        <Setter Property="Padding" Value="3,0" />
         <Setter Property="BorderBrush" Value="{DynamicResource OverlaySeparatorBrush}" />
         <Setter Property="BorderThickness" Value="0,0,0,1" />
         <Style.Triggers>

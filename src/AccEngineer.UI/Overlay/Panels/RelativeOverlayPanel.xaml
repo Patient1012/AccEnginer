@@ -14,7 +14,7 @@
             </Grid.RowDefinitions>
 
             <!-- Header -->
-            <Grid Grid.Row="0" Margin="0,0,0,2">
+            <Grid Grid.Row="0" Margin="0,0,0,1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -29,13 +29,13 @@
             <Rectangle Grid.Row="1" Style="{StaticResource OverlaySeparator}" />
 
             <!-- Rows -->
-            <ItemsControl Grid.Row="2" ItemsSource="{Binding Rows}" Margin="0,2,0,0">
+            <ItemsControl Grid.Row="2" ItemsSource="{Binding Rows}" Margin="0,1,0,0">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border Style="{StaticResource OverlayRowBorder}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="20" />
+                                     <ColumnDefinition Width="18" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />

@@ -22,7 +22,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- Header -->
-            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,2">
+            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,1">
                 <Border Width="3" Background="{DynamicResource OverlayAccentBrush}" Margin="0,0,6,0" />
                 <TextBlock Text="TIMING" Style="{StaticResource OverlayHeader}" VerticalAlignment="Center" />
                 <TextBlock Text="{Binding SessionTextSecondary}" Margin="8,0,0,0"
@@ -34,7 +34,7 @@
                                        TestData="{Binding IsTestData}" />
 
             <Rectangle Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource OverlaySeparator}"
-                       Margin="0,2,0,2" />
+                       Margin="0,1,0,1" />
 
             <TextBlock Grid.Row="2" Grid.Column="0" Text="SESSION" Style="{StaticResource OverlayLabel}" />
             <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SessionText}" Style="{StaticResource OverlayCellMono}" />

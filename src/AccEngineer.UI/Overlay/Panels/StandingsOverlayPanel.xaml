@@ -14,7 +14,7 @@
             </Grid.RowDefinitions>
 
             <!-- Header -->
-            <Grid Grid.Row="0" Margin="0,0,0,2">
+            <Grid Grid.Row="0" Margin="0,0,0,1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -26,15 +26,15 @@
                 <oc:OverlayStatusIndicator Grid.Column="1" Text="{Binding StatusText}" IsActive="{Binding IsLive}" TestData="{Binding IsTestData}" />
             </Grid>
 
-            <TextBlock Grid.Row="1" Text="{Binding SubtitleText}" Style="{StaticResource OverlayCellMuted}" Margin="0,0,0,2" />
+            <TextBlock Grid.Row="1" Text="{Binding SubtitleText}" Style="{StaticResource OverlayCellMuted}" Margin="0,0,0,1" />
 
             <Rectangle Grid.Row="2" Style="{StaticResource OverlaySeparator}" />
 
             <!-- Column headings -->
-            <Grid Grid.Row="3" Margin="0,2,0,0">
+            <Grid Grid.Row="3" Margin="0,1,0,0">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="22" />
-                    <ColumnDefinition Width="26" />
+                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="24" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -43,19 +43,19 @@
                 <TextBlock Grid.Column="0" Text="P" Style="{StaticResource OverlayLabel}" />
                 <TextBlock Grid.Column="1" Text="#" Style="{StaticResource OverlayLabel}" />
                 <TextBlock Grid.Column="3" Text="DRIVER" Style="{StaticResource OverlayLabel}" />
-                <TextBlock Grid.Column="4" Text="LAST" Style="{StaticResource OverlayLabel}" HorizontalAlignment="Right" Margin="0,0,8,0" />
-                <TextBlock Grid.Column="5" Text="GAP" Style="{StaticResource OverlayLabel}" HorizontalAlignment="Right" />
-            </Grid>
+                    <TextBlock Grid.Column="4" Text="LAST" Style="{StaticResource OverlayLabel}" HorizontalAlignment="Right" Margin="0,0,6,0" />
+                    <TextBlock Grid.Column="5" Text="GAP" Style="{StaticResource OverlayLabel}" HorizontalAlignment="Right" />
+                </Grid>
 
             <!-- Rows -->
-            <ItemsControl Grid.Row="4" ItemsSource="{Binding Rows}" Margin="0,2,0,0">
+            <ItemsControl Grid.Row="4" ItemsSource="{Binding Rows}" Margin="0,1,0,0">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border Style="{StaticResource OverlayRowBorder}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="22" />
-                                    <ColumnDefinition Width="26" />
+                                     <ColumnDefinition Width="20" />
+                                     <ColumnDefinition Width="24" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
@@ -67,7 +67,7 @@
                                 <TextBlock Grid.Column="3" Text="{Binding Name}" Style="{StaticResource OverlayCellText}"
                                            TextTrimming="CharacterEllipsis" />
                                 <TextBlock Grid.Column="4" Text="{Binding LastLapText}" Style="{StaticResource OverlayCellMono}"
-                                           HorizontalAlignment="Right" Margin="0,0,8,0" />
+                                            HorizontalAlignment="Right" Margin="0,0,6,0" />
                                 <TextBlock Grid.Column="5" Text="{Binding GapText}" Style="{StaticResource OverlayCellMono}"
                                            HorizontalAlignment="Right" />
                             </Grid>
