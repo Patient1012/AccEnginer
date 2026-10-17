@@ -42,6 +42,20 @@ public sealed class AppSettings
     /// </summary>
     public bool TestDataMode { get; set; }
 
+    /// <summary>
+    /// Whether to connect to the ACC UDP Broadcasting API. Competitor names, race
+    /// numbers, teams and official gaps exist only there (shared memory has none),
+    /// so the standings/relative panels stay unavailable until this is enabled and
+    /// ACC's <c>broadcasting.json</c> is configured to match the port/password below.
+    /// </summary>
+    public bool BroadcastingEnabled { get; set; }
+
+    /// <summary>Must match <c>udpListenerPort</c> in ACC's <c>broadcasting.json</c>.</summary>
+    public int BroadcastingPort { get; set; } = 9000;
+
+    /// <summary>Must match <c>connectionPassword</c> in ACC's <c>broadcasting.json</c>.</summary>
+    public string BroadcastingPassword { get; set; } = "";
+
     public bool IsAiConfigured =>
         !string.IsNullOrWhiteSpace(AiModel) &&
         AnalysisProviderFactory.ResolveEndpoint(new AiProviderOptions
@@ -66,6 +80,7 @@ public sealed class AppSettings
                 if (loaded is not null)
                 {
                     loaded.PollIntervalMs = Math.Clamp(loaded.PollIntervalMs, 10, 2000);
+                    loaded.BroadcastingPort = Math.Clamp(loaded.BroadcastingPort, 1, 65535);
                     // A missing, renamed or hand-edited theme id falls back to the default
                     // rather than failing to load or leaving the UI unstyled.
                     if (!ThemeCatalog.TryResolve(loaded.Theme, out var theme))

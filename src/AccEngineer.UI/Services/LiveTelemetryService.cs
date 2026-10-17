@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using AccEngineer.Storage;
 using AccEngineer.Telemetry;
+using AccEngineer.Telemetry.Broadcasting;
 
 namespace AccEngineer.UI.Services;
 
@@ -45,6 +46,10 @@ public sealed class LiveTelemetryService : IDisposable
     private ITrackTelemetryReader? _reader;
     private volatile bool _testDataMode;
 
+    private AccBroadcastClient? _broadcast;
+    private readonly TestCompetitorFeed _testCompetitors = new();
+    private volatile bool _broadcastingEnabled;
+
     private volatile TelemetrySample? _latest;
     private volatile ConnectionState _connection = ConnectionState.Starting;
     private volatile string? _currentSessionId;
@@ -73,6 +78,7 @@ public sealed class LiveTelemetryService : IDisposable
         _events = events ?? throw new ArgumentNullException(nameof(events));
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         _testDataMode = settings.TestDataMode;
+        _broadcastingEnabled = settings.BroadcastingEnabled;
 
         // The default provider follows the current mode; an explicit factory (used by
         // tests) always wins so callers keep full control.
@@ -108,6 +114,40 @@ public sealed class LiveTelemetryService : IDisposable
 
     public string? ReplayName => _replayName;
 
+    /// <summary>Whether the user has enabled the ACC broadcasting connection.</summary>
+    public bool IsBroadcastingEnabled => _broadcastingEnabled;
+
+    /// <summary>
+    /// Latest competitor standings. Comes from the ACC broadcasting client in a live
+    /// session, or from the deterministic test feed in test-data mode. Null while
+    /// broadcasting is off/connecting or before ACC sends any data.
+    /// </summary>
+    public CompetitorStandings? Standings
+    {
+        get
+        {
+            if (IsTestData) return _testCompetitors.Snapshot(DateTimeOffset.UtcNow);
+            return _broadcast?.Snapshot();
+        }
+    }
+
+    /// <summary>True when competitor timing is actually being received (not just requested).</summary>
+    public bool IsBroadcasting => !IsTestData && _broadcast?.IsRegistered == true;
+
+    /// <summary>Short human-readable broadcasting state for the UI.</summary>
+    public string BroadcastingStatusText
+    {
+        get
+        {
+            if (IsTestData) return "Test data";
+            if (!_broadcastingEnabled) return "Disabled";
+            var client = _broadcast;
+            if (client is null) return "Connecting";
+            if (!client.IsRegistered) return client.Error ?? "Waiting for ACC broadcasting";
+            return client.Snapshot() is null ? "Waiting for session" : "Live";
+        }
+    }
+
     public int RecordedSampleCount => _recorder is JsonlSessionRecorder jsonl ? jsonl.WrittenSampleCount : 0;
 
     public int DroppedSampleCount => _recorder is JsonlSessionRecorder jsonl ? jsonl.DroppedSampleCount : 0;
@@ -134,6 +174,8 @@ public sealed class LiveTelemetryService : IDisposable
             };
             _thread.Start();
         }
+
+        ApplyBroadcasting();
     }
 
     public void Stop()
@@ -150,6 +192,9 @@ public sealed class LiveTelemetryService : IDisposable
         thread?.Join(TimeSpan.FromSeconds(2));
 
         StopRecording();
+
+        _broadcast?.Dispose();
+        _broadcast = null;
 
         lock (_readerGate)
         {
@@ -178,6 +223,61 @@ public sealed class LiveTelemetryService : IDisposable
         _events.Enqueue(Event(EventSeverity.Info, SessionEventKind.Connection, enabled
             ? "Test data mode enabled: using generated telemetry (no simulator)."
             : "Test data mode disabled: reading ACC shared memory."));
+
+        ApplyBroadcasting();
+    }
+
+    /// <summary>
+    /// Enables or disables the ACC broadcasting connection. Applies immediately:
+    /// the client is created and started, or disposed, without a restart.
+    /// </summary>
+    public void SetBroadcastingEnabled(bool enabled)
+    {
+        _broadcastingEnabled = enabled;
+        _events.Enqueue(Event(EventSeverity.Info, SessionEventKind.Connection, enabled
+            ? "Broadcasting enabled: connecting for competitor data."
+            : "Broadcasting disabled: competitor data unavailable."));
+
+        ApplyBroadcasting();
+    }
+
+    /// <summary>
+    /// Starts the broadcasting client when it is wanted (enabled, live mode, running)
+    /// and tears it down otherwise. Broadcasting only makes sense outside test-data
+    /// mode and while the service is running.
+    /// </summary>
+    private void ApplyBroadcasting()
+    {
+        var want = _broadcastingEnabled && !_testDataMode && _running;
+
+        if (want)
+        {
+            if (_broadcast is not null) return;
+
+            var options = new AccBroadcastClientOptions
+            {
+                Port = Math.Clamp(_settings.BroadcastingPort, 1, 65535),
+                ConnectionPassword = _settings.BroadcastingPassword,
+                CommandPassword = _settings.BroadcastingPassword
+            };
+
+            try
+            {
+                _broadcast = new AccBroadcastClient(options, new UdpAccBroadcastTransport(options.Host, options.Port));
+                _broadcast.Start();
+            }
+            catch (Exception ex)
+            {
+                _broadcast = null;
+                _events.Enqueue(Event(EventSeverity.Warning, SessionEventKind.Connection,
+                    $"Could not start broadcasting on port {options.Port}: {ex.Message}"));
+            }
+        }
+        else
+        {
+            _broadcast?.Dispose();
+            _broadcast = null;
+        }
     }
 
     public void StartRecording()

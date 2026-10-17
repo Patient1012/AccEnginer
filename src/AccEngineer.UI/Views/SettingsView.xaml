@@ -155,6 +155,49 @@
                 </StackPanel>
             </Border>
 
+            <TextBlock Text="BROADCASTING" Style="{StaticResource SectionHeader}" Margin="0,20,0,8" />
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="ACC broadcasting" VerticalAlignment="Center" />
+                        <CheckBox Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                  Foreground="{DynamicResource BrushTextPrimary}"
+                                  IsChecked="{Binding BroadcastingEnabled, Mode=TwoWay}"
+                                  Content="Connect for competitor data (names, numbers, teams, gaps)" />
+                    </Grid>
+
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Listener port" VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1" Style="{StaticResource InputBox}" Width="120" HorizontalAlignment="Left"
+                                 Text="{Binding BroadcastingPort, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Connection password" VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1" Style="{StaticResource InputBox}"
+                                 Text="{Binding BroadcastingPassword, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+
+                    <TextBlock Text="{Binding BroadcastingStatusText}" TextWrapping="Wrap" Margin="0,10,0,0"
+                               FontWeight="SemiBold" Foreground="{DynamicResource BrushTextSecondary}" />
+
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,10,0,0" TextWrapping="Wrap"
+                               Text="Competitor names, race numbers, teams and official gaps exist only in the ACC UDP Broadcasting API; shared memory does not expose them. Create or edit Documents\Assetto Corsa Competizione\Config\broadcasting.json with a udpListenerPort and connectionPassword matching the values above, then restart ACC. Until then the standings and relative name columns show an explicit unavailable state rather than invented data." />
+                </StackPanel>
+            </Border>
+
             <TextBlock Text="AI PROVIDER" Style="{StaticResource SectionHeader}" Margin="0,20,0,8" />
             <Border Style="{StaticResource Card}">
                 <StackPanel>

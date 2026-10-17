@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AccEngineer.Telemetry;
+using AccEngineer.Telemetry.Broadcasting;
 
 namespace AccEngineer.UI.Overlay;
 
@@ -17,6 +18,7 @@ public sealed class DemoOverlayTelemetrySource : IOverlayTelemetrySource, IDispo
 
     private readonly Random _rng = new(42);
     private readonly List<TelemetrySample> _recent = new(RecentCapacity);
+    private readonly TestCompetitorFeed _competitors = new();
     private TelemetrySample _latest;
     private int _tick;
     private bool _disposed;
@@ -53,6 +55,11 @@ public sealed class DemoOverlayTelemetrySource : IOverlayTelemetrySource, IDispo
     /// provider. The overlay manager already labels demo data separately.
     /// </summary>
     public bool IsTestData => false;
+
+    /// <summary>Synthetic standings so the tower panel can be laid out without ACC.</summary>
+    public CompetitorStandings? Standings => _disposed ? null : _competitors.Snapshot(DateTimeOffset.UtcNow);
+
+    public string StandingsStatusText => "Demo data";
 
     /// <summary>Advances the synthetic session one step and publishes it as latest.</summary>
     private void Advance()

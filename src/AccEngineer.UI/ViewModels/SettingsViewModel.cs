@@ -31,6 +31,9 @@ public sealed class SettingsViewModel : PageViewModel, IDisposable
     private ThemeDefinition _selectedTheme = ThemeCatalog.Default;
     private bool _applyingTheme;
     private bool _testDataMode;
+    private bool _broadcastingEnabled;
+    private int _broadcastingPort;
+    private string _broadcastingPassword = string.Empty;
 
     public SettingsViewModel(MainViewModel shell)
         : base("Settings")
@@ -44,6 +47,9 @@ public sealed class SettingsViewModel : PageViewModel, IDisposable
         _aiModel = options.AiModel ?? string.Empty;
         _aiEndpoint = options.AiEndpoint ?? string.Empty;
         _testDataMode = options.TestDataMode;
+        _broadcastingEnabled = options.BroadcastingEnabled;
+        _broadcastingPort = options.BroadcastingPort;
+        _broadcastingPassword = options.BroadcastingPassword;
 
         // Show what is actually in effect, which is the resolved value rather than
         // whatever the file happened to contain.
@@ -187,6 +193,36 @@ public sealed class SettingsViewModel : PageViewModel, IDisposable
         ? "Test Data: ON — the app is showing generated telemetry; no simulator is connected."
         : "Test Data: OFF — reading ACC shared memory.";
 
+    /// <summary>
+    /// Connects to the ACC UDP Broadcasting API for competitor data (names, race
+    /// numbers, teams, official gaps). Applies immediately and is persisted.
+    /// </summary>
+    public bool BroadcastingEnabled
+    {
+        get => _broadcastingEnabled;
+        set
+        {
+            if (!SetProperty(ref _broadcastingEnabled, value)) return;
+            ApplyBroadcastingSettings();
+        }
+    }
+
+    /// <summary>Must match <c>udpListenerPort</c> in ACC's broadcasting.json.</summary>
+    public int BroadcastingPort
+    {
+        get => _broadcastingPort;
+        set => SetProperty(ref _broadcastingPort, value);
+    }
+
+    /// <summary>Must match <c>connectionPassword</c> in ACC's broadcasting.json.</summary>
+    public string BroadcastingPassword
+    {
+        get => _broadcastingPassword;
+        set => SetProperty(ref _broadcastingPassword, value);
+    }
+
+    public string BroadcastingStatusText => $"Broadcasting: {_shell.Telemetry.BroadcastingStatusText}.";
+
     /// <summary>Every known theme, in the order the selector should list them.</summary>
     public IReadOnlyList<ThemeDefinition> Themes => ThemeCatalog.All;
 
@@ -252,6 +288,9 @@ public sealed class SettingsViewModel : PageViewModel, IDisposable
         _aiEndpoint = _shell.Options.AiEndpoint ?? string.Empty;
         _selectedTheme = ThemeCatalog.TryResolve(_shell.Options.Theme, out var theme) ? theme : ThemeCatalog.Default;
         _testDataMode = _shell.Options.TestDataMode;
+        _broadcastingEnabled = _shell.Options.BroadcastingEnabled;
+        _broadcastingPort = _shell.Options.BroadcastingPort;
+        _broadcastingPassword = _shell.Options.BroadcastingPassword;
 
         OnPropertyChanged(nameof(PollIntervalMs));
         OnPropertyChanged(nameof(RecordingsDirectory));
@@ -264,6 +303,10 @@ public sealed class SettingsViewModel : PageViewModel, IDisposable
         OnPropertyChanged(nameof(SelectedTheme));
         OnPropertyChanged(nameof(TestDataMode));
         OnPropertyChanged(nameof(TestDataStatusText));
+        OnPropertyChanged(nameof(BroadcastingEnabled));
+        OnPropertyChanged(nameof(BroadcastingPort));
+        OnPropertyChanged(nameof(BroadcastingPassword));
+        OnPropertyChanged(nameof(BroadcastingStatusText));
         RefreshOverlayStatus();
     }
 
@@ -285,6 +328,8 @@ public sealed class SettingsViewModel : PageViewModel, IDisposable
         options.AiEndpoint = string.IsNullOrWhiteSpace(AiEndpoint) ? null : AiEndpoint.Trim();
         options.Theme = SelectedTheme.Id.ToString();
 
+        ApplyBroadcastingSettings(persist: false);
+
         PollIntervalMs = options.PollIntervalMs;
         RecordingsDirectory = options.RecordingsDirectory;
         ReportsDirectory = options.ReportsDirectory;
@@ -299,6 +344,38 @@ public sealed class SettingsViewModel : PageViewModel, IDisposable
         catch (Exception ex)
         {
             StatusText = $"Could not save settings: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Pushes the broadcasting preference/port/password to the telemetry service and
+    /// (re)creates its client so an edited port or password takes effect immediately.
+    /// </summary>
+    private void ApplyBroadcastingSettings(bool persist = true)
+    {
+        var options = _shell.Options;
+        options.BroadcastingEnabled = _broadcastingEnabled;
+        options.BroadcastingPort = Math.Clamp(_broadcastingPort, 1, 65535);
+        options.BroadcastingPassword = _broadcastingPassword ?? string.Empty;
+        _broadcastingPort = options.BroadcastingPort;
+
+        if (_shell.Telemetry.IsBroadcastingEnabled) _shell.Telemetry.SetBroadcastingEnabled(false);
+        if (_broadcastingEnabled) _shell.Telemetry.SetBroadcastingEnabled(true);
+
+        OnPropertyChanged(nameof(BroadcastingStatusText));
+
+        if (!persist) return;
+
+        try
+        {
+            options.Save();
+            StatusText = _broadcastingEnabled
+                ? $"Broadcasting enabled on port {options.BroadcastingPort}; saved."
+                : "Broadcasting disabled; saved.";
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Broadcasting setting changed, but it could not be saved: {ex.Message}";
         }
     }
 

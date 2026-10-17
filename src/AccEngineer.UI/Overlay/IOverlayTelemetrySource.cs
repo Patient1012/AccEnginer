@@ -1,4 +1,5 @@
 using AccEngineer.Telemetry;
+using AccEngineer.Telemetry.Broadcasting;
 
 namespace AccEngineer.UI.Overlay;
 
@@ -18,6 +19,16 @@ public interface IOverlayTelemetrySource
     /// live simulator session, so panels can show a clear test-data indicator.
     /// </summary>
     bool IsTestData { get; }
+
+    /// <summary>
+    /// Latest competitor standings from the ACC broadcasting API (or the test feed in
+    /// test-data mode). Null when broadcasting is off/connecting or no session data
+    /// has arrived, so panels show an explicit unavailable state rather than a guess.
+    /// </summary>
+    CompetitorStandings? Standings { get; }
+
+    /// <summary>Short human-readable broadcasting state for panel status lines.</summary>
+    string StandingsStatusText { get; }
 }
 
 /// <summary>
@@ -36,4 +47,7 @@ public sealed class LiveOverlayTelemetrySource : IOverlayTelemetrySource
     public TelemetrySample? Latest => _telemetry.Latest;
     public IReadOnlyList<TelemetrySample> Recent(int maxCount) => _telemetry.SnapshotRecent(maxCount);
     public bool IsTestData => _telemetry.IsTestData;
+
+    public CompetitorStandings? Standings => _telemetry.Standings;
+    public string StandingsStatusText => _telemetry.BroadcastingStatusText;
 }
