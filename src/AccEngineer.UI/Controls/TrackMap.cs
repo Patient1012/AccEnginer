@@ -133,7 +133,7 @@ public sealed class TrackMap : FrameworkElement
 
             geometry.Freeze();
             var pen = new Pen(PathBrush, 1.5);
-            pen.Freeze();
+            if (pen.CanFreeze) pen.Freeze();
             dc.DrawGeometry(null, pen, geometry);
         }
 
