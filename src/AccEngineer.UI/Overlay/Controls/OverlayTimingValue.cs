@@ -27,7 +27,9 @@ public enum TimingState
 /// <summary>
 /// Tabular-numeral text block for lap times, deltas and gaps. Foreground is driven
 /// by <see cref="State"/> so the "personal best" / "session best" colour convention
-/// lives in exactly one place.
+/// lives in exactly one place. Live deltas use green when ahead of the reference lap
+/// (<see cref="TimingState.DeltaAhead"/>) and red when behind
+/// (<see cref="TimingState.DeltaBehind"/>).
 ///
 /// The foreground is a resource reference, not a literal brush, so the readout
 /// follows the active theme and live theme switches. If the application resources
@@ -42,7 +44,7 @@ public sealed class OverlayTimingValue : TextBlock
     private static readonly Brush SessionBestBrush = Freeze(new SolidColorBrush(Color.FromRgb(0xC0, 0x8C, 0xFF)));
     private static readonly Brush UnavailableBrush = Freeze(new SolidColorBrush(Color.FromRgb(0xA6, 0xAC, 0xB4)));
     private static readonly Brush DeltaAheadBrush = Freeze(new SolidColorBrush(Color.FromRgb(0x6F, 0xE3, 0x9A)));
-    private static readonly Brush DeltaBehindBrush = Freeze(new SolidColorBrush(Color.FromRgb(0xE6, 0xA8, 0x3C)));
+    private static readonly Brush DeltaBehindBrush = Freeze(new SolidColorBrush(Color.FromRgb(0xD9, 0x6C, 0x63)));
 
     public static readonly DependencyProperty StateProperty = DependencyProperty.Register(
         nameof(State), typeof(TimingState), typeof(OverlayTimingValue),
@@ -85,7 +87,7 @@ public sealed class OverlayTimingValue : TextBlock
         TimingState.SessionBest => "OverlaySessionBestBrush",
         TimingState.Unavailable => "OverlayMutedBrush",
         TimingState.DeltaAhead => "OverlaySuccessBrush",
-        TimingState.DeltaBehind => "OverlayWarningBrush",
+        TimingState.DeltaBehind => "OverlayFlagRedBrush",
         TimingState.Normal => "OverlayTextBrush",
         _ => null
     };

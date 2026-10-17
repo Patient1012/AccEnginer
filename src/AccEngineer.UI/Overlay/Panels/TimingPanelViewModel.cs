@@ -57,7 +57,8 @@ public sealed class TimingPanelViewModel : OverlayPanelViewModel
         }
 
         IsLive = true;
-        StatusText = "LIVE";
+        // Never claim "LIVE" while the generated test provider is the data source.
+        StatusText = IsTestData ? "SIM" : "LIVE";
         SessionText = $"{sample.SessionType} · {sample.SessionState}";
         LapText = sample.LapNumber.ToString(CultureInfo.InvariantCulture);
         SessionTextSecondary = string.IsNullOrEmpty(sample.TrackName) ? "--" : sample.TrackName;
@@ -79,9 +80,10 @@ public sealed class TimingPanelViewModel : OverlayPanelViewModel
         if (sample.LastLapTimeMs is { } lastMs and > 0)
         {
             LastLapText = Display.LapTimeMs(lastMs);
-            LastLapState = sample.IsLapValid && !sample.Quality.HasFlag(DataQualityFlags.InvalidLap)
-                ? TimingState.PersonalBest // conservative; real PB/SB could be compared later
-                : TimingState.Normal;
+            // The last lap is the driver's own best only when it equals the recorded
+            // best; a merely valid lap is not a personal best, so it must not be green.
+            var isPersonalBest = sample.BestLapTimeMs is { } best and > 0 && best == lastMs;
+            LastLapState = isPersonalBest ? TimingState.PersonalBest : TimingState.Normal;
         }
         else
         {
