@@ -14,7 +14,8 @@ public sealed class RelativeRow
 
     public string GapText { get; init; } = "--";
 
-    public string Name => $"CAR {CarId}";
+    /// <summary>Driver name from broadcasting, or "CAR nn" for the projection fallback.</summary>
+    public string Name { get; init; } = "--";
 
     public Brush Stripe { get; init; } = Brushes.Gray;
 }

@@ -1,15 +1,18 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using AccEngineer.Telemetry;
+using AccEngineer.Telemetry.Broadcasting;
 using AccEngineer.UI.Services;
 
 namespace AccEngineer.UI.Overlay.Panels;
 
 /// <summary>
-/// Compact relative/nearby panel. ACC exposes no opponent names or timing, so each
-/// other car is projected onto the player's recent driven line and ordered by that
-/// progress; gaps are metre estimates and labelled as such. The player row is
-/// highlighted.
+/// Compact relative/nearby panel. When the ACC Broadcasting API is connected the
+/// driver names, race numbers and official ordering come from it, and the interval
+/// column stays a metre estimate derived from spline positions (ACC does not broadcast
+/// official time gaps) and is labelled as such. Without broadcasting the panel falls
+/// back to projecting each car onto the player's recent driven line, in which case
+/// names are the explicit "CAR nn" placeholders.
 /// </summary>
 public sealed class RelativePanelViewModel : OverlayPanelViewModel
 {
@@ -59,6 +62,16 @@ public sealed class RelativePanelViewModel : OverlayPanelViewModel
 
         IsLive = true;
         StatusText = "LIVE";
+
+        // Prefer the ACC Broadcasting API: it is the only source of opponent names,
+        // race numbers and the official running order.
+        if (Telemetry.Standings is { Competitors.Count: > 0 } standings
+            && TryBuildFromStandings(standings))
+        {
+            OnAllPropertiesChanged();
+            return;
+        }
+
         // Make the estimate explicit: these are metres, not official gaps.
         HeaderText = "NEARBY · gap (m est.)";
 
@@ -108,11 +121,74 @@ public sealed class RelativePanelViewModel : OverlayPanelViewModel
                 CarId = entry.CarId,
                 IsPlayer = entry.IsPlayer,
                 Position = i + 1,
+                Name = $"CAR {entry.CarId:00}",
                 GapText = gap is { } g ? g.ToString("0", CultureInfo.InvariantCulture) + " m" : "--",
                 Stripe = CarColour.ForCar(entry.CarId)
             });
         }
 
         OnAllPropertiesChanged();
+    }
+
+    /// <summary>
+    /// Builds the nearby list from broadcast standings: a window of cars centred on the
+    /// player, ordered as the game reports, with names/numbers from the API and metre
+    /// intervals derived from spline positions. Returns false when the player's car is
+    /// not present in the feed so the caller can fall back to line projection.
+    /// </summary>
+    private bool TryBuildFromStandings(CompetitorStandings standings)
+    {
+        var competitors = standings.Competitors;
+        var playerIndex = -1;
+        for (var i = 0; i < competitors.Count; i++)
+        {
+            if (competitors[i].CarIndex == standings.FocusedCarIndex) { playerIndex = i; break; }
+        }
+
+        if (playerIndex < 0) return false;
+
+        HeaderText = "RELATIVE · gap (m est.)";
+
+        var player = competitors[playerIndex];
+        var playerCum = (player.LapCount ?? 0) + player.SplinePosition;
+        var trackMeters = standings.TrackMeters is { } meters and > 0 ? meters : (int?)null;
+
+        var start = Math.Clamp(playerIndex - _maxRows / 2, 0, Math.Max(0, competitors.Count - _maxRows));
+        var end = Math.Min(competitors.Count, start + _maxRows);
+        for (var i = start; i < end; i++)
+        {
+            var car = competitors[i];
+            var isPlayer = i == playerIndex;
+            var carCum = (car.LapCount ?? 0) + car.SplinePosition;
+
+            string gapText;
+            if (isPlayer)
+            {
+                gapText = "0 m";
+            }
+            else if (trackMeters is { } tm)
+            {
+                // Positive means the car is further along the lap, i.e. ahead of the player.
+                var deltaMeters = (carCum - playerCum) * tm;
+                var sign = deltaMeters >= 0 ? "-" : "+";
+                gapText = sign + Math.Abs(deltaMeters).ToString("0", CultureInfo.InvariantCulture) + " m";
+            }
+            else
+            {
+                gapText = "--";
+            }
+
+            Rows.Add(new RelativeRow
+            {
+                CarId = car.CarIndex,
+                IsPlayer = isPlayer,
+                Position = car.Position ?? i + 1,
+                Name = car.DisplayName,
+                GapText = gapText,
+                Stripe = CarColour.ForCar(car.CarIndex)
+            });
+        }
+
+        return true;
     }
 }

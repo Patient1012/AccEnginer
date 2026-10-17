@@ -1,0 +1,80 @@
+<UserControl x:Class="AccEngineer.UI.Overlay.Panels.StandingsOverlayPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:oc="clr-namespace:AccEngineer.UI.Overlay.Controls">
+    <!-- Full-field standings tower fed by the ACC Broadcasting API. -->
+    <Border Style="{StaticResource OverlayPanelBorder}">
+        <Grid Margin="6,4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="3" Background="{DynamicResource OverlayAccentBrush}" Margin="0,0,6,0" />
+                    <TextBlock Text="{Binding HeaderText}" Style="{StaticResource OverlayHeader}" VerticalAlignment="Center" />
+                </StackPanel>
+                <oc:OverlayStatusIndicator Grid.Column="1" Text="{Binding StatusText}" IsActive="{Binding IsLive}" TestData="{Binding IsTestData}" />
+            </Grid>
+
+            <TextBlock Grid.Row="1" Text="{Binding SubtitleText}" Style="{StaticResource OverlayCellMuted}" Margin="0,0,0,2" />
+
+            <Rectangle Grid.Row="2" Style="{StaticResource OverlaySeparator}" />
+
+            <!-- Column headings -->
+            <Grid Grid.Row="3" Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="22" />
+                    <ColumnDefinition Width="26" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="P" Style="{StaticResource OverlayLabel}" />
+                <TextBlock Grid.Column="1" Text="#" Style="{StaticResource OverlayLabel}" />
+                <TextBlock Grid.Column="3" Text="DRIVER" Style="{StaticResource OverlayLabel}" />
+                <TextBlock Grid.Column="4" Text="LAST" Style="{StaticResource OverlayLabel}" HorizontalAlignment="Right" Margin="0,0,8,0" />
+                <TextBlock Grid.Column="5" Text="GAP" Style="{StaticResource OverlayLabel}" HorizontalAlignment="Right" />
+            </Grid>
+
+            <!-- Rows -->
+            <ItemsControl Grid.Row="4" ItemsSource="{Binding Rows}" Margin="0,2,0,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource OverlayRowBorder}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="22" />
+                                    <ColumnDefinition Width="26" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding PositionText}" Style="{StaticResource OverlayCellMono}" />
+                                <TextBlock Grid.Column="1" Text="{Binding NumberText}" Style="{StaticResource OverlayCellMuted}" />
+                                <Border Grid.Column="2" Style="{StaticResource OverlayColourStripe}" Background="{Binding Stripe}" />
+                                <TextBlock Grid.Column="3" Text="{Binding Name}" Style="{StaticResource OverlayCellText}"
+                                           TextTrimming="CharacterEllipsis" />
+                                <TextBlock Grid.Column="4" Text="{Binding LastLapText}" Style="{StaticResource OverlayCellMono}"
+                                           HorizontalAlignment="Right" Margin="0,0,8,0" />
+                                <TextBlock Grid.Column="5" Text="{Binding GapText}" Style="{StaticResource OverlayCellMono}"
+                                           HorizontalAlignment="Right" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+    </Border>
+</UserControl>

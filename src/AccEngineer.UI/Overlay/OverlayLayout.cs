@@ -76,6 +76,9 @@ public sealed class OverlayAppearance
     /// <summary>Whether the relative panel shows the driver/name column.</summary>
     public bool RelativeShowName { get; set; } = true;
 
+    /// <summary>Maximum rows shown in the standings panel, 3 to 30.</summary>
+    public int StandingsRows { get; set; } = 12;
+
     public OverlayAppearance Clone() => (OverlayAppearance)MemberwiseClone();
 
     /// <summary>Clamps the appearance knobs into their supported ranges (and finite values).</summary>
@@ -85,6 +88,7 @@ public sealed class OverlayAppearance
         FontScale = Math.Clamp(FontScale, 0.6, 2.0);
         TraceLength = Math.Clamp(TraceLength, 30, 400);
         RelativeRows = Math.Clamp(RelativeRows, 3, 20);
+        StandingsRows = Math.Clamp(StandingsRows, 3, 30);
         return this;
     }
 }

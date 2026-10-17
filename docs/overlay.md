@@ -249,3 +249,39 @@ screen clamping), layout persistence with migration + sanitisation, profiles and
 layouts, appearance scaling, global hotkeys, theme token system with nine themes,
 relative panel (positional), inputs panel, track map (driven-line outline), and the
 test-data mode plumbing.
+
+## Stage 2-3 progress (broadcasting + infrastructure)
+
+Implemented since the audit:
+
+- **Window infrastructure hardened.** `OverlayWindowBase` recovers a panel that is
+  off every monitor (`MonitorFromRect` -> primary `WorkArea` fallback), and
+  `OverlayPanelWindow` now re-resolves its edit-outline/grip brushes with
+  `SetResourceReference`, so a live theme swap restyles them. `OverlayLayout.Theme`
+  is still stored but unused: the app-wide theme in `AppSettings.Theme` is now the
+  single source applied to both chrome and panels.
+- **Classic Racing theme** added (near-black background, translucent panels, amber
+  accent, red brake), selectable from the overlay editor.
+- **ACC UDP Broadcast protocol codec** (`AccBroadcastProtocol`, protocol v4) and a
+  handshaking **client** (`AccBroadcastClient`) with a keep-alive/re-register loop,
+  cross-checked against the Kunos reference and two community readers.
+- **Standings tower overlay panel** (`standings`) fed by the broadcast feed: official
+  position, driver name, race number, last lap and an interval column. ACC does not
+  broadcast official *time* gaps, so the interval is a metre estimate derived from
+  spline position and track length and is labelled `gap (m est.)`; laps down show as
+  `+NL`. When broadcasting is off the panel shows the explicit reason instead of
+  inventing names or gaps.
+- **Relative panel upgraded:** when broadcasting is connected it shows real driver
+  names, race numbers and the official running order; otherwise it falls back to
+  projecting cars onto the player's driven line with `CAR nn` placeholders.
+- **Broadcasting settings** (enable, listener port, connection password, live status)
+  in the Settings page; **test-data mode** now also produces a deterministic
+  competitor feed (`TestCompetitorFeed`) so the tower and relative panel can be laid
+  out without ACC.
+
+Still open (later stages): conditions panel is still a flat list (no four-wheel
+layout / brake temps), timing panel still shows no sectors or live delta
+(`LastSectorTime` / `IDeltaLapTime` / `IsDeltaPositive` remain unmapped by
+`AccSampleBuilder`), no suspension / vehicle-dynamics panel, and the test simulator
+still produces no sector times or live delta. The timing panel's PERSONAL BEST row
+overlap is fixed.
