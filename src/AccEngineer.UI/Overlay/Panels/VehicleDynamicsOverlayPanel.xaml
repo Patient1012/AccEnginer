@@ -4,7 +4,7 @@
              xmlns:oc="clr-namespace:AccEngineer.UI.Overlay.Controls">
     <UserControl.Resources>
         <DataTemplate x:Key="CornerCell">
-            <Border Margin="2" Padding="4,2" Background="{DynamicResource OverlayGraphBgBrush}"
+            <Border Margin="1" Padding="3,1" Background="{DynamicResource OverlayGraphBgBrush}"
                     BorderBrush="{DynamicResource OverlayBorderBrush}" BorderThickness="1" CornerRadius="2">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -36,7 +36,7 @@
             </Grid.ColumnDefinitions>
 
             <!-- Header -->
-            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,2">
+            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,1">
                 <Border Width="3" Background="{DynamicResource OverlayAccentBrush}" Margin="0,0,6,0" />
                 <TextBlock Text="{Binding HeaderText}" Style="{StaticResource OverlayHeader}" VerticalAlignment="Center" />
             </StackPanel>
@@ -46,7 +46,7 @@
                                        TestData="{Binding IsTestData}" />
 
             <Rectangle Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource OverlaySeparator}"
-                       Margin="0,2,0,2" />
+                       Margin="0,1,0,1" />
 
             <TextBlock Grid.Row="2" Grid.Column="0" Text="SPEED" Style="{StaticResource OverlayLabel}" />
             <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SpeedText}" Style="{StaticResource OverlayCellMono}" />
@@ -62,9 +62,9 @@
             <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding YawText}" Style="{StaticResource OverlayCellMono}" />
 
             <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Text="SUSPENSION TRAVEL (mm)"
-                       Style="{StaticResource OverlaySectionHeader}" Margin="0,6,0,0" />
+                       Style="{StaticResource OverlaySectionHeader}" Margin="0,4,0,0" />
 
-            <Grid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,2,0,0">
+            <Grid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,1,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />

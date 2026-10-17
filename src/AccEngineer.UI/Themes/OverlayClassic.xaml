@@ -53,7 +53,7 @@
         <Setter Property="Background" Value="{DynamicResource OverlayPanelBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource OverlayBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="2" />
+        <Setter Property="CornerRadius" Value="1" />
     </Style>
 
     <Style x:Key="OverlayHeader" TargetType="TextBlock">

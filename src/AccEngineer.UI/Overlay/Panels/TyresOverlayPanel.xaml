@@ -5,7 +5,7 @@
     <UserControl.Resources>
         <!-- One corner: label, tyre core temp, pressure, brake temp. -->
         <DataTemplate x:Key="TyreCell">
-            <Border Margin="2" Padding="4,3" Background="{DynamicResource OverlayGraphBgBrush}"
+            <Border Margin="1" Padding="3,2" Background="{DynamicResource OverlayGraphBgBrush}"
                     BorderBrush="{DynamicResource OverlayBorderBrush}" BorderThickness="1" CornerRadius="2">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -20,7 +20,7 @@
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="{Binding Label}"
-                               Style="{StaticResource OverlaySectionHeader}" Margin="0,0,0,1" />
+                               Style="{StaticResource OverlaySectionHeader}" Margin="0,0,0,0" />
 
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="TYRE" Style="{StaticResource OverlayLabel}" />
                     <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TempText}" Style="{StaticResource OverlayCellMono}"
@@ -66,7 +66,7 @@
                        Margin="0,2,0,2" />
 
             <!-- 2x2 corner layout: FL FR / RL RR -->
-            <Grid Grid.Row="2" Grid.ColumnSpan="2" Margin="0,2,0,0">
+            <Grid Grid.Row="2" Grid.ColumnSpan="2" Margin="0,1,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />

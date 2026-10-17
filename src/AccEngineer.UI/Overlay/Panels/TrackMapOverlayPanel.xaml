@@ -18,7 +18,7 @@
             </Grid.RowDefinitions>
 
             <!-- Header -->
-            <Grid Grid.Row="0" Margin="0,0,0,2">
+            <Grid Grid.Row="0" Margin="0,0,0,1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -32,7 +32,7 @@
                     <oc:OverlayStatusIndicator Grid.Column="1" Text="{Binding StatusText}" IsActive="{Binding IsLive}" TestData="{Binding IsTestData}" />
             </Grid>
 
-            <Rectangle Grid.Row="1" Style="{StaticResource OverlaySeparator}" Margin="0,2,0,2" />
+            <Rectangle Grid.Row="1" Style="{StaticResource OverlaySeparator}" Margin="0,1,0,1" />
 
             <!-- The shared TrackMap control: fit against the cached outline so live
                  markers never shift the transform. -->
