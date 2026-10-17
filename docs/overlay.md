@@ -292,5 +292,10 @@ Implemented since the audit:
   arrays, with honest per-corner "--" when a channel is missing. The conditions panel
   stays focused on weather (ambient/track temp, grip, tyre type, flag).
 
-Still open (later stages): no suspension / vehicle-dynamics panel. The timing panel's
-PERSONAL BEST row overlap is fixed.
+- **Vehicle dynamics panel** (`dynamics`): speed, lateral/longitudinal G and yaw rate
+  plus a 2x2 per-corner suspension-travel layout, all from the shared-memory physics
+  page. Values with no source render as "--".
+
+Still open (later stages): none of the audited overlay gaps remain except Stage 8
+(themes/settings/saved layouts polish). The timing panel's PERSONAL BEST row overlap
+is fixed.
