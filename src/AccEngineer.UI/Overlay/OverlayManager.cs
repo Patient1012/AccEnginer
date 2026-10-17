@@ -292,6 +292,41 @@ public sealed class OverlayManager : IDisposable
         Save();
     }
 
+    /// <summary>The built-in named layout presets (Practice / Qualifying / Race / Minimal HUD).</summary>
+    public IReadOnlyList<OverlayPreset> Presets => OverlayPresets.All;
+
+    /// <summary>
+    /// Creates (or switches to) a named layout for the given preset and applies the preset's
+    /// panel visibility, so a driver can jump between arrangements without toggling panels.
+    /// </summary>
+    public void ApplyPreset(string presetName)
+    {
+        var preset = OverlayPresets.All.FirstOrDefault(
+            p => string.Equals(p.Name, presetName, StringComparison.Ordinal));
+        if (preset is null) return;
+
+        if (ActiveProfileRecord.Layouts.ContainsKey(preset.Name))
+        {
+            SetLayout(preset.Name);
+        }
+        else
+        {
+            // A fresh layout: RebuildPanels restores each panel to its default (hidden) state.
+            ActiveProfileRecord.Layouts[preset.Name] = new OverlayLayout();
+            ActiveProfileRecord.ActiveLayout = preset.Name;
+            RebuildPanels();
+        }
+
+        foreach (var panel in _panels)
+        {
+            var visible = preset.Shows(panel.Id);
+            if (!visible) panel.Window.IsEditing = false;
+            if (panel.Visible != visible) SetVisible(panel, visible);
+        }
+
+        Save();
+    }
+
     /// <summary>Restores the active layout's panels and appearance to factory defaults.</summary>
     public void ResetToDefault()
     {

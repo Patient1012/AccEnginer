@@ -296,6 +296,17 @@ Implemented since the audit:
   plus a 2x2 per-corner suspension-travel layout, all from the shared-memory physics
   page. Values with no source render as "--".
 
-Still open (later stages): none of the audited overlay gaps remain except Stage 8
-(themes/settings/saved layouts polish). The timing panel's PERSONAL BEST row overlap
-is fixed.
+Still open (later stages): none of the audited overlay gaps remain except Stage 9
+(final regression validation). The timing panel's PERSONAL BEST row overlap is fixed.
+
+## Named layout presets
+The overlay editor offers four built-in presets that create or switch to a same-named
+layout and set panel visibility in one click:
+
+- **Practice** - timing, tyres, dynamics, conditions, inputs, map.
+- **Qualifying** - timing, relative, standings, inputs, map.
+- **Race** - standings, relative, timing, tyres, inputs, map.
+- **Minimal HUD** - timing, inputs.
+
+Definitions live in `OverlayPresets` (pure data, unit-tested); `OverlayManager.ApplyPreset`
+persists the resulting layout like any hand-made one.

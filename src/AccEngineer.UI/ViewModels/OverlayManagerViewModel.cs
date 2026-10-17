@@ -81,6 +81,7 @@ public sealed class OverlayManagerViewModel : ObservableObject, IDisposable
     private bool _relativeShowGap;
     private bool _relativeShowName;
     private bool _isDemoMode;
+    private OverlayPreset? _selectedPreset;
     private ThemeDefinition _selectedTheme;
 
     public OverlayManagerViewModel(OverlayManager manager, AppSettings options)
@@ -100,6 +101,7 @@ public sealed class OverlayManagerViewModel : ObservableObject, IDisposable
         _relativeShowGap = appearance.RelativeShowGap;
         _relativeShowName = appearance.RelativeShowName;
         _isDemoMode = manager.IsDemoMode;
+        _selectedPreset = null;
 
         RefreshPanels();
 
@@ -112,6 +114,7 @@ public sealed class OverlayManagerViewModel : ObservableObject, IDisposable
         AddProfileCommand = new RelayCommand(AddProfile, () => !string.IsNullOrWhiteSpace(_newProfileName));
         DeleteProfileCommand = new RelayCommand(() => { _manager.DeleteProfile(SelectedProfile); ReloadFromManager(); },
             () => _manager.ProfileNames.Count > 1);
+        ApplyPresetCommand = new RelayCommand(ApplyPreset, () => _selectedPreset is not null);
         PinResolutionCommand = new RelayCommand(() => { _manager.PinCurrentResolution(); OnPropertyChanged(nameof(IsResolutionPinned)); });
         UnpinResolutionCommand = new RelayCommand(() => { _manager.UnpinCurrentResolution(); OnPropertyChanged(nameof(IsResolutionPinned)); });
     }
@@ -119,6 +122,21 @@ public sealed class OverlayManagerViewModel : ObservableObject, IDisposable
     public IReadOnlyList<string> Profiles => _manager.ProfileNames;
 
     public IReadOnlyList<string> Layouts => _manager.LayoutNames;
+
+    /// <summary>The built-in named layout presets shown in the editor.</summary>
+    public IReadOnlyList<OverlayPreset> Presets => _manager.Presets;
+
+    public OverlayPreset? SelectedPreset
+    {
+        get => _selectedPreset;
+        set
+        {
+            if (SetProperty(ref _selectedPreset, value))
+            {
+                (ApplyPresetCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            }
+        }
+    }
 
     public ObservableCollection<OverlayPanelRow> PanelRows { get; } = new();
 
@@ -265,6 +283,8 @@ public sealed class OverlayManagerViewModel : ObservableObject, IDisposable
 
     public ICommand DeleteProfileCommand { get; }
 
+    public ICommand ApplyPresetCommand { get; }
+
     public ICommand PinResolutionCommand { get; }
 
     public ICommand UnpinResolutionCommand { get; }
@@ -324,6 +344,14 @@ public sealed class OverlayManagerViewModel : ObservableObject, IDisposable
     {
         _manager.AddProfile(_newProfileName);
         NewProfileName = string.Empty;
+        ReloadFromManager();
+        RefreshPanels();
+    }
+
+    private void ApplyPreset()
+    {
+        if (_selectedPreset is null) return;
+        _manager.ApplyPreset(_selectedPreset.Name);
         ReloadFromManager();
         RefreshPanels();
     }
