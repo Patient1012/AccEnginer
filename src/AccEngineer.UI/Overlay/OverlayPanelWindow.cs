@@ -111,21 +111,17 @@ public sealed class OverlayPanelWindow : OverlayWindowBase
         // Never below the base minimums, never beyond a sane cap (guards a degenerate
         // measurement from ballooning the window).
         var minWidth = Math.Clamp(desiredWidth, 120, 4000);
-        var minHeight = Math.Clamp(desiredHeight, 80, 4000);
 
         var changed = false;
 
-        if (MinWidth != minWidth || MinHeight != minHeight)
+        if (MinWidth != minWidth)
         {
             MinWidth = minWidth;
-            MinHeight = minHeight;
             changed = true;
         }
 
         var userWidth = double.IsFinite(UserWidth) ? UserWidth : Width;
-        var userHeight = double.IsFinite(UserHeight) ? UserHeight : Height;
         var targetWidth = Math.Max(userWidth, minWidth);
-        var targetHeight = Math.Max(userHeight, minHeight);
 
         if (!double.IsFinite(Width) || Math.Abs(Width - targetWidth) > 0.5)
         {
@@ -133,10 +129,34 @@ public sealed class OverlayPanelWindow : OverlayWindowBase
             changed = true;
         }
 
-        if (!double.IsFinite(Height) || Math.Abs(Height - targetHeight) > 0.5)
+        if (AutoFitHeight)
         {
-            Height = targetHeight;
-            changed = true;
+            // Height is owned by SizeToContent: the measured content drives it every
+            // layout pass, so there is never dead space below the last row nor clipping
+            // when rows are added back. Only the header floor needs to stay reachable.
+            if (MinHeight != AutoFitMinHeight)
+            {
+                MinHeight = AutoFitMinHeight;
+                changed = true;
+            }
+        }
+        else
+        {
+            var minHeight = Math.Clamp(desiredHeight, 80, 4000);
+            var userHeight = double.IsFinite(UserHeight) ? UserHeight : Height;
+            var targetHeight = Math.Max(userHeight, minHeight);
+
+            if (MinHeight != minHeight)
+            {
+                MinHeight = minHeight;
+                changed = true;
+            }
+
+            if (!double.IsFinite(Height) || Math.Abs(Height - targetHeight) > 0.5)
+            {
+                Height = targetHeight;
+                changed = true;
+            }
         }
 
         // Only persists when the frame actually moved; CaptureState reports the user

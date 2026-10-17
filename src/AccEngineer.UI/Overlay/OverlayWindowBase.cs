@@ -25,6 +25,10 @@ public abstract class OverlayWindowBase : Window
 
     private const double BaseMinHeight = 80;
 
+    /// <summary>Floor for auto-fit panels: a content-height panel with zero rows keeps
+    /// its header strip instead of collapsing to an unusable sliver.</summary>
+    protected const double AutoFitMinHeight = 24;
+
     public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register(
         nameof(IsEditing), typeof(bool), typeof(OverlayWindowBase),
         new PropertyMetadata(false, OnIsEditingChanged));
@@ -56,6 +60,8 @@ public abstract class OverlayWindowBase : Window
 
     private bool _allowClose;
 
+    private bool _autoFitHeight;
+
     protected OverlayWindowBase()
     {
         WindowStyle = WindowStyle.None;
@@ -83,6 +89,26 @@ public abstract class OverlayWindowBase : Window
 
     /// <summary>Stable identity used to persist this panel's placement.</summary>
     public string PanelId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// True when the window's height tracks its content exactly (growing and
+    /// shrinking) instead of staying at the larger of the user frame and the
+    /// content minimum. Implemented with <see cref="SizeToContent"/> so the layout
+    /// system measures the content itself - no manual measure pass, no layout loop.
+    /// Width keeps the normal user/content behaviour, and vertical resize gestures
+    /// are ignored while this is on.
+    /// </summary>
+    public bool AutoFitHeight
+    {
+        get => _autoFitHeight;
+        set
+        {
+            if (_autoFitHeight == value) return;
+            _autoFitHeight = value;
+            SizeToContent = value ? SizeToContent.Height : SizeToContent.Manual;
+            if (value && MinHeight > AutoFitMinHeight) MinHeight = AutoFitMinHeight;
+        }
+    }
 
     /// <summary>True while the panel accepts mouse input for moving and resizing.</summary>
     public bool IsEditing
@@ -195,11 +221,15 @@ public abstract class OverlayWindowBase : Window
         if (!IsEditing) return;
 
         Width = Math.Max(MinWidth, Width + e.HorizontalChange);
-        Height = Math.Max(MinHeight, Height + e.VerticalChange);
-
-        // A drag is a deliberate size choice, so it becomes the persisted user frame.
         UserWidth = Width;
-        UserHeight = Height;
+
+        // Auto-fit panels own their height (content drives it every tick), so a
+        // vertical drag would be immediately reverted; only the width is user-sized.
+        if (!AutoFitHeight)
+        {
+            Height = Math.Max(MinHeight, Height + e.VerticalChange);
+            UserHeight = Height;
+        }
 
         LayoutChanged?.Invoke(this, EventArgs.Empty);
     }

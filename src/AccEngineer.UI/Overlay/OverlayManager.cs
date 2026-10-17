@@ -406,13 +406,18 @@ public sealed class OverlayManager : IDisposable
             Configurable = timingVm
         });
 
-        // Relative / nearby block.
+        // Relative / nearby block. Content-height: the frame follows the actual
+        // nearby-car count so the panel never carries dead space below its last row.
         var relativeVm = new RelativePanelViewModel(_source);
+        var relativeWindow = new OverlayPanelWindow("relative", "ACC Engineer - Relative", new RelativeOverlayPanel { DataContext = relativeVm }, DefaultState("relative"))
+        {
+            AutoFitHeight = true
+        };
         _panels.Add(new PanelHost
         {
             Id = "relative",
             Title = "Relative",
-            Window = new OverlayPanelWindow("relative", "ACC Engineer - Relative", new RelativeOverlayPanel { DataContext = relativeVm }, DefaultState("relative")),
+            Window = relativeWindow,
             ViewModel = relativeVm,
             Configurable = relativeVm
         });
