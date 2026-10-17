@@ -41,6 +41,10 @@ internal sealed class TestTelemetrySimulator
     private int _lapNumber = 1;
     private double _fuel;
 
+    private int _lastSectorIndex = -1;
+    private double _sectorElapsed;
+    private double _lastSector = -1;
+
     private readonly double[] _tyreCore = new double[4];
     private readonly double[] _tyrePressure = new double[4];
     private readonly double[] _tyreWear = new double[4];
@@ -91,13 +95,35 @@ internal sealed class TestTelemetrySimulator
         _distance += _speed * dt;
         _lapTime += dt;
 
-        if (_distance >= (double)_lapNumber * lapLength)
+        var lapRolled = _distance >= (double)_lapNumber * lapLength;
+        if (lapRolled)
         {
             _lastLap = _lapTime;
             if (_lapTime < _bestLap) _bestLap = _lapTime;
             _lapNumber++;
             _lapTime = 0;
         }
+
+        // Sector timing: the simulated track has three sectors. A new sector (or a
+        // completed lap) closes the previous one, storing its duration.
+        var uAfter = (_distance % lapLength) / lapLength;
+        var sector = Math.Clamp((int)(uAfter * 3), 0, 2);
+        _sectorElapsed += dt;
+        if (_lastSectorIndex < 0)
+        {
+            _lastSectorIndex = sector;
+            _sectorElapsed = 0;
+        }
+        else if (lapRolled || sector != _lastSectorIndex)
+        {
+            _lastSector = _sectorElapsed;
+            _sectorElapsed = 0;
+            _lastSectorIndex = sector;
+        }
+
+        // Live delta: elapsed time this lap versus the same fraction of the best lap.
+        // Null until a best lap exists, exactly as ACC reports no delta without a reference.
+        double? deltaSeconds = double.IsPositiveInfinity(_bestLap) ? null : _lapTime - (_bestLap * uAfter);
 
         UpdateThermal(dt, lateralG, longitudinalG, throttle, brake, steering);
         _fuel = Math.Max(2.0, _fuel - ((0.0004 + (0.006 * throttle)) * dt));
@@ -135,8 +161,11 @@ internal sealed class TestTelemetrySimulator
             CurrentLapTimeMs = _lapTime > 1.0 ? (int)Math.Round(_lapTime * 1000) : null,
             LastLapTimeMs = _lastLap > 0 ? (int)Math.Round(_lastLap * 1000) : null,
             BestLapTimeMs = double.IsPositiveInfinity(_bestLap) ? null : (int)Math.Round(_bestLap * 1000),
-            CurrentSectorIndex = Math.Clamp((int)(u * 3), 0, 2),
+            CurrentSectorIndex = sector,
             SectorCount = 3,
+            LastSectorTimeMs = _lastSector > 0 ? (int)Math.Round(_lastSector * 1000) : null,
+            DeltaLapTimeMs = deltaSeconds is { } d ? (int)Math.Round(d * 1000) : null,
+            IsDeltaPositive = deltaSeconds is { } dd && dd >= 0,
             TrackProgressMeters = (float)(_distance % lapLength),
             SpeedMetersPerSecond = (float)_speed,
             SpeedKph = (float)(_speed * 3.6),

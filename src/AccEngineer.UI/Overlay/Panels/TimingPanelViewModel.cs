@@ -26,6 +26,14 @@ public sealed class TimingPanelViewModel : OverlayPanelViewModel
     public TimingState PersonalBestState { get; private set; } = TimingState.Unavailable;
     public string SessionTextSecondary { get; private set; } = "--";
 
+    /// <summary>Sector position and last completed sector time, for example <c>2/3  0:27.000</c>.</summary>
+    public string SectorText { get; private set; } = "--";
+
+    /// <summary>Live delta to the reference lap, for example <c>-0.180 s</c>.</summary>
+    public string DeltaText { get; private set; } = "--";
+
+    public TimingState DeltaState { get; private set; } = TimingState.Unavailable;
+
     protected override void Refresh(TelemetrySample? sample)
     {
         if (sample is null)
@@ -41,6 +49,9 @@ public sealed class TimingPanelViewModel : OverlayPanelViewModel
             PersonalBestText = "--";
             PersonalBestState = TimingState.Unavailable;
             SessionTextSecondary = "--";
+            SectorText = "--";
+            DeltaText = "--";
+            DeltaState = TimingState.Unavailable;
             OnAllPropertiesChanged();
             return;
         }
@@ -88,6 +99,32 @@ public sealed class TimingPanelViewModel : OverlayPanelViewModel
         {
             PersonalBestText = "--";
             PersonalBestState = TimingState.Unavailable;
+        }
+
+        // Sector: current position plus the last completed sector time.
+        var sectorLabel = sample.CurrentSectorIndex is { } index && sample.SectorCount is { } count and > 0
+            ? $"{index + 1}/{count}"
+            : null;
+        SectorText = (sectorLabel, sample.LastSectorTimeMs) switch
+        {
+            (not null, { } sectorMs) => $"{sectorLabel}  {Display.LapTimeMs(sectorMs)}",
+            (not null, null) => sectorLabel,
+            (null, { } sectorMs) => Display.LapTimeMs(sectorMs),
+            _ => "--"
+        };
+
+        // Live delta: negative means ahead of the reference lap.
+        if (sample.DeltaLapTimeMs is { } deltaMs)
+        {
+            DeltaText = Display.DeltaMs(deltaMs);
+            DeltaState = deltaMs < 0 ? TimingState.DeltaAhead
+                : deltaMs > 0 ? TimingState.DeltaBehind
+                : TimingState.Normal;
+        }
+        else
+        {
+            DeltaText = "--";
+            DeltaState = TimingState.Unavailable;
         }
 
         OnAllPropertiesChanged();

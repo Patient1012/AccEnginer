@@ -13,6 +13,8 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -54,6 +56,15 @@
             <oc:OverlayTimingValue Grid.Row="6" Grid.Column="1"
                                    Text="{Binding PersonalBestText}"
                                    State="{Binding PersonalBestState}" />
+
+            <TextBlock Grid.Row="7" Grid.Column="0" Text="SECTOR" Style="{StaticResource OverlayLabel}" />
+            <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding SectorText}" Style="{StaticResource OverlayCellMono}"
+                       HorizontalAlignment="Right" VerticalAlignment="Center" />
+
+            <TextBlock Grid.Row="8" Grid.Column="0" Text="DELTA" Style="{StaticResource OverlayLabel}" />
+            <oc:OverlayTimingValue Grid.Row="8" Grid.Column="1"
+                                   Text="{Binding DeltaText}"
+                                   State="{Binding DeltaState}" />
         </Grid>
     </Border>
 </UserControl>

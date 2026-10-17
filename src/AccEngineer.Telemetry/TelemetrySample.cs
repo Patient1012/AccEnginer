@@ -55,6 +55,26 @@ public sealed record TelemetrySample
     /// <summary>Sector count for the track, from the static page (<c>sectorCount</c>).</summary>
     public int? SectorCount { get; init; }
 
+    /// <summary>
+    /// Last completed sector time in milliseconds as reported by ACC
+    /// (<c>lastSectorTime</c>). Null when not yet set (ACC reports 0 or a sentinel).
+    /// </summary>
+    public int? LastSectorTimeMs { get; init; }
+
+    /// <summary>
+    /// Live delta to the reference (best) lap in milliseconds, negative when ahead of
+    /// the reference. Mapped from the graphics page <c>iDeltaLapTime</c> with the sign
+    /// reconstructed from <c>isDeltaPositive</c>, so it is correct whether ACC stores
+    /// the delta signed or as a magnitude. Null when ACC reports no active delta.
+    /// </summary>
+    public int? DeltaLapTimeMs { get; init; }
+
+    /// <summary>
+    /// Sign flag reported alongside the delta (graphics page <c>isDeltaPositive</c>);
+    /// true when the current lap is slower than the reference at this point.
+    /// </summary>
+    public bool IsDeltaPositive { get; init; }
+
     /// <summary>Track-relative progress in metres, if provided by the source.</summary>
     public float? TrackProgressMeters { get; init; }
 

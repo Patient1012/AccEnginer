@@ -15,7 +15,13 @@ public enum TimingState
     Normal,
     PersonalBest,
     SessionBest,
-    Unavailable
+    Unavailable,
+
+    /// <summary>Live delta is negative (ahead of the reference lap).</summary>
+    DeltaAhead,
+
+    /// <summary>Live delta is positive (behind the reference lap).</summary>
+    DeltaBehind
 }
 
 /// <summary>
@@ -35,6 +41,8 @@ public sealed class OverlayTimingValue : TextBlock
     private static readonly Brush PersonalBestBrush = Freeze(new SolidColorBrush(Color.FromRgb(0x6F, 0xE3, 0x9A)));
     private static readonly Brush SessionBestBrush = Freeze(new SolidColorBrush(Color.FromRgb(0xC0, 0x8C, 0xFF)));
     private static readonly Brush UnavailableBrush = Freeze(new SolidColorBrush(Color.FromRgb(0xA6, 0xAC, 0xB4)));
+    private static readonly Brush DeltaAheadBrush = Freeze(new SolidColorBrush(Color.FromRgb(0x6F, 0xE3, 0x9A)));
+    private static readonly Brush DeltaBehindBrush = Freeze(new SolidColorBrush(Color.FromRgb(0xE6, 0xA8, 0x3C)));
 
     public static readonly DependencyProperty StateProperty = DependencyProperty.Register(
         nameof(State), typeof(TimingState), typeof(OverlayTimingValue),
@@ -76,6 +84,8 @@ public sealed class OverlayTimingValue : TextBlock
         TimingState.PersonalBest => "OverlayPersonalBestBrush",
         TimingState.SessionBest => "OverlaySessionBestBrush",
         TimingState.Unavailable => "OverlayMutedBrush",
+        TimingState.DeltaAhead => "OverlaySuccessBrush",
+        TimingState.DeltaBehind => "OverlayWarningBrush",
         TimingState.Normal => "OverlayTextBrush",
         _ => null
     };
@@ -85,6 +95,8 @@ public sealed class OverlayTimingValue : TextBlock
         TimingState.PersonalBest => PersonalBestBrush,
         TimingState.SessionBest => SessionBestBrush,
         TimingState.Unavailable => UnavailableBrush,
+        TimingState.DeltaAhead => DeltaAheadBrush,
+        TimingState.DeltaBehind => DeltaBehindBrush,
         _ => NormalBrush
     };
 

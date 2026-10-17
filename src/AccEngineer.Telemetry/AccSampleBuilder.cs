@@ -69,6 +69,9 @@ internal sealed class AccSampleBuilder
             BestLapTimeMs = Positive(graphics.IBestTime),
             CurrentSectorIndex = NonNegative(graphics.CurrentSectorIndex),
             SectorCount = Positive(statics.SectorCount),
+            LastSectorTimeMs = Positive(graphics.LastSectorTime),
+            DeltaLapTimeMs = MapDelta(graphics.IDeltaLapTime, graphics.IsDeltaPositive != 0),
+            IsDeltaPositive = graphics.IsDeltaPositive != 0,
             TrackProgressMeters = trackProgress,
             SpeedKph = physics.SpeedKmh,
             SpeedMetersPerSecond = physics.SpeedKmh / 3.6f,
@@ -199,6 +202,25 @@ internal sealed class AccSampleBuilder
 
     /// <summary>Maps a value that is only meaningful when positive (times, counts), otherwise null.</summary>
     private static int? Positive(int value) => value > 0 ? value : null;
+
+    /// <summary>
+    /// Largest magnitude accepted as a real lap delta (10 minutes). Anything larger is
+    /// treated as ACC's "no active delta" sentinel rather than a genuine 10-minute gap.
+    /// </summary>
+    private const int DeltaSentinelThresholdMs = 600_000;
+
+    /// <summary>
+    /// Reconstructs the signed live delta from the raw value and the sign flag, so the
+    /// result is correct whether ACC stores the delta signed or as a magnitude. Zero and
+    /// implausibly large values are treated as "no active delta".
+    /// </summary>
+    private static int? MapDelta(int deltaMs, bool positive)
+    {
+        if (deltaMs == 0) return null;
+        var magnitude = Math.Abs(deltaMs);
+        if (magnitude > DeltaSentinelThresholdMs) return null;
+        return positive ? magnitude : -magnitude;
+    }
 
     /// <summary>World position of the player car from the graphics car array.</summary>
     private static float? CarAxis(AccGraphicsPage graphics, int axis)

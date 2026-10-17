@@ -86,7 +86,10 @@ public class AccSampleBuilderTests
             ICurrentTime = 45_000,
             ILastTime = 92_123,
             IBestTime = 91_500,
-            CurrentSectorIndex = 1
+            CurrentSectorIndex = 1,
+            LastSectorTime = 27_500,
+            IDeltaLapTime = 180,
+            IsDeltaPositive = 1
         };
         var statics = new AccStaticPage
         {
@@ -108,6 +111,9 @@ public class AccSampleBuilderTests
         Assert.Equal(91_500, sample.BestLapTimeMs);
         Assert.Equal(1, sample.CurrentSectorIndex);
         Assert.Equal(3, sample.SectorCount);
+        Assert.Equal(27_500, sample.LastSectorTimeMs);
+        Assert.Equal(180, sample.DeltaLapTimeMs);
+        Assert.True(sample.IsDeltaPositive);
         Assert.Equal(150.25f, sample.TrackProgressMeters);
         Assert.Equal(1f, sample.ThrottleInput);
         Assert.Equal(0.25f, sample.BrakeInput);
@@ -128,6 +134,31 @@ public class AccSampleBuilderTests
         Assert.Equal(1234, sample.ReceiptTick);
         Assert.Equal(T0, sample.ReceivedAtUtc);
         Assert.Null(sample.SourceTimestampUtc);
+    }
+
+    [Theory]
+    [InlineData(250, 1, 250)]
+    [InlineData(250, 0, -250)]
+    [InlineData(0, 1, null)]
+    [InlineData(1_000_000, 1, null)]
+    public void Build_ReconstructsSignedDeltaFromMagnitudeAndSign(int rawDelta, int positiveFlag, int? expected)
+    {
+        var builder = new AccSampleBuilder();
+        var graphics = new AccGraphicsPage
+        {
+            Status = AccStatus.Live,
+            SessionIndex = 0,
+            CompletedLaps = 1,
+            IsValidLap = 1,
+            DistanceTraveled = 100f,
+            IDeltaLapTime = rawDelta,
+            IsDeltaPositive = positiveFlag
+        };
+
+        var sample = builder.Build(default, graphics, default, T0, 0);
+
+        Assert.Equal(expected, sample.DeltaLapTimeMs);
+        Assert.Equal(positiveFlag != 0, sample.IsDeltaPositive);
     }
 
     [Fact]

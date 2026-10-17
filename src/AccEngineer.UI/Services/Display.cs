@@ -26,6 +26,10 @@ public static class Display
     public static string Delta(double? seconds) =>
         seconds is null ? Missing : seconds.Value.ToString("+0.000;-0.000;0.000", Inv) + " s";
 
+    /// <summary>Formats a signed lap delta given in milliseconds as seconds (for example <c>-0.180 s</c>).</summary>
+    public static string DeltaMs(int? milliseconds) =>
+        milliseconds is null ? Missing : Delta(milliseconds.Value / 1000.0);
+
     public static string Gear(int? raw) => raw switch
     {
         null => Missing,

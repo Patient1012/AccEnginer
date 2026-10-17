@@ -279,9 +279,15 @@ Implemented since the audit:
   competitor feed (`TestCompetitorFeed`) so the tower and relative panel can be laid
   out without ACC.
 
+- **Timing / sector / delta:** `AccSampleBuilder` now maps ACC's `lastSectorTime`,
+  `iDeltaLapTime` and `isDeltaPositive` into `LastSectorTimeMs`, `DeltaLapTimeMs`
+  (signed, negative = ahead; sign reconstructed from the flag so it is correct whether
+  ACC stores the delta signed or as a magnitude) and `IsDeltaPositive`. The timing
+  panel gains SECTOR (position + last sector time) and DELTA rows, with green for ahead
+  and amber for behind (`TimingState.DeltaAhead`/`DeltaBehind`). The test simulator now
+  produces deterministic sector times and a live delta too.
+
 Still open (later stages): conditions panel is still a flat list (no four-wheel
-layout / brake temps), timing panel still shows no sectors or live delta
-(`LastSectorTime` / `IDeltaLapTime` / `IsDeltaPositive` remain unmapped by
-`AccSampleBuilder`), no suspension / vehicle-dynamics panel, and the test simulator
-still produces no sector times or live delta. The timing panel's PERSONAL BEST row
-overlap is fixed.
+layout / brake temps), no suspension / vehicle-dynamics panel, and the test simulator
+produced no sector/delta before this change (now it does). The timing panel's
+PERSONAL BEST row overlap is fixed.
