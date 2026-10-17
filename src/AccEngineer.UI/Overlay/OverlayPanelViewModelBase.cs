@@ -12,6 +12,7 @@ public abstract class OverlayPanelViewModel : ObservableObject, IDisposable
 {
     private readonly DispatcherTimer _timer;
     private bool _disposed;
+    private bool _isTestData;
 
     private string? _lastSessionId;
 
@@ -24,8 +25,20 @@ public abstract class OverlayPanelViewModel : ObservableObject, IDisposable
         Tick(Telemetry.Latest);
     }
 
+    /// <summary>
+    /// True when panels are being fed the application-wide generated test data.
+    /// Updated every tick so the indicator follows the live provider state.
+    /// </summary>
+    public bool IsTestData
+    {
+        get => _isTestData;
+        private set => SetProperty(ref _isTestData, value);
+    }
+
     private void Tick(TelemetrySample? sample)
     {
+        IsTestData = Telemetry.IsTestData;
+
         var sessionId = sample?.SessionId;
         if (sessionId is { Length: > 0 } && !string.Equals(sessionId, _lastSessionId, StringComparison.Ordinal))
         {

@@ -16,6 +16,9 @@ public partial class OverlayStatusIndicator : UserControl
     public static readonly DependencyProperty IsActiveProperty = DependencyProperty.Register(
         nameof(IsActive), typeof(bool), typeof(OverlayStatusIndicator), new PropertyMetadata(false));
 
+    public static readonly DependencyProperty TestDataProperty = DependencyProperty.Register(
+        nameof(TestData), typeof(bool), typeof(OverlayStatusIndicator), new PropertyMetadata(false));
+
     public OverlayStatusIndicator()
     {
         InitializeComponent();
@@ -31,5 +34,12 @@ public partial class OverlayStatusIndicator : UserControl
     {
         get => (bool)GetValue(IsActiveProperty);
         set => SetValue(IsActiveProperty, value);
+    }
+
+    /// <summary>When true, a small "TEST DATA" badge is shown next to the status label.</summary>
+    public bool TestData
+    {
+        get => (bool)GetValue(TestDataProperty);
+        set => SetValue(TestDataProperty, value);
     }
 }

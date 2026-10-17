@@ -35,6 +35,13 @@ public sealed class AppSettings
 
     public string? AiEndpoint { get; set; }
 
+    /// <summary>
+    /// When true the app runs on built-in generated telemetry instead of ACC shared
+    /// memory, so the whole pipeline can be exercised without a simulator. Restored
+    /// at startup and applied immediately when changed in Settings.
+    /// </summary>
+    public bool TestDataMode { get; set; }
+
     public bool IsAiConfigured =>
         !string.IsNullOrWhiteSpace(AiModel) &&
         AnalysisProviderFactory.ResolveEndpoint(new AiProviderOptions

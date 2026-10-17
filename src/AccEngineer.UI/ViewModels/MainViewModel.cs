@@ -21,7 +21,8 @@ public sealed record StatusSnapshot(
     string RecordingText,
     int RecordedSamples,
     bool IsReplaying,
-    string? ReplayName);
+    string? ReplayName,
+    bool IsTestData);
 
 /// <summary>
 /// Application shell: owns the long-lived services, the page list, the status
@@ -244,6 +245,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         var connectionText = connection switch
         {
             ConnectionState.Connected => "CONNECTED",
+            ConnectionState.TestData => "TEST DATA",
             ConnectionState.WaitingForAcc => "WAITING FOR ACC",
             ConnectionState.Replay => "REPLAY",
             ConnectionState.Error => "ERROR",
@@ -261,7 +263,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             recording ? $"RECORDING · {Telemetry.RecordedSampleCount}" : "NOT RECORDING",
             Telemetry.RecordedSampleCount,
             Telemetry.IsReplaying,
-            Telemetry.ReplayName);
+            Telemetry.ReplayName,
+            Telemetry.IsTestData);
     }
 
     public void Dispose()

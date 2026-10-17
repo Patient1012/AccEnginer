@@ -32,7 +32,8 @@
             </StackPanel>
             <oc:OverlayStatusIndicator Grid.Row="0" Grid.Column="1"
                                        Text="{Binding StatusText}"
-                                       IsActive="{Binding IsLive}" />
+                                       IsActive="{Binding IsLive}"
+                                       TestData="{Binding IsTestData}" />
 
             <Rectangle Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource OverlaySeparator}"
                        Margin="0,2,0,2" />

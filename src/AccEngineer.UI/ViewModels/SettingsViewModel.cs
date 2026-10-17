@@ -30,6 +30,7 @@ public sealed class SettingsViewModel : PageViewModel, IDisposable
     private string _status = string.Empty;
     private ThemeDefinition _selectedTheme = ThemeCatalog.Default;
     private bool _applyingTheme;
+    private bool _testDataMode;
 
     public SettingsViewModel(MainViewModel shell)
         : base("Settings")
@@ -42,6 +43,7 @@ public sealed class SettingsViewModel : PageViewModel, IDisposable
         _aiProvider = options.AiProvider ?? string.Empty;
         _aiModel = options.AiModel ?? string.Empty;
         _aiEndpoint = options.AiEndpoint ?? string.Empty;
+        _testDataMode = options.TestDataMode;
 
         // Show what is actually in effect, which is the resolved value rather than
         // whatever the file happened to contain.
@@ -165,6 +167,26 @@ public sealed class SettingsViewModel : PageViewModel, IDisposable
 
     public string SettingsPathText => AppSettings.SettingsPath;
 
+    /// <summary>
+    /// Runs the whole app on generated telemetry instead of ACC shared memory.
+    /// Applies immediately and is persisted. The label below reflects the provider
+    /// actually in effect, not just this preference.
+    /// </summary>
+    public bool TestDataMode
+    {
+        get => _testDataMode;
+        set
+        {
+            if (!SetProperty(ref _testDataMode, value)) return;
+            ApplyTestDataMode(value);
+        }
+    }
+
+    /// <summary>Honest description of the provider the app is really using right now.</summary>
+    public string TestDataStatusText => _shell.Telemetry.IsTestData
+        ? "Test Data: ON — the app is showing generated telemetry; no simulator is connected."
+        : "Test Data: OFF — reading ACC shared memory.";
+
     /// <summary>Every known theme, in the order the selector should list them.</summary>
     public IReadOnlyList<ThemeDefinition> Themes => ThemeCatalog.All;
 
@@ -229,6 +251,7 @@ public sealed class SettingsViewModel : PageViewModel, IDisposable
         _aiModel = _shell.Options.AiModel ?? string.Empty;
         _aiEndpoint = _shell.Options.AiEndpoint ?? string.Empty;
         _selectedTheme = ThemeCatalog.TryResolve(_shell.Options.Theme, out var theme) ? theme : ThemeCatalog.Default;
+        _testDataMode = _shell.Options.TestDataMode;
 
         OnPropertyChanged(nameof(PollIntervalMs));
         OnPropertyChanged(nameof(RecordingsDirectory));
@@ -239,6 +262,8 @@ public sealed class SettingsViewModel : PageViewModel, IDisposable
         OnPropertyChanged(nameof(IsAiConfigured));
         OnPropertyChanged(nameof(AiStatusText));
         OnPropertyChanged(nameof(SelectedTheme));
+        OnPropertyChanged(nameof(TestDataMode));
+        OnPropertyChanged(nameof(TestDataStatusText));
         RefreshOverlayStatus();
     }
 
@@ -275,6 +300,26 @@ public sealed class SettingsViewModel : PageViewModel, IDisposable
         {
             StatusText = $"Could not save settings: {ex.Message}";
         }
+    }
+
+    private void ApplyTestDataMode(bool enabled)
+    {
+        _shell.Telemetry.SetTestDataMode(enabled);
+        _shell.Options.TestDataMode = enabled;
+
+        try
+        {
+            _shell.Options.Save();
+            StatusText = enabled
+                ? "Test data mode enabled; saved. The app is now running on generated telemetry."
+                : "Test data mode disabled; saved. The app is reading ACC shared memory again.";
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Test data mode {(enabled ? "enabled" : "disabled")}, but it could not be saved: {ex.Message}";
+        }
+
+        OnPropertyChanged(nameof(TestDataStatusText));
     }
 
     private void ApplyTheme(ThemeDefinition definition)

@@ -256,5 +256,12 @@ public enum DataQualityFlags
     PartialUpdate = 8,
     InvalidLap = 16,
     SessionChanged = 32,
-    PitStop = 64
+    PitStop = 64,
+
+    /// <summary>
+    /// The sample was produced by the built-in test-data provider rather than a
+    /// real simulator. Consumers must surface this clearly and never treat test
+    /// data as a live session.
+    /// </summary>
+    TestData = 128
 }

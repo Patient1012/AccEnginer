@@ -23,7 +23,10 @@ public sealed class LiveDataViewModel : PageViewModel
 
     public bool HasData { get; private set; }
 
-    /// <summary>"LIVE" when a sample is present, "NO SIGNAL" otherwise.</summary>
+    /// <summary>True when the current data is generated test data, not a live session.</summary>
+    public bool IsTestData { get; private set; }
+
+    /// <summary>"LIVE" when a sample is present, "TEST DATA" for generated data, "NO SIGNAL" otherwise.</summary>
     public string LiveStatusText { get; private set; } = "NO SIGNAL";
 
     /// <summary>Explains what the page is showing while waiting for data.</summary>
@@ -84,7 +87,12 @@ public sealed class LiveDataViewModel : PageViewModel
 
     public double[] BrakeTrace { get; private set; } = Array.Empty<double>();
 
-    public double SpeedTraceMax { get; private set; } = 300;
+    /// <summary>
+    /// Top of the speed trace scale. Floored at 350 km/h so formula-class cars have
+    /// headroom and the axis does not rescale lap to lap; grows in 50 km/h steps
+    /// beyond that if a car is faster.
+    /// </summary>
+    public double SpeedTraceMax { get; private set; } = 350;
 
     public IReadOnlyList<MapPoint> MapPoints { get; private set; } = Array.Empty<MapPoint>();
 
@@ -168,8 +176,11 @@ public sealed class LiveDataViewModel : PageViewModel
         }
 
         HasData = true;
-        LiveStatusText = "LIVE";
-        StatusHintText = "Live feed from ACC shared memory.";
+        IsTestData = _telemetry.IsTestData || sample.Quality.HasFlag(DataQualityFlags.TestData);
+        LiveStatusText = IsTestData ? "TEST DATA" : "LIVE";
+        StatusHintText = IsTestData
+            ? "Generated test data — no simulator is connected. Values flow through the same pipeline as a live session."
+            : "Live feed from ACC shared memory.";
         SessionStateText = sample.SessionState.ToString();
         SessionTypeText = sample.SessionType.ToString();
         TrackText = sample.TrackName ?? Display.Missing;
@@ -419,12 +430,13 @@ public sealed class LiveDataViewModel : PageViewModel
         SpeedTrace = speed;
         ThrottleTrace = throttle;
         BrakeTrace = brake;
-        SpeedTraceMax = Math.Max(10, Math.Ceiling(max / 50.0) * 50.0);
+        SpeedTraceMax = Math.Max(350, Math.Ceiling(max / 50.0) * 50.0);
     }
 
     private void Clear()
     {
         HasData = false;
+        IsTestData = false;
         LiveStatusText = "NO SIGNAL";
         StatusHintText = "Waiting for ACC shared memory or a replay. The pit wall below shows placeholders (—) until data arrives.";
         SessionStateText = Display.Missing;

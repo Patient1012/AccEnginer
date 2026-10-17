@@ -43,6 +43,7 @@ public sealed class OverviewViewModel : PageViewModel
     public string StatusHint => _shell.Status.Connection switch
     {
         ConnectionState.Connected => "Live telemetry streaming.",
+        ConnectionState.TestData => "Showing generated test data — no simulator is connected.",
         ConnectionState.Replay => "Replaying a recording (not live).",
         ConnectionState.WaitingForAcc => "Start ACC and enter a session to see live data.",
         ConnectionState.Error => "Telemetry reader reported an error — see recent events.",

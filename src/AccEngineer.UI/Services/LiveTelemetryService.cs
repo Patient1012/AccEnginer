@@ -9,6 +9,9 @@ public enum ConnectionState
     Starting,
     WaitingForAcc,
     Connected,
+
+    /// <summary>Running on generated test data; no simulator is connected.</summary>
+    TestData,
     Replay,
     Error,
     Stopped
@@ -35,10 +38,12 @@ public sealed class LiveTelemetryService : IDisposable
     private readonly object _recentGate = new();
     private readonly object _recordGate = new();
     private readonly object _replayGate = new();
+    private readonly object _readerGate = new();
 
     private Thread? _thread;
     private volatile bool _running;
     private ITrackTelemetryReader? _reader;
+    private volatile bool _testDataMode;
 
     private volatile TelemetrySample? _latest;
     private volatile ConnectionState _connection = ConnectionState.Starting;
@@ -52,7 +57,7 @@ public sealed class LiveTelemetryService : IDisposable
     private volatile string? _recordingFilePath;
     private string? _recordedSessionId;
 
-    private (string SessionId, int Lap) ? _lastLap;
+    private (string SessionId, int Lap)? _lastLap;
     private bool _staleEventReported;
 
     private SessionRecording? _replay;
@@ -67,10 +72,29 @@ public sealed class LiveTelemetryService : IDisposable
     {
         _events = events ?? throw new ArgumentNullException(nameof(events));
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
-        _readerFactory = readerFactory ?? (() => new AccSharedMemoryReader());
+        _testDataMode = settings.TestDataMode;
+
+        // The default provider follows the current mode; an explicit factory (used by
+        // tests) always wins so callers keep full control.
+        _readerFactory = readerFactory ?? (() => _testDataMode
+            ? new SimulatedTelemetryReader()
+            : new AccSharedMemoryReader());
     }
 
     public ConnectionState Connection => _connection;
+
+    /// <summary>
+    /// True when the reader actually producing samples is the built-in test-data
+    /// provider. Derived from the live reader, not the saved preference, so the UI
+    /// always reflects what is really in effect.
+    /// </summary>
+    public bool IsTestData
+    {
+        get
+        {
+            lock (_readerGate) return _reader is ISimulatedTelemetryReader;
+        }
+    }
 
     public TelemetrySample? Latest => _latest;
 
@@ -127,13 +151,33 @@ public sealed class LiveTelemetryService : IDisposable
 
         StopRecording();
 
-        lock (_lifecycle)
+        lock (_readerGate)
         {
             _reader?.Dispose();
             _reader = null;
         }
 
         _connection = ConnectionState.Stopped;
+    }
+
+    /// <summary>
+    /// Switches between the real shared-memory reader and the built-in test-data
+    /// provider. Applies immediately without a restart: the current reader is
+    /// disposed and the loop creates the provider for the new mode on its next tick.
+    /// </summary>
+    public void SetTestDataMode(bool enabled)
+    {
+        lock (_readerGate)
+        {
+            if (_testDataMode == enabled) return;
+            _testDataMode = enabled;
+            _reader?.Dispose();
+            _reader = null;
+        }
+
+        _events.Enqueue(Event(EventSeverity.Info, SessionEventKind.Connection, enabled
+            ? "Test data mode enabled: using generated telemetry (no simulator)."
+            : "Test data mode disabled: reading ACC shared memory."));
     }
 
     public void StartRecording()
@@ -242,12 +286,18 @@ public sealed class LiveTelemetryService : IDisposable
 
     private void LiveStep()
     {
-        _reader ??= _readerFactory();
+        ITrackTelemetryReader reader;
+        lock (_readerGate)
+        {
+            reader = _reader ??= _readerFactory();
+        }
+
+        var testData = reader is ISimulatedTelemetryReader;
 
         TelemetrySample? sample;
         try
         {
-            sample = _reader.ReadLatest();
+            sample = reader.ReadLatest();
         }
         catch (Exception ex)
         {
@@ -258,11 +308,13 @@ public sealed class LiveTelemetryService : IDisposable
         if (sample is not null)
         {
             ProcessSample(sample, live: true);
-            SetConnection(ConnectionState.Connected);
+            SetConnection(testData ? ConnectionState.TestData : ConnectionState.Connected);
         }
         else
         {
-            SetConnection(_reader.IsConnected ? ConnectionState.Connected : ConnectionState.WaitingForAcc);
+            SetConnection(testData
+                ? ConnectionState.TestData
+                : reader.IsConnected ? ConnectionState.Connected : ConnectionState.WaitingForAcc);
         }
     }
 
@@ -490,6 +542,7 @@ public sealed class LiveTelemetryService : IDisposable
         var (severity, message) = next switch
         {
             ConnectionState.Connected => (EventSeverity.Success, "Connected to ACC telemetry."),
+            ConnectionState.TestData => (EventSeverity.Info, "Running on generated test data (no simulator)."),
             ConnectionState.WaitingForAcc => (EventSeverity.Info, "Waiting for ACC shared memory (start ACC and enter a session)."),
             ConnectionState.Replay => (EventSeverity.Info, "Replaying a recorded session."),
             ConnectionState.Error => (EventSeverity.Error, detail ?? "Telemetry error."),

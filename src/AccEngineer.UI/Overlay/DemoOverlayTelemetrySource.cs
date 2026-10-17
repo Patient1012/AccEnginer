@@ -48,6 +48,12 @@ public sealed class DemoOverlayTelemetrySource : IOverlayTelemetrySource, IDispo
         return result;
     }
 
+    /// <summary>
+    /// False: this is the overlay-only demo feed, not the application-wide test data
+    /// provider. The overlay manager already labels demo data separately.
+    /// </summary>
+    public bool IsTestData => false;
+
     /// <summary>Advances the synthetic session one step and publishes it as latest.</summary>
     private void Advance()
     {

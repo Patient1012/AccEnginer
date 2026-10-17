@@ -105,7 +105,8 @@ public sealed class OverlayManager : IDisposable
                 : AnyEditing ? $"{visible}/{_panels.Count} visible - editing" : $"{visible}/{_panels.Count} visible - locked (click-through)";
             var layout = $"profile '{ActiveProfileName}' / layout '{ActiveLayoutName}'";
             var demo = IsDemoMode ? " [DEMO DATA]" : string.Empty;
-            return $"{state} - {layout}{demo}";
+            var test = !IsDemoMode && _liveSource.IsTestData ? " [TEST DATA]" : string.Empty;
+            return $"{state} - {layout}{demo}{test}";
         }
     }
 

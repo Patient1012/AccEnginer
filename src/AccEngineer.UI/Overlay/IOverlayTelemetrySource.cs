@@ -12,6 +12,12 @@ public interface IOverlayTelemetrySource
     TelemetrySample? Latest { get; }
     /// <summary>Recent samples for projection/trace purposes (may be empty if unsupported).</summary>
     IReadOnlyList<TelemetrySample> Recent(int maxCount);
+
+    /// <summary>
+    /// True when the source is the built-in generated test provider rather than a
+    /// live simulator session, so panels can show a clear test-data indicator.
+    /// </summary>
+    bool IsTestData { get; }
 }
 
 /// <summary>
@@ -29,4 +35,5 @@ public sealed class LiveOverlayTelemetrySource : IOverlayTelemetrySource
 
     public TelemetrySample? Latest => _telemetry.Latest;
     public IReadOnlyList<TelemetrySample> Recent(int maxCount) => _telemetry.SnapshotRecent(maxCount);
+    public bool IsTestData => _telemetry.IsTestData;
 }

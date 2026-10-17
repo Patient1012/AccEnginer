@@ -522,13 +522,25 @@
                                 <TextBlock Text="SPEED TRACE (km/h)" Style="{StaticResource SectionHeader}" />
                                 <ctrl:TraceChart Height="100" Values="{Binding SpeedTrace}"
                                                  Minimum="0" Maximum="{Binding SpeedTraceMax}"
+                                                 ShowYAxis="True"
+                                                 AxisBrush="{DynamicResource BrushBorder}"
+                                                 AxisTextBrush="{DynamicResource BrushTextMuted}"
                                                  Stroke="{DynamicResource BrushAccent}"
                                                  Fill="{DynamicResource BrushAccent}" />
-                                <TextBlock Text="THROTTLE / BRAKE" Style="{StaticResource SectionHeader}" Margin="0,12,0,8" />
+                                <TextBlock Text="THROTTLE" Style="{StaticResource SectionHeader}" Margin="0,12,0,8" />
                                 <ctrl:TraceChart Height="40" Values="{Binding ThrottleTrace}"
-                                                 Minimum="0" Maximum="1" Stroke="{DynamicResource BrushSuccess}" />
+                                                 Minimum="0" Maximum="1"
+                                                 ShowYAxis="True"
+                                                 AxisBrush="{DynamicResource BrushBorder}"
+                                                 AxisTextBrush="{DynamicResource BrushTextMuted}"
+                                                 Stroke="{DynamicResource BrushSuccess}" />
+                                <TextBlock Text="BRAKE" Style="{StaticResource SectionHeader}" Margin="0,12,0,8" />
                                 <ctrl:TraceChart Height="40" Values="{Binding BrakeTrace}"
-                                                 Minimum="0" Maximum="1" Stroke="{DynamicResource BrushError}" />
+                                                 Minimum="0" Maximum="1"
+                                                 ShowYAxis="True"
+                                                 AxisBrush="{DynamicResource BrushBorder}"
+                                                 AxisTextBrush="{DynamicResource BrushTextMuted}"
+                                                 Stroke="{DynamicResource BrushError}" />
                             </StackPanel>
                         </Border>
                     </StackPanel>

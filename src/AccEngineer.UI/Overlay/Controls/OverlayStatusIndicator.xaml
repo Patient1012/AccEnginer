@@ -21,5 +21,23 @@
                    VerticalAlignment="Center"
                    Style="{StaticResource OverlayHeader}"
                    Text="{Binding Text, RelativeSource={RelativeSource AncestorType=local:OverlayStatusIndicator}}" />
+        <Border Margin="6,0,0,0" Padding="5,1" CornerRadius="2" VerticalAlignment="Center"
+                Background="{DynamicResource OverlayPanelBrush}"
+                BorderBrush="{DynamicResource OverlayWarningBrush}"
+                BorderThickness="1">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding TestData, RelativeSource={RelativeSource AncestorType=local:OverlayStatusIndicator}}"
+                                     Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <TextBlock Text="TEST DATA" FontSize="9" FontWeight="Bold"
+                       Foreground="{DynamicResource OverlayWarningBrush}" />
+        </Border>
     </StackPanel>
 </UserControl>

@@ -59,6 +59,9 @@
                 <DataTrigger Binding="{Binding Status.Connection}" Value="Connected">
                     <Setter Property="Fill" Value="{DynamicResource BrushSuccess}" />
                 </DataTrigger>
+                <DataTrigger Binding="{Binding Status.Connection}" Value="TestData">
+                    <Setter Property="Fill" Value="{DynamicResource BrushWarning}" />
+                </DataTrigger>
                 <DataTrigger Binding="{Binding Status.Connection}" Value="Replay">
                     <Setter Property="Fill" Value="{DynamicResource BrushAccent}" />
                 </DataTrigger>
@@ -114,6 +117,22 @@
                     <TextBlock Text="{Binding Status.TrackText}" VerticalAlignment="Center" />
                     <TextBlock Text="{Binding Status.CarText}" Margin="16,0,0,0"
                                Foreground="{DynamicResource BrushTextSecondary}" VerticalAlignment="Center" />
+
+                    <Border Margin="16,0,0,0" Padding="7,2" CornerRadius="3" VerticalAlignment="Center"
+                            Background="{DynamicResource BrushWarning}">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Status.IsTestData}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock Text="TEST DATA" FontSize="10" FontWeight="Bold"
+                                   Foreground="#1A1A1A" />
+                    </Border>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">

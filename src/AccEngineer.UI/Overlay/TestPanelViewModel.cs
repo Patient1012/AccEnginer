@@ -27,6 +27,9 @@ public sealed class TestPanelViewModel : ObservableObject, IDisposable
 
     public bool IsLive { get; private set; }
 
+    /// <summary>True when the source is the application-wide generated test data.</summary>
+    public bool IsTestData { get; private set; }
+
     public string StatusText { get; private set; } = "--";
 
     public string SessionText { get; private set; } = "--";
@@ -49,6 +52,7 @@ public sealed class TestPanelViewModel : ObservableObject, IDisposable
     {
         var sample = _telemetry.Latest;
         IsLive = sample is not null;
+        IsTestData = _telemetry.IsTestData;
         StatusText = "LIVE";
 
         if (sample is null)

@@ -34,6 +34,7 @@
                     <oc:OverlayStatusIndicator Grid.Column="2"
                                                Text="{Binding StatusText}"
                                                IsActive="{Binding IsLive}"
+                                               TestData="{Binding IsTestData}"
                                                VerticalAlignment="Center" />
                 </Grid>
             </Border>

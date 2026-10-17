@@ -23,7 +23,7 @@
                     <Border Width="3" Background="{DynamicResource OverlayAccentBrush}" Margin="0,0,6,0" />
                     <TextBlock Text="{Binding HeaderText}" Style="{StaticResource OverlayHeader}" VerticalAlignment="Center" />
                 </StackPanel>
-                <oc:OverlayStatusIndicator Grid.Column="1" Text="{Binding StatusText}" IsActive="{Binding IsLive}" />
+                    <oc:OverlayStatusIndicator Grid.Column="1" Text="{Binding StatusText}" IsActive="{Binding IsLive}" TestData="{Binding IsTestData}" />
             </Grid>
 
             <Rectangle Grid.Row="1" Style="{StaticResource OverlaySeparator}" />
