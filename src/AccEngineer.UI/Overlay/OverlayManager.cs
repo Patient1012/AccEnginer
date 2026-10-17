@@ -424,6 +424,16 @@ public sealed class OverlayManager : IDisposable
             ViewModel = conditionsVm
         });
 
+        // Four-wheel tyres panel.
+        var tyresVm = new TyresPanelViewModel(_source);
+        _panels.Add(new PanelHost
+        {
+            Id = "tyres",
+            Title = "Tyres",
+            Window = new OverlayPanelWindow("tyres", "ACC Engineer - Tyres", new TyresOverlayPanel { DataContext = tyresVm }, DefaultState("tyres")),
+            ViewModel = tyresVm
+        });
+
         // Legacy Phase 1 test panel (kept available; hidden by default).
         var testVm = new TestPanelViewModel(_source);
         _panels.Add(new PanelHost
@@ -554,6 +564,7 @@ public sealed class OverlayManager : IDisposable
         "inputs" => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 40, Width = OverlayLayoutSchema.InputsDefaultWidth, Height = OverlayLayoutSchema.InputsDefaultHeight, Opacity = 0.92 },
         "map" => new OverlayPanelState { Id = id, Visible = false, X = 560, Y = 40, Width = 250, Height = 250, Opacity = 0.92 },
         "conditions" => new OverlayPanelState { Id = id, Visible = false, X = 560, Y = 300, Width = 220, Height = 172, Opacity = 0.92 },
+        "tyres" => new OverlayPanelState { Id = id, Visible = false, X = 820, Y = 300, Width = 320, Height = 210, Opacity = 0.92 },
         _ => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 400, Width = 300, Height = 230, Opacity = 0.92 }
     };
 }

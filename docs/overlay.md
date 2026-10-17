@@ -287,7 +287,10 @@ Implemented since the audit:
   and amber for behind (`TimingState.DeltaAhead`/`DeltaBehind`). The test simulator now
   produces deterministic sector times and a live delta too.
 
-Still open (later stages): conditions panel is still a flat list (no four-wheel
-layout / brake temps), no suspension / vehicle-dynamics panel, and the test simulator
-produced no sector/delta before this change (now it does). The timing panel's
+- **Four-wheel tyres panel** (`tyres`): a 2x2 corner layout (FL/FR/RL/RR) showing each
+  wheel's core temperature, pressure and brake temperature from the ACC shared-memory
+  arrays, with honest per-corner "--" when a channel is missing. The conditions panel
+  stays focused on weather (ambient/track temp, grip, tyre type, flag).
+
+Still open (later stages): no suspension / vehicle-dynamics panel. The timing panel's
 PERSONAL BEST row overlap is fixed.
