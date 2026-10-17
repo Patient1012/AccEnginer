@@ -1,80 +1,281 @@
 <UserControl x:Class="AccEngineer.UI.Overlay.Panels.StandingsOverlayPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:oc="clr-namespace:AccEngineer.UI.Overlay.Controls">
-    <!-- Full-field standings tower fed by the ACC Broadcasting API. -->
+             xmlns:oc="clr-namespace:AccEngineer.UI.Overlay.Controls"
+             xmlns:p="clr-namespace:AccEngineer.UI.Overlay.Panels"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+    <!-- Full-field standings tower fed by the ACC Broadcasting API. A compact session
+         header sits above a class-grouped leaderboard: a driver-list region on the left
+         and a timing region on the right, drawn as one row per driver so the two halves
+         can never drift apart. -->
+    <UserControl.Resources>
+        <!-- Panel-local design constants for the broadcast leaderboard language. The
+             position/number cells and alternate-row shading are fixed by the design; the
+             surface/text/separator/accent colours track the active theme through the
+             shared Overlay* brush aliases. Class accents come from StandingsClass so the
+             grouping colours are defined in one place, not hardcoded across the markup. -->
+        <SolidColorBrush x:Key="StRowAltBrush" Color="#12FFFFFF" />
+        <SolidColorBrush x:Key="StPositionCellBrush" Color="#18FFFFFF" />
+        <SolidColorBrush x:Key="StPitTextBrush" Color="#FF101010" />
+
+        <!-- Session header: large tabular timer, muted context, position/class on the right. -->
+        <Style x:Key="StTimerText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontFamily" Value="{StaticResource OverlayValueFont}" />
+            <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="StHeaderContext" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource OverlayMutedBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+        <Style x:Key="StHeaderPosition" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontFamily" Value="{StaticResource OverlayValueFont}" />
+            <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Dense column-header cell. -->
+        <Style x:Key="StColumnHead" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{DynamicResource OverlayMutedBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+
+        <!-- Driver row: fixed-height line, thin separator, subtle alternate shading and a
+             full-width player highlight that colours both the driver and timing halves. -->
+        <Style x:Key="StDriverRow" TargetType="Border">
+            <Setter Property="Height" Value="38" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{DynamicResource OverlaySeparatorBrush}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Alternate}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource StRowAltBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsPlayer}" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource OverlaySelectedRowBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Position block: subtly separated cell, prominent white number. -->
+        <Style x:Key="StPositionCell" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource StPositionCellBrush}" />
+        </Style>
+        <Style x:Key="StPositionText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontFamily" Value="{StaticResource OverlayValueFont}" />
+            <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Car number: compact cell, white bold, with a slim class-coloured accent. -->
+        <Style x:Key="StNumberText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontFamily" Value="{StaticResource OverlayValueFont}" />
+            <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Driver name: the main visual focus of the row. -->
+        <Style x:Key="StNameText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Gap: right-aligned tabular digits. -->
+        <Style x:Key="StGapText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontFamily" Value="{StaticResource OverlayValueFont}" />
+            <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Small pit marker shown only when the car is actually in the pit lane. -->
+        <Style x:Key="StPitBadge" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource OverlayWarningBrush}" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="Padding" Value="5,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Class-group header: full-width strip with class accent and a thin accent rule. -->
+        <Style x:Key="StClassLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="StClassCount" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource OverlayMutedBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Class-group header item. -->
+        <DataTemplate DataType="{x:Type p:StandingsClassHeader}">
+            <Border Height="36" Background="{DynamicResource OverlayHeaderBrush}"
+                    BorderBrush="{Binding Accent}" BorderThickness="0,0,0,2">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="4" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Background="{Binding Accent}" />
+                    <TextBlock Grid.Column="1" Text="{Binding ClassLabel}"
+                               Style="{StaticResource StClassLabel}" Margin="12,0,0,0" />
+                    <TextBlock Grid.Column="3" Text="{Binding CountText}"
+                               Style="{StaticResource StClassCount}" Margin="0,0,12,0" />
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <!-- Driver row item. The six columns are repeated verbatim in the column header
+             above so the headings stay over their data.
+             Columns: position 44 | number 60 | name * | gap 104 | fastest 122 | last 122. -->
+        <DataTemplate DataType="{x:Type p:StandingsRow}">
+            <Border Style="{StaticResource StDriverRow}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="44" />
+                        <ColumnDefinition Width="60" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="104" />
+                        <ColumnDefinition Width="122" />
+                        <ColumnDefinition Width="122" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Style="{StaticResource StPositionCell}">
+                        <TextBlock Text="{Binding PositionText}" Style="{StaticResource StPositionText}" />
+                    </Border>
+
+                    <Border Grid.Column="1">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Border Width="3" Height="18" CornerRadius="1" Margin="0,0,6,0"
+                                    Background="{Binding ClassAccent}" />
+                            <TextBlock Text="{Binding NumberText}" Style="{StaticResource StNumberText}" />
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,4,0">
+                        <TextBlock Text="{Binding Name}" Style="{StaticResource StNameText}" />
+                        <Border Margin="8,0,0,0">
+                            <Border.Style>
+                                <Style TargetType="Border" BasedOn="{StaticResource StPitBadge}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding InPit}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <TextBlock Text="PIT" FontSize="9" FontWeight="Bold"
+                                       Foreground="{StaticResource StPitTextBrush}" />
+                        </Border>
+                    </StackPanel>
+
+                    <TextBlock Grid.Column="3" Text="{Binding GapText}" Style="{StaticResource StGapText}"
+                               HorizontalAlignment="Right" Margin="0,0,8,0" />
+
+                    <oc:OverlayTimingValue Grid.Column="4" Text="{Binding FastestText}"
+                                           State="{Binding FastestState}" FontSize="15"
+                                           HorizontalAlignment="Right" Margin="0,0,12,0" />
+
+                    <oc:OverlayTimingValue Grid.Column="5" Text="{Binding LastText}"
+                                           State="{Binding LastState}" FontSize="15"
+                                           HorizontalAlignment="Right" Margin="0,0,12,0" />
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
     <Border Style="{StaticResource OverlayPanelBorder}">
-        <Grid Margin="6,4">
+        <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <!-- Header -->
-            <Grid Grid.Row="0" Margin="0,0,0,1">
+            <!-- Session header: big elapsed clock, session/track context, player position. -->
+            <Grid Grid.Row="0" Height="46" Background="{DynamicResource OverlayHeaderBrush}">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <StackPanel Orientation="Horizontal">
-                    <Border Width="3" Background="{DynamicResource OverlayAccentBrush}" Margin="0,0,6,0" />
-                    <TextBlock Text="{Binding HeaderText}" Style="{StaticResource OverlayHeader}" VerticalAlignment="Center" />
+
+                <Border Grid.Column="0" Width="3" Margin="6,9,8,9"
+                        Background="{DynamicResource OverlayAccentBrush}" />
+
+                <TextBlock Grid.Column="1" Text="{Binding SessionTimerText}"
+                           Style="{StaticResource StTimerText}" />
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,8,0">
+                    <TextBlock Text="{Binding SessionContextText}" Style="{StaticResource StHeaderContext}" />
                 </StackPanel>
-                <oc:OverlayStatusIndicator Grid.Column="1" Text="{Binding StatusText}" IsActive="{Binding IsLive}" TestData="{Binding IsTestData}" />
+
+                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                    <TextBlock Text="{Binding PlayerClassText}" Style="{StaticResource StHeaderContext}" Margin="0,0,10,0" />
+                    <TextBlock Text="{Binding PlayerPositionText}" Style="{StaticResource StHeaderPosition}" />
+                </StackPanel>
+
+                <oc:OverlayStatusIndicator Grid.Column="4" Margin="0,0,8,0"
+                                           Text="{Binding StatusText}"
+                                           IsActive="{Binding IsLive}"
+                                           TestData="{Binding IsTestData}" />
             </Grid>
+            <Rectangle Grid.Row="0" Height="1" VerticalAlignment="Bottom"
+                       Fill="{DynamicResource OverlaySeparatorBrush}" />
 
-            <TextBlock Grid.Row="1" Text="{Binding SubtitleText}" Style="{StaticResource OverlayCellMuted}" Margin="0,0,0,1" />
-
-            <Rectangle Grid.Row="2" Style="{StaticResource OverlaySeparator}" />
-
-            <!-- Column headings -->
-            <Grid Grid.Row="3" Margin="0,1,0,0">
+            <!-- Column headings: pinned above the scrolling rows, aligned to the row grid. -->
+            <Grid Grid.Row="1" Height="30" Background="{DynamicResource OverlayHeaderBrush}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="20" />
-                    <ColumnDefinition Width="24" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="44" />
+                    <ColumnDefinition Width="60" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="104" />
+                    <ColumnDefinition Width="122" />
+                    <ColumnDefinition Width="122" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="P" Style="{StaticResource OverlayLabel}" />
-                <TextBlock Grid.Column="1" Text="#" Style="{StaticResource OverlayLabel}" />
-                <TextBlock Grid.Column="3" Text="DRIVER" Style="{StaticResource OverlayLabel}" />
-                    <TextBlock Grid.Column="4" Text="LAST" Style="{StaticResource OverlayLabel}" HorizontalAlignment="Right" Margin="0,0,6,0" />
-                    <TextBlock Grid.Column="5" Text="GAP" Style="{StaticResource OverlayLabel}" HorizontalAlignment="Right" />
-                </Grid>
+                <TextBlock Grid.Column="0" Text="P" Style="{StaticResource StColumnHead}" HorizontalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="#" Style="{StaticResource StColumnHead}" HorizontalAlignment="Center" />
+                <TextBlock Grid.Column="2" Text="DRIVER" Style="{StaticResource StColumnHead}" Margin="12,0,0,0" />
+                <TextBlock Grid.Column="3" Text="GAP (m est.)" Style="{StaticResource StColumnHead}"
+                           HorizontalAlignment="Right" Margin="0,0,8,0" />
+                <TextBlock Grid.Column="4" Text="FASTEST" Style="{StaticResource StColumnHead}"
+                           HorizontalAlignment="Right" Margin="0,0,12,0" />
+                <TextBlock Grid.Column="5" Text="LAST" Style="{StaticResource StColumnHead}"
+                           HorizontalAlignment="Right" Margin="0,0,12,0" />
+            </Grid>
+            <Rectangle Grid.Row="1" Height="1" VerticalAlignment="Bottom"
+                       Fill="{DynamicResource OverlaySeparatorBrush}" />
 
-            <!-- Rows -->
-            <ItemsControl Grid.Row="4" ItemsSource="{Binding Rows}" Margin="0,1,0,0">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Style="{StaticResource OverlayRowBorder}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                     <ColumnDefinition Width="20" />
-                                     <ColumnDefinition Width="24" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="{Binding PositionText}" Style="{StaticResource OverlayCellMono}" />
-                                <TextBlock Grid.Column="1" Text="{Binding NumberText}" Style="{StaticResource OverlayCellMuted}" />
-                                <Border Grid.Column="2" Style="{StaticResource OverlayColourStripe}" Background="{Binding Stripe}" />
-                                <TextBlock Grid.Column="3" Text="{Binding Name}" Style="{StaticResource OverlayCellText}"
-                                           TextTrimming="CharacterEllipsis" />
-                                <TextBlock Grid.Column="4" Text="{Binding LastLapText}" Style="{StaticResource OverlayCellMono}"
-                                            HorizontalAlignment="Right" Margin="0,0,6,0" />
-                                <TextBlock Grid.Column="5" Text="{Binding GapText}" Style="{StaticResource OverlayCellMono}"
-                                           HorizontalAlignment="Right" />
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <!-- Rows: class headers and driver rows scroll together as one table. -->
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding Items}" />
+            </ScrollViewer>
         </Grid>
     </Border>
 </UserControl>
