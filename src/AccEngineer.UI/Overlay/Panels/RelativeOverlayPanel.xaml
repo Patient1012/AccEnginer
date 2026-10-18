@@ -15,6 +15,10 @@
         <SolidColorBrush x:Key="RelBadgeBrush" Color="#FF2387E8" />
         <SolidColorBrush x:Key="RelBadgeTextBrush" Color="#FFFFFFFF" />
         <SolidColorBrush x:Key="RelRatingBrush" Color="#FF44546A" />
+        <SolidColorBrush x:Key="RelRatingBronzeBrush" Color="#FFB36A3D" />
+        <SolidColorBrush x:Key="RelRatingSilverBrush" Color="#FF8E9AA8" />
+        <SolidColorBrush x:Key="RelRatingGoldBrush" Color="#FFD9A521" />
+        <SolidColorBrush x:Key="RelRatingPlatinumBrush" Color="#FFAFC3DC" />
         <SolidColorBrush x:Key="RelPlayerNameBrush" Color="#FFF0C400" />
 
         <!-- Row: consistent height, thin low-contrast separator, square corners. -->
@@ -86,7 +90,8 @@
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
 
-        <!-- Driver-category badge (PLT/GLD/SLV/BRZ): compact slate block, collapsed
+        <!-- Driver-category badge (BRO/GLD/SLV/PLT): compact coloured block matching the
+             tier (bronze copper, silver grey, gold yellow, platinum ice), collapsed
              when the entry list has not reported the driver's category. -->
         <Style x:Key="RelRatingBadge" TargetType="Border">
             <Setter Property="Background" Value="{StaticResource RelRatingBrush}" />
@@ -99,6 +104,18 @@
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DriverCategoryText}" Value="">
                     <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding DriverCategoryText}" Value="BRO">
+                    <Setter Property="Background" Value="{StaticResource RelRatingBronzeBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding DriverCategoryText}" Value="SLV">
+                    <Setter Property="Background" Value="{StaticResource RelRatingSilverBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding DriverCategoryText}" Value="GLD">
+                    <Setter Property="Background" Value="{StaticResource RelRatingGoldBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding DriverCategoryText}" Value="PLT">
+                    <Setter Property="Background" Value="{StaticResource RelRatingPlatinumBrush}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>

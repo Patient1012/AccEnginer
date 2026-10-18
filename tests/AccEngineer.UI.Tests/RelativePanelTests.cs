@@ -290,7 +290,7 @@ public sealed class RelativePanelTests
     [InlineData(AccDriverCategory.Platinum, "PLT")]
     [InlineData(AccDriverCategory.Gold, "GLD")]
     [InlineData(AccDriverCategory.Silver, "SLV")]
-    [InlineData(AccDriverCategory.Bronze, "BRZ")]
+    [InlineData(AccDriverCategory.Bronze, "BRO")]
     [InlineData(null, "")]
     public void DriverCategoryCode_MapsCategoryToBadge(AccDriverCategory? category, string expected) =>
         Assert.Equal(expected, Display.DriverCategoryCode(category));

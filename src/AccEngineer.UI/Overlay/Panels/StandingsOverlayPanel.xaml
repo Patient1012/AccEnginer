@@ -18,6 +18,11 @@
         <SolidColorBrush x:Key="StRowAltBrush" Color="#12FFFFFF" />
         <SolidColorBrush x:Key="StPositionCellBrush" Color="#18FFFFFF" />
         <SolidColorBrush x:Key="StPitTextBrush" Color="#FF101010" />
+        <SolidColorBrush x:Key="StRatingTextBrush" Color="#FFFFFFFF" />
+        <SolidColorBrush x:Key="StRatingBronzeBrush" Color="#FFB36A3D" />
+        <SolidColorBrush x:Key="StRatingSilverBrush" Color="#FF8E9AA8" />
+        <SolidColorBrush x:Key="StRatingGoldBrush" Color="#FFD9A521" />
+        <SolidColorBrush x:Key="StRatingPlatinumBrush" Color="#FFAFC3DC" />
 
         <!-- Session header: large tabular timer, muted context, position/class on the right. -->
         <Style x:Key="StTimerText" TargetType="TextBlock">
@@ -98,11 +103,38 @@
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
 
-        <!-- Driver-category rating (PLT/GLD/SLV/BRZ): small centred text; empty when unknown. -->
+        <!-- Driver-category rating badge (BRO/GLD/SLV/PLT): same compact coloured block
+             the relative panel uses, tinted per tier; collapsed when unknown. -->
+        <Style x:Key="StRatingBadge" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource StRatingPlatinumBrush}" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="Height" Value="15" />
+            <Setter Property="MinWidth" Value="28" />
+            <Setter Property="Padding" Value="4,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding RatingText}" Value="">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding RatingText}" Value="BRO">
+                    <Setter Property="Background" Value="{StaticResource StRatingBronzeBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding RatingText}" Value="SLV">
+                    <Setter Property="Background" Value="{StaticResource StRatingSilverBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding RatingText}" Value="GLD">
+                    <Setter Property="Background" Value="{StaticResource StRatingGoldBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding RatingText}" Value="PLT">
+                    <Setter Property="Background" Value="{StaticResource StRatingPlatinumBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
         <Style x:Key="StRatingText" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
+            <Setter Property="FontSize" Value="9.5" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{StaticResource StRatingTextBrush}" />
             <Setter Property="HorizontalAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
@@ -185,7 +217,9 @@
                         </StackPanel>
                     </Border>
 
-                    <TextBlock Grid.Column="2" Text="{Binding RatingText}" Style="{StaticResource StRatingText}" />
+                    <Border Grid.Column="2" Style="{StaticResource StRatingBadge}">
+                <TextBlock Text="{Binding RatingText}" Style="{StaticResource StRatingText}" />
+            </Border>
 
                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,4,0">
                         <TextBlock Text="{Binding Name}" Style="{StaticResource StNameText}" />

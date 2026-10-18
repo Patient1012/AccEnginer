@@ -66,14 +66,14 @@ public static class Display
 
     /// <summary>
     /// Compact badge text for a driver's category (<c>PLT</c>/<c>GLD</c>/<c>SLV</c>/
-    /// <c>BRZ</c>). Unknown categories read empty so the badge collapses.
+    /// <c>BRO</c>). Unknown categories read empty so the badge collapses.
     /// </summary>
     public static string DriverCategoryCode(AccDriverCategory? category) => category switch
     {
         AccDriverCategory.Platinum => "PLT",
         AccDriverCategory.Gold => "GLD",
         AccDriverCategory.Silver => "SLV",
-        AccDriverCategory.Bronze => "BRZ",
+        AccDriverCategory.Bronze => "BRO",
         _ => string.Empty
     };
 

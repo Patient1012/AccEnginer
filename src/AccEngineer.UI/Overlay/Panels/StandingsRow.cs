@@ -38,7 +38,7 @@ public sealed class StandingsRow : StandingsListItem
     /// <summary>Driver name, or an explicit unavailable placeholder. Never invented.</summary>
     public string Name { get; init; } = "--";
 
-    /// <summary>Driver-category badge text ("PLT"/"GLD"/"SLV"/"BRZ"); the driver's
+    /// <summary>Driver-category badge text ("PLT"/"GLD"/"SLV"/"BRO"); the driver's
     /// Bronze..Platinum tier. Empty when the entry list has not reported it.</summary>
     public string RatingText { get; init; } = string.Empty;
 

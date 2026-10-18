@@ -21,7 +21,7 @@ public sealed class RelativeRow
     /// which keeps the column aligned without inventing a class.</summary>
     public string CarClassText { get; init; } = string.Empty;
 
-    /// <summary>Driver-category badge text ("PLT"/"GLD"/"SLV"/"BRZ"). Empty means no
+    /// <summary>Driver-category badge text ("PLT"/"GLD"/"SLV"/"BRO"). Empty means no
     /// badge, which keeps the column aligned without inventing a rating.</summary>
     public string DriverCategoryText { get; init; } = string.Empty;
 
