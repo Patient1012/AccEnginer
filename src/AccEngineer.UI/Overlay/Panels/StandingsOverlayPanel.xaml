@@ -190,19 +190,21 @@
         </DataTemplate>
 
         <!-- Driver row item. The seven columns are repeated verbatim in the column header
-             above so the headings stay over their data.
-             Columns: position 44 | number 60 | rating 54 | name * | gap 104 | fastest 122 | last 122. -->
+             above so the headings stay over their data. The data columns are kept as
+             narrow as their widest value allows so the flexible driver column keeps the
+             most width for the name.
+             Columns: position 36 | number 46 | rating 40 | name * | gap 80 | fastest 88 | last 88. -->
         <DataTemplate DataType="{x:Type p:StandingsRow}">
             <Border Style="{StaticResource StDriverRow}">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="44" />
-                        <ColumnDefinition Width="60" />
-                        <ColumnDefinition Width="54" />
+                        <ColumnDefinition Width="36" />
+                        <ColumnDefinition Width="46" />
+                        <ColumnDefinition Width="40" />
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="104" />
-                        <ColumnDefinition Width="122" />
-                        <ColumnDefinition Width="122" />
+                        <ColumnDefinition Width="80" />
+                        <ColumnDefinition Width="88" />
+                        <ColumnDefinition Width="88" />
                     </Grid.ColumnDefinitions>
 
                     <Border Grid.Column="0" Style="{StaticResource StPositionCell}">
@@ -298,13 +300,13 @@
             <!-- Column headings: pinned above the scrolling rows, aligned to the row grid. -->
             <Grid Grid.Row="1" Height="30" Background="{DynamicResource OverlayHeaderBrush}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="44" />
-                    <ColumnDefinition Width="60" />
-                    <ColumnDefinition Width="54" />
+                    <ColumnDefinition Width="36" />
+                    <ColumnDefinition Width="46" />
+                    <ColumnDefinition Width="40" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="104" />
-                    <ColumnDefinition Width="122" />
-                    <ColumnDefinition Width="122" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="88" />
+                    <ColumnDefinition Width="88" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="P" Style="{StaticResource StColumnHead}" HorizontalAlignment="Center" />
                 <TextBlock Grid.Column="1" Text="#" Style="{StaticResource StColumnHead}" HorizontalAlignment="Center" />
