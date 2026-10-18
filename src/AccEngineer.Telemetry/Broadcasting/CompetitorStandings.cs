@@ -32,13 +32,24 @@ public sealed record Competitor(
     /// <summary>True when the car is in the pit lane or its entry/exit.</summary>
     public bool IsInPit =>
         Location is AccCarLocation.Pitlane or AccCarLocation.PitEntry or AccCarLocation.PitExit;
+
+    /// <summary>
+    /// Signed time gap to the focused car in milliseconds, wrapped to the nearest half
+    /// lap: negative means ahead of the focused car, positive means behind. Only a
+    /// source that genuinely knows every car's position in time populates it (the
+    /// deterministic test feed); the real ACC Broadcasting API reports no opponent time
+    /// gaps, so it stays null and the overlay falls back to a pace-profile estimate.
+    /// </summary>
+    public int? RelativeTimeGapMs { get; init; }
 }
 
 /// <summary>
 /// A point-in-time view of the session standings from the ACC Broadcasting API.
 /// <see cref="Competitors"/> is ordered by official position (unclassified cars
-/// last). Gaps between cars are intentionally not stored here; the overlay
-/// derives metre gaps from <see cref="SplinePosition"/> and <see cref="TrackMeters"/>.
+/// last). Gaps between cars are intentionally not stored here; the overlay derives
+/// them from <see cref="SplinePosition"/> and <see cref="TrackMeters"/> (distances)
+/// and from <see cref="Competitor.RelativeTimeGapMs"/> or the player's pace profile
+/// (times).
 /// </summary>
 public sealed record CompetitorStandings(
     string? TrackName,

@@ -39,6 +39,15 @@ public static class Display
         _ => Missing
     };
 
+    /// <summary>
+    /// Formats a signed relative time gap in seconds for the relative/standings gap
+    /// columns: behind the reference is positive, ahead is negative, the reference row
+    /// is <c>0.000</c>. Unavailable gaps read <c>--</c> (the overlay's own convention,
+    /// not the dashboard em dash) so the fixed-width column never jitters.
+    /// </summary>
+    public static string RelativeGapSeconds(double? seconds) =>
+        seconds is not { } value ? "--" : value.ToString("+0.000;-0.000;0.000", Inv);
+
     public static string Number(double? value, string format = "0.0") =>
         value is null ? Missing : value.Value.ToString(format, Inv);
 

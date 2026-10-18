@@ -87,6 +87,45 @@ public class TestCompetitorFeedTests
     }
 
     [Fact]
+    public void Snapshot_ReportsSignedHalfLapWrappedTimeGapsToThePlayer()
+    {
+        var feed = new TestCompetitorFeed(carCount: 20, trackMeters: 4300);
+
+        var standings = feed.Snapshot(T0, focusedCarIndex: 1);
+
+        var player = standings.Competitors.Single(c => c.IsPlayer);
+        Assert.Equal(0, player.RelativeTimeGapMs);
+
+        // Both sides of the player must be represented: negative = ahead, positive = behind.
+        var gaps = standings.Competitors.Select(c => c.RelativeTimeGapMs!.Value).ToList();
+        Assert.Contains(gaps, g => g < 0);
+        Assert.Contains(gaps, g => g > 0);
+
+        // Half-lap wrapped with a 100 s simulated lap: nothing near a whole lap of time.
+        Assert.All(gaps, g => Assert.InRange(g, -50_000, 50_000));
+
+        // Neighbours are a fifth of a lap apart at t=0 (0.05 lap = 5 s at LapTimeMs).
+        Assert.Equal(-5_000, standings.Competitors.Single(c => c.CarIndex == 2).RelativeTimeGapMs);
+        Assert.Equal(45_000, standings.Competitors.Single(c => c.CarIndex == 12).RelativeTimeGapMs);
+    }
+
+    [Fact]
+    public void Snapshot_GapsAreDeterministicAndPlayerRelative()
+    {
+        var feed = new TestCompetitorFeed(carCount: 12, trackMeters: 4300);
+
+        var first = feed.Snapshot(T0, focusedCarIndex: 4);
+        var second = feed.Snapshot(T0, focusedCarIndex: 4);
+
+        Assert.Equal(
+            first.Competitors.Select(c => c.RelativeTimeGapMs),
+            second.Competitors.Select(c => c.RelativeTimeGapMs));
+        Assert.Equal(0, first.Competitors.Single(c => c.IsPlayer).RelativeTimeGapMs);
+        // Real ACC leaves this null; only the synthetic feed populates it.
+        Assert.All(first.Competitors, c => Assert.NotNull(c.RelativeTimeGapMs));
+    }
+
+    [Fact]
     public void Snapshot_PlacesSomeCarsInThePit()
     {
         var feed = new TestCompetitorFeed(carCount: 8);

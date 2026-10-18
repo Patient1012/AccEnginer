@@ -61,6 +61,7 @@ public sealed class TestCompetitorFeed
             var laps = (int)Math.Floor(distance);
             var spline = (float)(distance - laps);
             var delta = (int)Math.Round((playerDistance - distance) * LapTimeMs);
+            var relativeTimeGapMs = (int)Math.Round(WrapToHalfLap(playerDistance - distance) * LapTimeMs);
             var inPit = i % 4 == 0;
 
             competitors.Add(new Competitor(
@@ -79,7 +80,13 @@ public sealed class TestCompetitorFeed
                 BestLapMs: LapTimeMs + (i % 5) * 250,
                 LastLapMs: LapTimeMs + (i % 5) * 250 + 120,
                 SplinePosition: spline,
-                SpeedKmh: inPit ? 45 : 200 + (i % 4) * 8));
+                SpeedKmh: inPit ? 45 : 200 + (i % 4) * 8)
+            {
+                // Signed, half-lap-wrapped time gap to the player (negative = ahead),
+                // in whole milliseconds so both cars ahead and behind display as
+                // plausible seconds rather than lap fractions.
+                RelativeTimeGapMs = relativeTimeGapMs
+            });
         }
 
         return new CompetitorStandings(
@@ -91,4 +98,9 @@ public sealed class TestCompetitorFeed
             Competitors: competitors,
             ReceivedAtUtc: now);
     }
+
+    /// <summary>Wraps a lap difference into (-0.5, +0.5] laps so a full-lap separation
+    /// reads as a proximity instead of a whole lap of time.</summary>
+    private static double WrapToHalfLap(double deltaLaps) =>
+        deltaLaps - Math.Floor(deltaLaps + 0.5);
 }
