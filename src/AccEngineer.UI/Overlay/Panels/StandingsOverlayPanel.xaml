@@ -198,13 +198,13 @@
             <Border Style="{StaticResource StDriverRow}">
                 <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="30" />
                         <ColumnDefinition Width="36" />
-                        <ColumnDefinition Width="42" />
-                        <ColumnDefinition Width="38" />
-                        <ColumnDefinition Width="2*" />
-                        <ColumnDefinition Width="76" />
-                        <ColumnDefinition Width="80" />
-                        <ColumnDefinition Width="80" />
+                        <ColumnDefinition Width="32" />
+                        <ColumnDefinition Width="4*" />
+                        <ColumnDefinition Width="60" />
+                        <ColumnDefinition Width="68" />
+                        <ColumnDefinition Width="68" />
                     </Grid.ColumnDefinitions>
 
                     <Border Grid.Column="0" Style="{StaticResource StPositionCell}">
@@ -300,13 +300,13 @@
             <!-- Column headings: pinned above the scrolling rows, aligned to the row grid. -->
             <Grid Grid.Row="1" Height="30" Background="{DynamicResource OverlayHeaderBrush}">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="30" />
                     <ColumnDefinition Width="36" />
-                    <ColumnDefinition Width="42" />
-                    <ColumnDefinition Width="38" />
-                    <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="76" />
-                    <ColumnDefinition Width="80" />
-                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="32" />
+                    <ColumnDefinition Width="4*" />
+                    <ColumnDefinition Width="60" />
+                    <ColumnDefinition Width="68" />
+                    <ColumnDefinition Width="68" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="P" Style="{StaticResource StColumnHead}" HorizontalAlignment="Center" />
                 <TextBlock Grid.Column="1" Text="#" Style="{StaticResource StColumnHead}" HorizontalAlignment="Center" />
