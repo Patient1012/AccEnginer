@@ -42,6 +42,28 @@ public sealed class SimulatedTelemetryOptions
     public int OtherCars { get; init; } = 11;
 
     public double StartingFuelKg { get; init; } = 62;
+
+    /// <summary>
+    /// Fuel consumed per simulated lap, in litres. Drives a distance-proportional burn so
+    /// every completed lap consumes roughly the same amount, which is what the fuel
+    /// calculator expects from a clean stint.
+    /// </summary>
+    public double FuelLitresPerLap { get; init; } = 2.7;
+
+    /// <summary>
+    /// Session time limit in seconds. When positive the simulator reports a counting-down
+    /// <c>sessionTimeLeft</c>; 0 disables the time limit (no <c>sessionTimeLeft</c>).
+    /// </summary>
+    public double SessionTimeLimitSeconds { get; init; } = 900;
+
+    /// <summary>
+    /// Total laps for a lap-limited session. When positive the simulator reports it as
+    /// <c>numberOfLaps</c>; 0 leaves the session unlimited (as a practice session is).
+    /// </summary>
+    public int TotalLaps { get; init; }
+
+    /// <summary>Tank capacity in litres reported on the static page; 0 disables the capacity figure.</summary>
+    public double TankCapacityLitres { get; init; } = 120;
 }
 
 /// <summary>

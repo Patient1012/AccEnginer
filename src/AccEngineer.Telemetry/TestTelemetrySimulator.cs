@@ -40,6 +40,7 @@ internal sealed class TestTelemetrySimulator
     private double _bestLap = double.PositiveInfinity;
     private int _lapNumber = 1;
     private double _fuel;
+    private double _elapsed;
 
     private int _lastSectorIndex = -1;
     private double _sectorElapsed;
@@ -94,6 +95,7 @@ internal sealed class TestTelemetrySimulator
 
         _distance += _speed * dt;
         _lapTime += dt;
+        _elapsed += dt;
 
         var lapRolled = _distance >= (double)_lapNumber * lapLength;
         if (lapRolled)
@@ -126,7 +128,10 @@ internal sealed class TestTelemetrySimulator
         double? deltaSeconds = double.IsPositiveInfinity(_bestLap) ? null : _lapTime - (_bestLap * uAfter);
 
         UpdateThermal(dt, lateralG, longitudinalG, throttle, brake, steering);
-        _fuel = Math.Max(2.0, _fuel - ((0.0004 + (0.006 * throttle)) * dt));
+        // Distance-proportional burn so every completed lap consumes a plausible, stable
+        // amount of fuel (fuel planning depends on a consistent per-lap figure).
+        var litresPerMeter = Math.Max(0.0, _options.FuelLitresPerLap) / lapLength;
+        _fuel = Math.Max(2.0, _fuel - (litresPerMeter * _speed * dt));
 
         var gear = GearForSpeed(_speed);
         var (bandLow, bandHigh) = GearBand(gear);
@@ -195,6 +200,11 @@ internal sealed class TestTelemetrySimulator
             TyreWear = _tyreWear.Select(w => (float)w).ToArray(),
             BrakeTempC = _brakeTemp.Select(t => (float)t).ToArray(),
             FuelLevel = (float)_fuel,
+            SessionTimeLeftSeconds = _options.SessionTimeLimitSeconds > 0
+                ? (float)Math.Max(0.0, _options.SessionTimeLimitSeconds - _elapsed)
+                : null,
+            TotalLaps = _options.TotalLaps > 0 ? _options.TotalLaps : null,
+            TankCapacityLitres = _options.TankCapacityLitres > 0 ? (float)_options.TankCapacityLitres : null,
             PitLimiterOn = false,
             IsInPitLane = false,
             AirTempC = 24.5f,

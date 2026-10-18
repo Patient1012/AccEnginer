@@ -190,6 +190,27 @@ public sealed record TelemetrySample
 
     public float? FuelLevel { get; init; }
 
+    /// <summary>
+    /// Time remaining in the current session in seconds (graphics page
+    /// <c>sessionTimeLeft</c>). Null when ACC reports no limit or a non-positive value.
+    /// </summary>
+    public float? SessionTimeLeftSeconds { get; init; }
+
+    /// <summary>
+    /// Total laps for the session (graphics page <c>numberOfLaps</c>). Null when the
+    /// session is not lap-limited (ACC reports 0), for example a practice session.
+    /// </summary>
+    public int? TotalLaps { get; init; }
+
+    /// <summary>
+    /// Fuel tank capacity (static page <c>maxFuel</c>), in the same units as
+    /// <see cref="FuelLevel"/>. ACC's fuel channel uses the same units as the in-game
+    /// setup fuel (litres): the official documentation labels the physics <c>fuel</c>
+    /// field "kg", but the numeric value matches the setup litres that fuel planning
+    /// works with. Null when ACC reports a non-positive value.
+    /// </summary>
+    public float? TankCapacityLitres { get; init; }
+
     public bool? PitLimiterOn { get; init; }
 
     public bool? IsInPitLane { get; init; }

@@ -182,4 +182,102 @@ public class SimulatedTelemetryReaderTests
         Assert.NotNull(sample.PositionXMeters);
         Assert.NotNull(sample.PositionZMeters);
     }
+
+    [Fact]
+    public void GeneratedSamples_BurnAStableAmountOfFuelPerLap()
+    {
+        var time = new ManualTimeProvider(DateTimeOffset.UnixEpoch);
+        using var reader = new SimulatedTelemetryReader(new SimulatedTelemetryOptions
+        {
+            UpdateInterval = Interval,
+            Seed = 20240607,
+            LapLengthMeters = 2000
+        }, time);
+
+        var fuelAtLapStart = new Dictionary<int, float>();
+        for (var i = 0; i < 6000; i++)
+        {
+            time.Advance(Interval);
+            var sample = reader.ReadLatest();
+            Assert.NotNull(sample);
+            var s = sample!;
+
+            if (s.FuelLevel is { } fuel && !fuelAtLapStart.ContainsKey(s.LapNumber))
+            {
+                fuelAtLapStart[s.LapNumber] = fuel;
+            }
+        }
+
+        var burns = new List<double>();
+        foreach (var lap in fuelAtLapStart.Keys.OrderBy(k => k))
+        {
+            if (fuelAtLapStart.ContainsKey(lap + 1))
+            {
+                burns.Add(fuelAtLapStart[lap] - fuelAtLapStart[lap + 1]);
+            }
+        }
+
+        Assert.True(burns.Count >= 2, $"expected at least two measured laps, got {burns.Count}");
+        foreach (var burn in burns)
+        {
+            Assert.InRange(burn, 2.5, 2.9);
+        }
+    }
+
+    [Fact]
+    public void GeneratedSamples_ReportSessionLengthAndTankCapacity()
+    {
+        var time = new ManualTimeProvider(DateTimeOffset.UnixEpoch);
+        using var reader = new SimulatedTelemetryReader(new SimulatedTelemetryOptions
+        {
+            UpdateInterval = Interval,
+            Seed = 20240607,
+            SessionTimeLimitSeconds = 600,
+            TotalLaps = 40,
+            TankCapacityLitres = 120
+        }, time);
+
+        var firstSample = reader.ReadLatest();
+        Assert.NotNull(firstSample);
+        var first = firstSample!;
+        Assert.Equal(40, first.TotalLaps);
+        Assert.Equal(120f, first.TankCapacityLitres);
+        // The first sample is emitted after one update interval has elapsed.
+        Assert.InRange(first.SessionTimeLeftSeconds ?? -1f, 599.9f, 600f);
+
+        TelemetrySample? last = null;
+        for (var i = 0; i < 20; i++)
+        {
+            time.Advance(Interval);
+            last = reader.ReadLatest();
+            Assert.NotNull(last);
+            Assert.InRange(last!.SessionTimeLeftSeconds ?? -1f, 0f, 600f);
+        }
+
+        Assert.NotNull(last);
+        Assert.True(
+            first.SessionTimeLeftSeconds > last!.SessionTimeLeftSeconds,
+            "expected the session time left to count down");
+    }
+
+    [Fact]
+    public void GeneratedSamples_WithoutLapLimitOrTimeLimit_LeaveSessionLengthNull()
+    {
+        var time = new ManualTimeProvider(DateTimeOffset.UnixEpoch);
+        using var reader = new SimulatedTelemetryReader(new SimulatedTelemetryOptions
+        {
+            UpdateInterval = Interval,
+            Seed = 20240607,
+            SessionTimeLimitSeconds = 0,
+            TotalLaps = 0,
+            TankCapacityLitres = 0
+        }, time);
+
+        var sample = reader.ReadLatest();
+        Assert.NotNull(sample);
+
+        Assert.Null(sample!.TotalLaps);
+        Assert.Null(sample.SessionTimeLeftSeconds);
+        Assert.Null(sample.TankCapacityLitres);
+    }
 }

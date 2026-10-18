@@ -448,6 +448,55 @@ public class AccSampleBuilderTests
     }
 
     [Fact]
+    public void Build_MapsSessionLengthLapsAndTankCapacityWhenReported()
+    {
+        var builder = new AccSampleBuilder();
+        var graphics = new AccGraphicsPage
+        {
+            Status = AccStatus.Live,
+            Session = AccSessionType.Race,
+            SessionIndex = 0,
+            CompletedLaps = 4,
+            IsValidLap = 1,
+            DistanceTraveled = 100f,
+            SessionTimeLeft = 1825.5f,
+            NumberOfLaps = 40
+        };
+        var statics = new AccStaticPage { CarModel = "porsche_991_cup", Track = "monza", MaxFuel = 120f };
+
+        var sample = builder.Build(default, graphics, statics, T0, 0);
+
+        Assert.Equal(1825.5f, sample.SessionTimeLeftSeconds);
+        Assert.Equal(40, sample.TotalLaps);
+        Assert.Equal(120f, sample.TankCapacityLitres);
+    }
+
+    [Fact]
+    public void Build_UnreportedSessionLengthAndTankCapacity_MapToNull()
+    {
+        var builder = new AccSampleBuilder();
+        var graphics = new AccGraphicsPage
+        {
+            Status = AccStatus.Live,
+            Session = AccSessionType.Practice,
+            SessionIndex = 0,
+            CompletedLaps = 4,
+            IsValidLap = 1,
+            DistanceTraveled = 100f,
+            SessionTimeLeft = 0f,
+            NumberOfLaps = 0
+        };
+        var statics = new AccStaticPage { CarModel = "porsche_991_cup", Track = "monza", MaxFuel = 0f };
+
+        var sample = builder.Build(default, graphics, statics, T0, 0);
+
+        Assert.Null(sample.SessionTimeLeftSeconds);
+        Assert.Null(sample.TotalLaps);
+        Assert.Null(sample.TankCapacityLitres);
+        Assert.Equal(DataQualityFlags.None, sample.Quality);
+    }
+
+    [Fact]
     public void Build_PlayerPositionAndActiveCars_Mapped()
     {
         var builder = new AccSampleBuilder();

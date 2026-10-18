@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using AccEngineer.Analysis.Fuel;
 using AccEngineer.Storage;
 using AccEngineer.Telemetry;
 using AccEngineer.Telemetry.Broadcasting;
@@ -56,6 +57,9 @@ public sealed class LiveTelemetryService : IDisposable
     private readonly List<TelemetrySample> _sessionSamples = new();
     private SampleRingBuffer _recent = new(RecentCapacity);
 
+    /// <summary>Measures per-lap fuel consumption from the incoming samples.</summary>
+    private readonly FuelConsumptionTracker _fuelTracker = new();
+
     private ISessionRecorder? _recorder;
     private bool _recordRequested;
     private volatile bool _isRecording;
@@ -103,6 +107,14 @@ public sealed class LiveTelemetryService : IDisposable
     }
 
     public TelemetrySample? Latest => _latest;
+
+    /// <summary>
+    /// Current per-lap fuel-consumption measurements derived from the incoming samples.
+    /// A thread-safe snapshot, so it is safe to read from the UI thread. Works the same
+    /// way for live ACC telemetry, generated test data and replays, and resets itself
+    /// when a new session is detected.
+    /// </summary>
+    public FuelConsumptionSnapshot FuelConsumption => _fuelTracker.Snapshot();
 
     public string? CurrentSessionId => _currentSessionId;
 
@@ -501,6 +513,8 @@ public sealed class LiveTelemetryService : IDisposable
         }
 
         _latest = sample;
+
+        _fuelTracker.Observe(sample);
 
         lock (_recentGate) _recent.Push(sample);
 
