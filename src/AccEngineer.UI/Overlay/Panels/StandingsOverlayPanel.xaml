@@ -26,7 +26,7 @@
 
         <!-- Session header: large tabular timer, muted context, position/class on the right. -->
         <Style x:Key="StTimerText" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontSize" Value="18" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="FontFamily" Value="{StaticResource OverlayValueFont}" />
             <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
@@ -77,7 +77,7 @@
             <Setter Property="Background" Value="{StaticResource StPositionCellBrush}" />
         </Style>
         <Style x:Key="StPositionText" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontSize" Value="12" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="FontFamily" Value="{StaticResource OverlayValueFont}" />
             <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
@@ -87,7 +87,7 @@
 
         <!-- Car number: compact cell, white bold, with a slim class-coloured accent. -->
         <Style x:Key="StNumberText" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontSize" Value="11" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="FontFamily" Value="{StaticResource OverlayValueFont}" />
             <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
@@ -96,7 +96,7 @@
 
         <!-- Driver name: the main visual focus of the row. -->
         <Style x:Key="StNameText" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontSize" Value="11" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
             <Setter Property="TextTrimming" Value="CharacterEllipsis" />
@@ -132,7 +132,7 @@
             </Style.Triggers>
         </Style>
         <Style x:Key="StRatingText" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="9.5" />
+            <Setter Property="FontSize" Value="9" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="Foreground" Value="{StaticResource StRatingTextBrush}" />
             <Setter Property="HorizontalAlignment" Value="Center" />
@@ -141,7 +141,7 @@
 
         <!-- Gap: right-aligned tabular digits. -->
         <Style x:Key="StGapText" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontSize" Value="9" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontFamily" Value="{StaticResource OverlayValueFont}" />
             <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
@@ -158,7 +158,7 @@
 
         <!-- Class-group header: full-width strip with class accent and a thin accent rule. -->
         <Style x:Key="StClassLabel" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontSize" Value="12" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -236,7 +236,7 @@
                                     </Style.Triggers>
                                 </Style>
                             </Border.Style>
-                            <TextBlock Text="PIT" FontSize="9" FontWeight="Bold"
+                            <TextBlock Text="PIT" FontSize="8" FontWeight="Bold"
                                        Foreground="{StaticResource StPitTextBrush}" />
                         </Border>
                     </StackPanel>
@@ -245,11 +245,11 @@
                                HorizontalAlignment="Right" Margin="0,0,8,0" />
 
                     <oc:OverlayTimingValue Grid.Column="5" Text="{Binding FastestText}"
-                                           State="{Binding FastestState}" FontSize="15"
+                                           State="{Binding FastestState}" FontSize="13"
                                            HorizontalAlignment="Right" Margin="0,0,12,0" />
 
                     <oc:OverlayTimingValue Grid.Column="6" Text="{Binding LastText}"
-                                           State="{Binding LastState}" FontSize="15"
+                                           State="{Binding LastState}" FontSize="13"
                                            HorizontalAlignment="Right" Margin="0,0,12,0" />
                 </Grid>
             </Border>
