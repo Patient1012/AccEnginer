@@ -32,6 +32,9 @@
         <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
             <views:SettingsView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:FuelCalculatorViewModel}">
+            <views:FuelCalculatorView />
+        </DataTemplate>
 
         <Style x:Key="LinkButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
@@ -158,11 +161,15 @@
                     BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,0,1,0">
                 <ListBox Style="{StaticResource NavList}" ItemsSource="{Binding Pages}"
                          SelectedItem="{Binding CurrentPage}" ItemContainerStyle="{StaticResource NavItem}">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding Title}" FontSize="14" />
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{Binding NavIcon}" Stretch="Uniform" Height="14" Fill="{DynamicResource BrushTextPrimary}"
+                              Margin="0,0,8,0" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Title}" FontSize="14" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
                 </ListBox>
             </Border>
 

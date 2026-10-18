@@ -42,6 +42,15 @@ public sealed class AppSettings
     /// </summary>
     public bool TestDataMode { get; set; }
 
+    public double? FuelCalculatorLastReserveLitres { get; set; }
+    public double? FuelCalculatorLastSafetyMarginLitres { get; set; }
+    public double? FuelCalculatorLastSafetyMarginPercent { get; set; }
+    public string? FuelCalculatorSafetyMarginMode { get; set; } = "Litres";
+    public double? FuelCalculatorManualConsumptionPerLap { get; set; }
+    public double? FuelCalculatorManualRemainingLaps { get; set; }
+    public int? FuelCalculatorStintLaps { get; set; }
+    public bool FuelCalculatorPreferTimeLimitedEstimate { get; set; }
+
     /// <summary>
     /// Whether to connect to the ACC UDP Broadcasting API. Competitor names, race
     /// numbers, teams and official gaps exist only there (shared memory has none),

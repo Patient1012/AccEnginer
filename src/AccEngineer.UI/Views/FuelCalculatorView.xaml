@@ -1,0 +1,305 @@
+<UserControl x:Class="AccEngineer.UI.Views.FuelCalculatorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="760" d:DesignWidth="1080">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+        <StackPanel MaxWidth="1200" HorizontalAlignment="Left">
+
+            <!-- Header -->
+            <DockPanel Margin="0,0,0,4">
+                <Border DockPanel.Dock="Right" Padding="8,2" CornerRadius="4" BorderThickness="1"
+                        BorderBrush="{DynamicResource BrushBorder}"
+                        Background="{DynamicResource BrushSurfaceAlt}" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding DataSourceText}" FontSize="11"
+                               Foreground="{DynamicResource BrushTextSecondary}" />
+                </Border>
+                <TextBlock Text="Fuel Calculator" Style="{StaticResource PageTitle}" />
+            </DockPanel>
+            <TextBlock Text="{Binding StatusText}" Style="{StaticResource Caption}"
+                       TextWrapping="Wrap" Margin="0,0,0,16" />
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- A. Race and stint planning -->
+                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource Card}" Margin="0,0,8,8">
+                    <StackPanel>
+                        <TextBlock Text="RACE AND STINT PLANNING" Style="{StaticResource SectionHeader}" />
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="190" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Current fuel (L)"
+                                       VerticalAlignment="Center" />
+                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
+                                <TextBox Width="120" Style="{StaticResource InputBox}"
+                                         Text="{Binding CurrentFuelLitres, UpdateSourceTrigger=PropertyChanged}" />
+                                <Button Content="Use live" Margin="6,0,0,0" Padding="8,2"
+                                        Style="{StaticResource GhostButton}"
+                                        Command="{Binding ResetLiveFuelCommand}"
+                                        Visibility="{Binding CurrentFuelOverridden, Converter={StaticResource BoolToVis}}" />
+                            </StackPanel>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Remaining race laps"
+                                       VerticalAlignment="Center" Margin="0,10,0,0" />
+                            <TextBox Grid.Row="1" Grid.Column="1" Width="120" HorizontalAlignment="Left"
+                                     Margin="0,10,0,0" Style="{StaticResource InputBox}"
+                                     Text="{Binding ManualRemainingLaps, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Planned stint (laps)"
+                                       VerticalAlignment="Center" Margin="0,10,0,0" />
+                            <TextBox Grid.Row="2" Grid.Column="1" Width="120" HorizontalAlignment="Left"
+                                     Margin="0,10,0,0" Style="{StaticResource InputBox}"
+                                     Text="{Binding StintLaps, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Finish reserve (L)"
+                                       VerticalAlignment="Center" Margin="0,10,0,0" />
+                            <TextBox Grid.Row="3" Grid.Column="1" Width="120" HorizontalAlignment="Left"
+                                     Margin="0,10,0,0" Style="{StaticResource InputBox}"
+                                     Text="{Binding ReserveLitres, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Safety margin mode"
+                                       VerticalAlignment="Center" Margin="0,10,0,0" />
+                            <ComboBox Grid.Row="4" Grid.Column="1" Width="140" HorizontalAlignment="Left"
+                                      Margin="0,10,0,0" Style="{StaticResource InputCombo}"
+                                      SelectedItem="{Binding SafetyMarginMode}">
+                                <ComboBoxItem Content="Litres" />
+                                <ComboBoxItem Content="Percentage" />
+                                <ComboBoxItem Content="Both" />
+                            </ComboBox>
+                        </Grid>
+
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="190" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Safety margin (L)"
+                                       VerticalAlignment="Center"
+                                       Opacity="{Binding SafetyMarginLitresEnabled, Converter={StaticResource BoolToVis}}" />
+                            <TextBox Grid.Row="0" Grid.Column="1" Width="120" HorizontalAlignment="Left"
+                                     Style="{StaticResource InputBox}"
+                                     Text="{Binding SafetyMarginLitres, UpdateSourceTrigger=PropertyChanged}"
+                                     IsEnabled="{Binding SafetyMarginLitresEnabled}" />
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Safety margin (%)"
+                                       VerticalAlignment="Center" Margin="0,10,0,0" />
+                            <TextBox Grid.Row="1" Grid.Column="1" Width="120" HorizontalAlignment="Left"
+                                     Margin="0,10,0,0" Style="{StaticResource InputBox}"
+                                     Text="{Binding SafetyMarginPercent, UpdateSourceTrigger=PropertyChanged}"
+                                     IsEnabled="{Binding SafetyMarginPercentEnabled}" />
+                        </Grid>
+
+                        <CheckBox Margin="0,12,0,0" Foreground="{DynamicResource BrushTextPrimary}"
+                                  IsChecked="{Binding PreferTimeLimitedEstimate}"
+                                  Content="Estimate remaining laps from session time (time-limited sessions)" />
+                    </StackPanel>
+                </Border>
+
+                <!-- B. Fuel consumption -->
+                <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource Card}" Margin="8,0,0,8">
+                    <StackPanel>
+                        <TextBlock Text="FUEL CONSUMPTION" Style="{StaticResource SectionHeader}" />
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="190" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Consumption (L/lap)"
+                                       VerticalAlignment="Center" />
+                            <TextBox Grid.Row="0" Grid.Column="1" Width="120" HorizontalAlignment="Left"
+                                     Style="{StaticResource InputBox}"
+                                     Text="{Binding ManualConsumptionPerLap, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Measured"
+                                       VerticalAlignment="Center" Margin="0,10,0,0" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Margin="0,10,0,0"
+                                       Text="{Binding ConsumptionText}"
+                                       Foreground="{DynamicResource BrushTextSecondary}" />
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Clean laps used"
+                                       VerticalAlignment="Center" Margin="0,10,0,0" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Margin="0,10,0,0"
+                                       Text="{Binding ValidLapCountText}"
+                                       Foreground="{DynamicResource BrushTextSecondary}" />
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Average lap time"
+                                       VerticalAlignment="Center" Margin="0,10,0,0" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,10,0,0"
+                                       Text="{Binding AvgLapSecondsText}"
+                                       Foreground="{DynamicResource BrushTextSecondary}" />
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Confidence"
+                                       VerticalAlignment="Center" Margin="0,10,0,0" />
+                            <TextBlock Grid.Row="4" Grid.Column="1" Margin="0,10,0,0"
+                                       Text="{Binding ConfidenceText}"
+                                       Foreground="{DynamicResource BrushTextSecondary}" />
+
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="Remaining laps"
+                                       VerticalAlignment="Center" Margin="0,10,0,0" />
+                            <TextBlock Grid.Row="5" Grid.Column="1" Margin="0,10,0,0"
+                                       Text="{Binding RemainingRaceLapsText}"
+                                       Foreground="{DynamicResource BrushTextSecondary}" />
+
+                            <TextBlock Grid.Row="6" Grid.Column="0" Text="Tank capacity"
+                                       VerticalAlignment="Center" Margin="0,10,0,0" />
+                            <TextBlock Grid.Row="6" Grid.Column="1" Margin="0,10,0,0"
+                                       Text="{Binding TankCapacityText}"
+                                       Foreground="{DynamicResource BrushTextSecondary}" />
+                        </Grid>
+
+                        <TextBlock Style="{StaticResource Caption}" Margin="0,14,0,0" TextWrapping="Wrap"
+                                   Text="Leave consumption empty to use the measured average from completed laps. Invalid laps, refuels and implausible readings are excluded. Enter a value to override the measurement." />
+                    </StackPanel>
+                </Border>
+
+                <!-- C. Results and recommendations -->
+                <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource Card}" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <TextBlock Text="RESULTS AND RECOMMENDATIONS" Style="{StaticResource SectionHeader}" />
+                            <Grid Margin="0,12,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Current fuel"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentFuelText}"
+                                           Foreground="{DynamicResource BrushTextSecondary}" />
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Base fuel required"
+                                           VerticalAlignment="Center" Margin="0,8,0,0" />
+                                <TextBlock Grid.Row="1" Grid.Column="1" Margin="0,8,0,0"
+                                           Text="{Binding BaseFuelRequiredText}"
+                                           Foreground="{DynamicResource BrushTextSecondary}" />
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Safety margin"
+                                           VerticalAlignment="Center" Margin="0,8,0,0" />
+                                <TextBlock Grid.Row="2" Grid.Column="1" Margin="0,8,0,0"
+                                           Text="{Binding SafetyMarginAppliedText}"
+                                           Foreground="{DynamicResource BrushTextSecondary}" />
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Finish reserve"
+                                           VerticalAlignment="Center" Margin="0,8,0,0" />
+                                <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,8,0,0"
+                                           Text="{Binding ReserveAppliedText}"
+                                           Foreground="{DynamicResource BrushTextSecondary}" />
+
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Total fuel required"
+                                           VerticalAlignment="Center" Margin="0,8,0,0" />
+                                <TextBlock Grid.Row="4" Grid.Column="1" Margin="0,8,0,0"
+                                           Text="{Binding TotalFuelRequiredText}" FontWeight="SemiBold" />
+
+                                <TextBlock Grid.Row="5" Grid.Column="0" Text="Laps possible on current fuel"
+                                           VerticalAlignment="Center" Margin="0,8,0,0" />
+                                <TextBlock Grid.Row="5" Grid.Column="1" Margin="0,8,0,0"
+                                           Text="{Binding LapsPossibleText}"
+                                           Foreground="{DynamicResource BrushTextSecondary}" />
+
+                                <TextBlock Grid.Row="6" Grid.Column="0" Text="Surplus / shortfall"
+                                           VerticalAlignment="Center" Margin="0,8,0,0" />
+                                <TextBlock Grid.Row="6" Grid.Column="1" Margin="0,8,0,0"
+                                           Text="{Binding SurplusShortfallText}"
+                                           Foreground="{DynamicResource BrushTextSecondary}" />
+
+                                <TextBlock Grid.Row="7" Grid.Column="0" Text="Stint fuel (required / left)"
+                                           VerticalAlignment="Center" Margin="0,8,0,0" />
+                                <StackPanel Grid.Row="7" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0">
+                                    <TextBlock Text="{Binding StintFuelRequiredText}"
+                                               Foreground="{DynamicResource BrushTextSecondary}" />
+                                    <TextBlock Text=" / " Foreground="{DynamicResource BrushTextMuted}" />
+                                    <TextBlock Text="{Binding StintReserveAtEndText}"
+                                               Foreground="{DynamicResource BrushTextSecondary}" />
+                                    <TextBlock Text=" (" Foreground="{DynamicResource BrushTextMuted}" />
+                                    <TextBlock Text="{Binding StintSufficiencyText}" FontWeight="SemiBold" />
+                                    <TextBlock Text=")" Foreground="{DynamicResource BrushTextMuted}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Text="{Binding BreakdownText}" Style="{StaticResource Caption}"
+                                       Margin="0,14,0,0" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding TankCapacityWarningText}"
+                                       Foreground="{DynamicResource BrushWarning}" Margin="0,8,0,0"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <Border Grid.Column="1" Background="{DynamicResource BrushSurfaceAlt}"
+                                BorderBrush="{DynamicResource BrushBorder}" BorderThickness="1"
+                                CornerRadius="8" Padding="20" VerticalAlignment="Stretch">
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="FUEL TO ADD" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource BrushTextSecondary}"
+                                           HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding FuelToAddText}" FontSize="40" FontWeight="Bold"
+                                           Foreground="{DynamicResource BrushAccent}"
+                                           HorizontalAlignment="Center" Margin="0,8,0,0" />
+                                <TextBlock Text="{Binding StatusText}" Style="{StaticResource Caption}"
+                                           TextWrapping="Wrap" TextAlignment="Center" Margin="0,14,0,0" />
+                                <Button Content="Save as defaults" Style="{StaticResource GhostButton}"
+                                        Margin="0,18,0,0" Padding="14,5" HorizontalAlignment="Center"
+                                        Command="{Binding SaveCommand}" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
