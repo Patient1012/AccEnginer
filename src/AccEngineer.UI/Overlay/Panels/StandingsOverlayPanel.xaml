@@ -98,6 +98,15 @@
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
 
+        <!-- Driver-category rating (PLT/GLD/SLV/BRZ): small centred text; empty when unknown. -->
+        <Style x:Key="StRatingText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
         <!-- Gap: right-aligned tabular digits. -->
         <Style x:Key="StGapText" TargetType="TextBlock">
             <Setter Property="FontSize" Value="14" />
@@ -148,15 +157,16 @@
             </Border>
         </DataTemplate>
 
-        <!-- Driver row item. The six columns are repeated verbatim in the column header
+        <!-- Driver row item. The seven columns are repeated verbatim in the column header
              above so the headings stay over their data.
-             Columns: position 44 | number 60 | name * | gap 104 | fastest 122 | last 122. -->
+             Columns: position 44 | number 60 | rating 54 | name * | gap 104 | fastest 122 | last 122. -->
         <DataTemplate DataType="{x:Type p:StandingsRow}">
             <Border Style="{StaticResource StDriverRow}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="44" />
                         <ColumnDefinition Width="60" />
+                        <ColumnDefinition Width="54" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="104" />
                         <ColumnDefinition Width="122" />
@@ -175,7 +185,9 @@
                         </StackPanel>
                     </Border>
 
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,4,0">
+                    <TextBlock Grid.Column="2" Text="{Binding RatingText}" Style="{StaticResource StRatingText}" />
+
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,4,0">
                         <TextBlock Text="{Binding Name}" Style="{StaticResource StNameText}" />
                         <Border Margin="8,0,0,0">
                             <Border.Style>
@@ -193,14 +205,14 @@
                         </Border>
                     </StackPanel>
 
-                    <TextBlock Grid.Column="3" Text="{Binding GapText}" Style="{StaticResource StGapText}"
+                    <TextBlock Grid.Column="4" Text="{Binding GapText}" Style="{StaticResource StGapText}"
                                HorizontalAlignment="Right" Margin="0,0,8,0" />
 
-                    <oc:OverlayTimingValue Grid.Column="4" Text="{Binding FastestText}"
+                    <oc:OverlayTimingValue Grid.Column="5" Text="{Binding FastestText}"
                                            State="{Binding FastestState}" FontSize="15"
                                            HorizontalAlignment="Right" Margin="0,0,12,0" />
 
-                    <oc:OverlayTimingValue Grid.Column="5" Text="{Binding LastText}"
+                    <oc:OverlayTimingValue Grid.Column="6" Text="{Binding LastText}"
                                            State="{Binding LastState}" FontSize="15"
                                            HorizontalAlignment="Right" Margin="0,0,12,0" />
                 </Grid>
@@ -254,6 +266,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="44" />
                     <ColumnDefinition Width="60" />
+                    <ColumnDefinition Width="54" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="104" />
                     <ColumnDefinition Width="122" />
@@ -261,12 +274,13 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="P" Style="{StaticResource StColumnHead}" HorizontalAlignment="Center" />
                 <TextBlock Grid.Column="1" Text="#" Style="{StaticResource StColumnHead}" HorizontalAlignment="Center" />
-                <TextBlock Grid.Column="2" Text="DRIVER" Style="{StaticResource StColumnHead}" Margin="12,0,0,0" />
-                    <TextBlock Grid.Column="3" Text="GAP (s est.)" Style="{StaticResource StColumnHead}"
+                <TextBlock Grid.Column="2" Text="RATING" Style="{StaticResource StColumnHead}" HorizontalAlignment="Center" />
+                <TextBlock Grid.Column="3" Text="DRIVER" Style="{StaticResource StColumnHead}" Margin="12,0,0,0" />
+                    <TextBlock Grid.Column="4" Text="GAP (s est.)" Style="{StaticResource StColumnHead}"
                            HorizontalAlignment="Right" Margin="0,0,8,0" />
-                <TextBlock Grid.Column="4" Text="FASTEST" Style="{StaticResource StColumnHead}"
+                <TextBlock Grid.Column="5" Text="FASTEST" Style="{StaticResource StColumnHead}"
                            HorizontalAlignment="Right" Margin="0,0,12,0" />
-                <TextBlock Grid.Column="5" Text="LAST" Style="{StaticResource StColumnHead}"
+                <TextBlock Grid.Column="6" Text="LAST" Style="{StaticResource StColumnHead}"
                            HorizontalAlignment="Right" Margin="0,0,12,0" />
             </Grid>
             <Rectangle Grid.Row="1" Height="1" VerticalAlignment="Bottom"

@@ -9,7 +9,7 @@ using AccEngineer.UI.Services;
 namespace AccEngineer.UI.Overlay.Panels;
 
 /// <summary>
-/// Full-field standings tower. Names, race numbers, class categories and order come from
+/// Full-field standings tower. Names, race numbers, vehicle classes and order come from
 /// the ACC Broadcasting API; the interval column shows signed seconds and is labelled as
 /// an estimate, because ACC broadcasts no official car-to-car time gaps: the source's own
 /// value is used when it genuinely reports one (the test feed), otherwise the interval is
@@ -17,9 +17,11 @@ namespace AccEngineer.UI.Overlay.Panels;
 /// (see <see cref="TrackPaceProfile"/>). When broadcasting is unavailable the panel shows
 /// the explicit reason rather than inventing driver names, gaps or lap times.
 ///
-/// Drivers are grouped under class headers using the ACC cup category; within a group they
-/// keep their official classified position. The interval is always computed against the car
-/// ahead in the overall classification, so regrouping never changes a gap value.
+/// Drivers are grouped under vehicle-class headers (GT3/GT4/...) derived from the car
+/// model id; within a group they keep their official classified position. The driver's
+/// Bronze..Platinum category is shown as a separate rating column. The interval is always
+/// computed against the car ahead in the overall classification, so regrouping never
+/// changes a gap value.
 /// </summary>
 public sealed class StandingsPanelViewModel : OverlayPanelViewModel
 {
@@ -48,7 +50,7 @@ public sealed class StandingsPanelViewModel : OverlayPanelViewModel
     /// <summary>Player's classified position, for example "P6". Empty when unknown.</summary>
     public string PlayerPositionText { get; private set; } = string.Empty;
 
-    /// <summary>Player's class label, for example "OVERALL". Empty when unknown.</summary>
+    /// <summary>Player's vehicle-class label, for example "GT3". Empty when unknown.</summary>
     public string PlayerClassText { get; private set; } = string.Empty;
 
     /// <summary>Class headers and driver rows, in display order. Rebuilt every tick.</summary>
@@ -87,7 +89,9 @@ public sealed class StandingsPanelViewModel : OverlayPanelViewModel
         PlayerPositionText = standings.Player?.Position is { } position
             ? "P" + position.ToString(CultureInfo.InvariantCulture)
             : string.Empty;
-        PlayerClassText = StandingsClass.Label(standings.Player?.CupCategory);
+        PlayerClassText = standings.Player is { CarClass: not AccCarClass.Unknown } player
+            ? StandingsClass.Label(player.CarClass)
+            : string.Empty;
 
         var competitors = standings.Competitors;
 
@@ -127,22 +131,22 @@ public sealed class StandingsPanelViewModel : OverlayPanelViewModel
 
         var shown = ordered.Take(_maxRows).ToList();
 
-        if (shown.Any(c => c.CupCategory is not null))
+        if (shown.Any(c => c.CarClass is not AccCarClass.Unknown))
         {
             var rowIndex = 0;
-            foreach (var category in StandingsClass.DisplayOrder)
+            foreach (var carClass in StandingsClass.DisplayOrder.Append(AccCarClass.Unknown))
             {
                 var members = shown
-                    .Where(c => c.CupCategory == category)
+                    .Where(c => c.CarClass == carClass)
                     .OrderBy(c => c.Position ?? int.MaxValue)
                     .ToList();
                 if (members.Count == 0) continue;
 
                 Items.Add(new StandingsClassHeader
                 {
-                    ClassLabel = StandingsClass.Label(category),
+                    ClassLabel = StandingsClass.Label(carClass),
                     CountText = members.Count.ToString(CultureInfo.InvariantCulture),
-                    Accent = StandingsClass.Accent(category)
+                    Accent = StandingsClass.Accent(carClass)
                 });
 
                 foreach (var car in members)
@@ -153,7 +157,7 @@ public sealed class StandingsPanelViewModel : OverlayPanelViewModel
         }
         else
         {
-            // Fallback: no class metadata at all, so show a single ungrouped list.
+            // Fallback: no vehicle-class metadata at all, so show a single ungrouped list.
             for (var i = 0; i < shown.Count; i++)
             {
                 Items.Add(BuildRow(shown[i], gapByCar, fieldBest, i));
@@ -181,6 +185,7 @@ public sealed class StandingsPanelViewModel : OverlayPanelViewModel
             Alternate = rowIndex % 2 == 1,
             RaceNumber = car.RaceNumber,
             Name = car.DisplayName,
+            RatingText = Display.DriverCategoryCode(car.DriverCategory),
             GapSeconds = gap.Seconds,
             GapText = gap.Text,
             FastestText = hasFastest ? Display.LapTimeMs(car.BestLapMs) : "--",
@@ -189,7 +194,7 @@ public sealed class StandingsPanelViewModel : OverlayPanelViewModel
                 : TimingState.Unavailable,
             LastText = hasLast ? Display.LapTimeMs(car.LastLapMs) : "--",
             LastState = hasLast ? TimingState.Normal : TimingState.Unavailable,
-            ClassAccent = StandingsClass.Accent(car.CupCategory)
+            ClassAccent = StandingsClass.Accent(car.CarClass)
         };
     }
 

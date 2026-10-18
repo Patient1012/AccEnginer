@@ -2,6 +2,7 @@ using AccEngineer.Telemetry;
 using AccEngineer.Telemetry.Broadcasting;
 using AccEngineer.UI.Overlay;
 using AccEngineer.UI.Overlay.Panels;
+using AccEngineer.UI.Services;
 using Xunit;
 
 namespace AccEngineer.UI.Tests;
@@ -22,9 +23,13 @@ public sealed class RelativePanelTests
 
     private static Competitor Car(
         ushort index, bool isPlayer, string? fullName, int? number, int position,
-        float spline, int laps, AccCupCategory? cup = null) =>
-        new(index, isPlayer, null, fullName, number, null, cup, AccCarLocation.Track,
-            position, position, laps, null, null, null, spline, 200);
+        float spline, int laps, byte? model = null, AccDriverCategory? category = null) =>
+        new(index, isPlayer, null, fullName, number, null, null, AccCarLocation.Track,
+            position, position, laps, null, null, null, spline, 200)
+        {
+            CarModelType = model,
+            DriverCategory = category
+        };
 
     private static TelemetrySample Sample(
         int? position = null, int? activeCars = null, float? airTempC = null, int playerId = 1) =>
@@ -54,9 +59,9 @@ public sealed class RelativePanelTests
             "Spa", 7004, 0f, 0, 1,
             new[]
             {
-                Car(1, true, "Player Name", 7, 1, 0.60f, 3, AccCupCategory.Overall),
-                Car(2, false, "Rival Ahead", 9, 2, 0.61f, 3, AccCupCategory.Am),
-                Car(3, false, "Rival Behind", 4, 3, 0.55f, 3, AccCupCategory.ProAm)
+                Car(1, true, "Player Name", 7, 1, 0.60f, 3),
+                Car(2, false, "Rival Ahead", 9, 2, 0.61f, 3),
+                Car(3, false, "Rival Behind", 4, 3, 0.55f, 3)
             },
             DateTimeOffset.UnixEpoch);
 
@@ -221,15 +226,15 @@ public sealed class RelativePanelTests
     // ---- Rows: identity, numbers, classes ------------------------------------
 
     [Fact]
-    public void Refresh_WithStandings_UsesRealNamesNumbersAndClasses()
+    public void Refresh_WithStandings_UsesRealNamesNumbersClassesAndRatings()
     {
         var standings = new CompetitorStandings(
             "Spa", 7004, 0f, 0, 5,
             new[]
             {
-                Car(5, true, "Player Name", 7, 6, 0.60f, 3, AccCupCategory.Overall),
-                Car(8, false, "Cam William", 14, 5, 0.61f, 3, AccCupCategory.Silver),
-                Car(2, false, "Wade Warren", 1, 7, 0.55f, 3, AccCupCategory.National)
+                Car(5, true, "Player Name", 7, 6, 0.60f, 3, model: 0, category: AccDriverCategory.Platinum),
+                Car(8, false, "Cam William", 14, 5, 0.61f, 3, model: 50, category: AccDriverCategory.Silver),
+                Car(2, false, "Wade Warren", 1, 7, 0.55f, 3)
             },
             DateTimeOffset.UnixEpoch);
 
@@ -239,16 +244,20 @@ public sealed class RelativePanelTests
 
         Assert.Equal("Player Name", vm.Rows[0].Name);
         Assert.Equal("#7", vm.Rows[0].CarNumberText);
-        Assert.Equal("", vm.Rows[0].ClassText);
+        Assert.Equal("GT3", vm.Rows[0].CarClassText);
+        Assert.Equal("PLT", vm.Rows[0].DriverCategoryText);
         Assert.True(vm.Rows[0].IsPlayer);
         Assert.Equal(6, vm.Rows[0].Position);
 
         Assert.Equal("Cam William", vm.Rows[1].Name);
         Assert.Equal("#14", vm.Rows[1].CarNumberText);
-        Assert.Equal("SIL", vm.Rows[1].ClassText);
+        Assert.Equal("GT4", vm.Rows[1].CarClassText);
+        Assert.Equal("SLV", vm.Rows[1].DriverCategoryText);
 
         Assert.Equal("#1", vm.Rows[2].CarNumberText);
-        Assert.Equal("NAT", vm.Rows[2].ClassText);
+        // No entry-list data for this car: both badges stay empty, never invented.
+        Assert.Equal("", vm.Rows[2].CarClassText);
+        Assert.Equal("", vm.Rows[2].DriverCategoryText);
     }
 
     [Fact]
@@ -268,14 +277,23 @@ public sealed class RelativePanelTests
     }
 
     [Theory]
-    [InlineData(AccCupCategory.Overall, "")]
+    [InlineData(AccCarClass.Gt3, "GT3")]
+    [InlineData(AccCarClass.Gt4, "GT4")]
+    [InlineData(AccCarClass.Gt2, "GT2")]
+    [InlineData(AccCarClass.Gtc, "GTC")]
+    [InlineData(AccCarClass.Tcx, "TCX")]
+    [InlineData(AccCarClass.Unknown, "")]
+    public void CarClassCode_MapsVehicleClassToBadge(AccCarClass carClass, string expected) =>
+        Assert.Equal(expected, Display.CarClassCode(carClass));
+
+    [Theory]
+    [InlineData(AccDriverCategory.Platinum, "PLT")]
+    [InlineData(AccDriverCategory.Gold, "GLD")]
+    [InlineData(AccDriverCategory.Silver, "SLV")]
+    [InlineData(AccDriverCategory.Bronze, "BRZ")]
     [InlineData(null, "")]
-    [InlineData(AccCupCategory.ProAm, "PA")]
-    [InlineData(AccCupCategory.Am, "AM")]
-    [InlineData(AccCupCategory.Silver, "SIL")]
-    [InlineData(AccCupCategory.National, "NAT")]
-    public void ClassCode_MapsCupCategoryToBadge(AccCupCategory? cup, string expected) =>
-        Assert.Equal(expected, RelativePanelViewModel.ClassCode(cup));
+    public void DriverCategoryCode_MapsCategoryToBadge(AccDriverCategory? category, string expected) =>
+        Assert.Equal(expected, Display.DriverCategoryCode(category));
 
     // ---- Header ----------------------------------------------------------------
 

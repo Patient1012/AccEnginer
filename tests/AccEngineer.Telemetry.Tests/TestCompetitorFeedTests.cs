@@ -63,6 +63,26 @@ public class TestCompetitorFeedTests
     }
 
     [Fact]
+    public void Snapshot_ExposesVehicleClassesAndDriverCategories()
+    {
+        // The feed mixes GT3 and GT4 cars and cycles all four driver tiers so the
+        // overlay's class grouping and rating badges have something to render.
+        var feed = new TestCompetitorFeed();
+
+        var standings = feed.Snapshot(T0);
+
+        var classes = standings.Competitors.Select(c => c.CarClass).Distinct().ToArray();
+        Assert.Contains(AccCarClass.Gt3, classes);
+        Assert.Contains(AccCarClass.Gt4, classes);
+
+        var categories = standings.Competitors.Select(c => c.DriverCategory).Distinct().ToArray();
+        Assert.Contains(AccDriverCategory.Bronze, categories);
+        Assert.Contains(AccDriverCategory.Silver, categories);
+        Assert.Contains(AccDriverCategory.Gold, categories);
+        Assert.Contains(AccDriverCategory.Platinum, categories);
+    }
+
+    [Fact]
     public void Snapshot_IsDeterministicForTheSameTime()
     {
         var feed = new TestCompetitorFeed();

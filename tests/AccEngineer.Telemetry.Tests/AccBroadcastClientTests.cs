@@ -132,6 +132,9 @@ public class AccBroadcastClientTests
             Assert.Equal("MP", leader.DriverShortName);
             Assert.Equal("Kunos Racing", leader.TeamName);
             Assert.Equal(AccCupCategory.ProAm, leader.CupCategory);
+            Assert.Equal((byte)0, leader.CarModelType);
+            Assert.Equal(AccCarClass.Gt3, leader.CarClass);
+            Assert.Equal(AccDriverCategory.Platinum, leader.DriverCategory);
             Assert.True(leader.IsPlayer);
             Assert.False(leader.IsInPit);
             Assert.Equal(98_000, leader.BestLapMs);
@@ -142,6 +145,9 @@ public class AccBroadcastClientTests
             Assert.False(second.IsPlayer);
             Assert.True(second.IsInPit);
             Assert.Equal("AO", second.DriverShortName);
+            Assert.Equal((byte)50, second.CarModelType);
+            Assert.Equal(AccCarClass.Gt4, second.CarClass);
+            Assert.Equal(AccDriverCategory.Silver, second.DriverCategory);
             Assert.NotNull(standings.Player);
             Assert.Equal(1, standings.Player!.CarIndex);
         }
@@ -165,6 +171,28 @@ public class AccBroadcastClientTests
 
             Assert.NotNull(standings);
             Assert.Equal(new ushort[] { 1, 2 }, standings!.Competitors.Select(c => c.CarIndex));
+        }
+    }
+
+    [Fact]
+    public void Snapshot_WithoutEntryListCar_LeavesModelAndCategoryUnknown()
+    {
+        // An entry-list id alone carries no vehicle or driver data; nothing may be invented.
+        var (client, transport, _) = Build();
+        using (client)
+        {
+            client.Poll();
+            transport.Receive(Datagrams.RegistrationResult(1, true, false));
+            transport.Receive(Datagrams.TrackData("spa", 11, 7004));
+            transport.Receive(Datagrams.EntryList(1, [1]));
+            transport.Receive(Datagrams.RealtimeUpdate(focusedCarIndex: 1));
+            transport.Receive(Datagrams.CarUpdate(carIndex: 1, position: 1, spline: 0.5f));
+            client.Poll();
+
+            var car = client.Snapshot()!.Competitors[0];
+            Assert.Null(car.CarModelType);
+            Assert.Null(car.DriverCategory);
+            Assert.Equal(AccCarClass.Unknown, car.CarClass);
         }
     }
 
@@ -225,8 +253,12 @@ public class AccBroadcastClientTests
         transport.Receive(Datagrams.RegistrationResult(1, true, false));
         transport.Receive(Datagrams.TrackData("spa", 11, 7004));
         transport.Receive(Datagrams.EntryList(1, [1, 2]));
-        transport.Receive(Datagrams.EntryListCar(1, "Kunos Racing", 42, AccCupCategory.ProAm, 0, [("Max", "Power", "MP")]));
-        transport.Receive(Datagrams.EntryListCar(2, "Rival Team", 7, AccCupCategory.Am, 0, [("Ann", "Other", "AO")]));
+        transport.Receive(Datagrams.EntryListCar(
+            1, "Kunos Racing", 42, AccCupCategory.ProAm, 0, [("Max", "Power", "MP")],
+            carModel: 0, driverCategory: AccDriverCategory.Platinum));
+        transport.Receive(Datagrams.EntryListCar(
+            2, "Rival Team", 7, AccCupCategory.Am, 0, [("Ann", "Other", "AO")],
+            carModel: 50, driverCategory: AccDriverCategory.Silver));
         transport.Receive(Datagrams.RealtimeUpdate(focusedCarIndex: 1));
         transport.Receive(Datagrams.CarUpdate(
             carIndex: 1, position: 1, spline: 0.5f, location: AccCarLocation.Track,
@@ -291,13 +323,16 @@ public class AccBroadcastClientTests
             return w.Bytes();
         }
 
-        public static byte[] EntryListCar(ushort carId, string team, int raceNumber, AccCupCategory cup, byte currentDriver, (string First, string Last, string Short)[] drivers)
+        public static byte[] EntryListCar(
+            ushort carId, string team, int raceNumber, AccCupCategory cup, byte currentDriver,
+            (string First, string Last, string Short)[] drivers,
+            byte carModel = 1, AccDriverCategory driverCategory = AccDriverCategory.Bronze)
         {
             var w = new Wire();
-            w.U8(6).U16(carId).U8(1).Str(team).I32(raceNumber).U8((byte)cup).U8(currentDriver).U16(24).U8((byte)drivers.Length);
+            w.U8(6).U16(carId).U8(carModel).Str(team).I32(raceNumber).U8((byte)cup).U8(currentDriver).U16(24).U8((byte)drivers.Length);
             foreach (var driver in drivers)
             {
-                w.Str(driver.First).Str(driver.Last).Str(driver.Short).U8(0).U16(24);
+                w.Str(driver.First).Str(driver.Last).Str(driver.Short).U8((byte)driverCategory).U16(24);
             }
 
             return w.Bytes();

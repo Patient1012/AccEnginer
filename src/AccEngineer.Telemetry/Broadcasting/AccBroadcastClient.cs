@@ -242,6 +242,7 @@ public sealed class AccBroadcastClient : IDisposable
                         TeamName = car.TeamName,
                         RaceNumber = car.RaceNumber,
                         CupCategory = car.CupCategory,
+                        CarModelType = car.CarModelType,
                         CurrentDriver = car.Drivers.Count > 0
                             ? car.Drivers[Math.Min(car.CurrentDriverIndex, car.Drivers.Count - 1)]
                             : null
@@ -351,7 +352,11 @@ public sealed class AccBroadcastClient : IDisposable
             BestLapMs: car?.BestLapMs,
             LastLapMs: car?.LastLapMs,
             SplinePosition: car?.SplinePosition ?? 0f,
-            SpeedKmh: car?.SpeedKmh);
+            SpeedKmh: car?.SpeedKmh)
+        {
+            CarModelType = entry?.CarModelType,
+            DriverCategory = driver?.Category
+        };
     }
 
     private static string? JoinName(AccBroadcastDriverInfo? driver)
@@ -388,6 +393,7 @@ public sealed class AccBroadcastClient : IDisposable
         public string TeamName = string.Empty;
         public int RaceNumber;
         public AccCupCategory CupCategory;
+        public byte? CarModelType;
         public AccBroadcastDriverInfo? CurrentDriver;
     }
 

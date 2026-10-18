@@ -47,6 +47,19 @@ public enum AccCupCategory : byte
     National = 4
 }
 
+/// <summary>
+/// Driver categorisation (<c>EntryListCar.drivers[].category</c>). Values match the
+/// Kunos server handbook's driver category list: Bronze = 0, Silver = 1,
+/// Gold = 2, Platinum = 3. This is the driver's tier, unrelated to the cup category.
+/// </summary>
+public enum AccDriverCategory : byte
+{
+    Bronze = 0,
+    Silver = 1,
+    Gold = 2,
+    Platinum = 3
+}
+
 /// <summary>Thrown when an inbound datagram is shorter than the message needs.</summary>
 public sealed class AccBroadcastFormatException : Exception
 {
@@ -135,7 +148,7 @@ public sealed record AccBroadcastDriverInfo(
     string FirstName,
     string LastName,
     string ShortName,
-    byte Category,
+    AccDriverCategory Category,
     ushort Nationality);
 
 /// <summary>
@@ -340,7 +353,7 @@ public static class AccBroadcastProtocol
             var first = r.ReadString();
             var last = r.ReadString();
             var shortName = r.ReadString();
-            var category = r.ReadByte();
+            var category = (AccDriverCategory)r.ReadByte();
             var driverNationality = r.ReadUInt16();
             drivers[i] = new AccBroadcastDriverInfo(first, last, shortName, category, driverNationality);
         }

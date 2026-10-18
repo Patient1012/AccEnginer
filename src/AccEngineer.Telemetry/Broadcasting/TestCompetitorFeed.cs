@@ -88,7 +88,12 @@ public sealed class TestCompetitorFeed
                 // Signed, half-lap-wrapped time gap to the player (negative = ahead),
                 // in whole milliseconds so both cars ahead and behind display as
                 // plausible seconds rather than lap fractions.
-                RelativeTimeGapMs = relativeTimeGapMs
+                RelativeTimeGapMs = relativeTimeGapMs,
+                // Mixed field for the overlay's class grouping: every fifth car is a
+                // GT4 (A110 GT4), the rest GT3 (991 GT3 R). Driver categories cycle
+                // Bronze..Platinum so the rating column shows every badge.
+                CarModelType = (byte)(i % 5 == 0 ? 50 : 0),
+                DriverCategory = (AccDriverCategory)((i - 1) % 4)
             });
         }
 

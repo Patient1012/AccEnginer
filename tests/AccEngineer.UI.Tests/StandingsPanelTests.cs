@@ -31,12 +31,15 @@ public sealed class StandingsPanelTests
         int laps,
         int? bestLapMs = null,
         int? lastLapMs = null,
-        AccCupCategory? cup = null,
+        byte? model = null,
+        AccDriverCategory? category = null,
         AccCarLocation location = AccCarLocation.Track,
         int? relativeTimeGapMs = null) =>
-        new(index, isPlayer, name, null, number, null, cup, location,
+        new(index, isPlayer, name, null, number, null, null, location,
             position, position, laps, null, bestLapMs, lastLapMs, spline, 200)
         {
+            CarModelType = model,
+            DriverCategory = category,
             RelativeTimeGapMs = relativeTimeGapMs
         };
 
@@ -83,8 +86,10 @@ public sealed class StandingsPanelTests
             "Spa", 7004, 3_725_000f, 0, 1,
             new[]
             {
-                Car(1, true, "Player", 7, 1, 0.60f, 3, bestLapMs: 100_000, lastLapMs: 101_000, cup: AccCupCategory.Overall),
-                Car(2, false, "Rival", 9, 2, 0.50f, 3, bestLapMs: 101_000, lastLapMs: 102_000, cup: AccCupCategory.Overall)
+                Car(1, true, "Player", 7, 1, 0.60f, 3, bestLapMs: 100_000, lastLapMs: 101_000,
+                    model: 0, category: AccDriverCategory.Platinum),
+                Car(2, false, "Rival", 9, 2, 0.50f, 3, bestLapMs: 101_000, lastLapMs: 102_000,
+                    model: 0, category: AccDriverCategory.Silver)
             },
             DateTimeOffset.UnixEpoch);
 
@@ -96,7 +101,7 @@ public sealed class StandingsPanelTests
         Assert.Equal("1:02:05", vm.SessionTimerText);
         Assert.Equal("RACE  ·  Spa", vm.SessionContextText);
         Assert.Equal("P1", vm.PlayerPositionText);
-        Assert.Equal("OVERALL", vm.PlayerClassText);
+        Assert.Equal("GT3", vm.PlayerClassText);
 
         var rows = Rows(vm);
         Assert.Equal(2, rows.Count);
@@ -104,6 +109,7 @@ public sealed class StandingsPanelTests
         Assert.Equal("1", rows[0].PositionText);
         Assert.Equal("Player", rows[0].Name);
         Assert.Equal("7", rows[0].NumberText);
+        Assert.Equal("PLT", rows[0].RatingText);
         Assert.True(rows[0].IsPlayer);
         Assert.Equal("--", rows[0].GapText);
         Assert.Null(rows[0].GapSeconds);
@@ -111,6 +117,7 @@ public sealed class StandingsPanelTests
         Assert.Equal(TimingState.SessionBest, rows[0].FastestState);
 
         Assert.Equal("Rival", rows[1].Name);
+        Assert.Equal("SLV", rows[1].RatingText);
         // 0.10 lap = 700.4 m from the car ahead at 50 m/s = 14.008 s.
         Assert.Equal(14.008, rows[1].GapSeconds!.Value, 3);
         Assert.Equal("+14.008", rows[1].GapText);
@@ -252,37 +259,38 @@ public sealed class StandingsPanelTests
     // ---- Class grouping ------------------------------------------------------
 
     [Fact]
-    public void Refresh_GroupsByCupCategory_InDisplayOrder()
+    public void Refresh_GroupsByCarClass_InDisplayOrder()
     {
         var standings = new CompetitorStandings(
             "Spa", 7004, 0f, 0, 1,
             new[]
             {
                 // Deliberately shuffled and mixed so grouping (not source order) decides layout.
-                Car(1, false, "AmOne", 1, 3, 0.50f, 3, cup: AccCupCategory.Am),
-                Car(2, true, "ProAmOne", 2, 1, 0.70f, 3, cup: AccCupCategory.ProAm),
-                Car(3, false, "AmTwo", 3, 2, 0.60f, 3, cup: AccCupCategory.Am)
+                Car(1, false, "AmOne", 1, 3, 0.50f, 3, model: 0),
+                Car(2, true, "Gt4One", 2, 1, 0.70f, 3, model: 50),
+                Car(3, false, "AmTwo", 3, 2, 0.60f, 3, model: 0)
             },
             DateTimeOffset.UnixEpoch);
 
         using var vm = new StandingsPanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
 
         var headers = vm.Items.OfType<StandingsClassHeader>().ToList();
-        Assert.Equal(new[] { "PRO-AM", "AM" }, headers.Select(h => h.ClassLabel));
-        Assert.Equal(new[] { "1", "2" }, headers.Select(h => h.CountText));
+        Assert.Equal(new[] { "GT3", "GT4" }, headers.Select(h => h.ClassLabel));
+        Assert.Equal(new[] { "2", "1" }, headers.Select(h => h.CountText));
 
         // Rows appear under their own header, contiguous.
         Assert.IsType<StandingsClassHeader>(vm.Items[0]);
-        Assert.Equal("ProAmOne", ((StandingsRow)vm.Items[1]).Name);
-        Assert.IsType<StandingsClassHeader>(vm.Items[2]);
         // Within a group rows keep classified order (AmTwo is P2, AmOne is P3).
-        Assert.Equal("AmTwo", ((StandingsRow)vm.Items[3]).Name);
-        Assert.Equal("AmOne", ((StandingsRow)vm.Items[4]).Name);
+        Assert.Equal("AmTwo", ((StandingsRow)vm.Items[1]).Name);
+        Assert.Equal("AmOne", ((StandingsRow)vm.Items[2]).Name);
+        Assert.IsType<StandingsClassHeader>(vm.Items[3]);
+        Assert.Equal("Gt4One", ((StandingsRow)vm.Items[4]).Name);
     }
 
     [Fact]
     public void Refresh_WithNoClassMetadata_FallsBackToFlatList()
     {
+        // Cars with no entry-list model id all classify as Unknown → one flat list, no headers.
         var standings = new CompetitorStandings(
             "Spa", 7004, 0f, 0, 1,
             new[]

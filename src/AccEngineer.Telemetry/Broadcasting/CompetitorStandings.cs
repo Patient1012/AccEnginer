@@ -41,6 +41,26 @@ public sealed record Competitor(
     /// gaps, so it stays null and the overlay falls back to a pace-profile estimate.
     /// </summary>
     public int? RelativeTimeGapMs { get; init; }
+
+    /// <summary>
+    /// ACC car model id from the broadcast entry list (the same id space as the Kunos
+    /// server handbook's car model list). Null when the entry list has not reported the
+    /// car yet — never defaulted, so <see cref="CarClass"/> stays unknown without data.
+    /// </summary>
+    public byte? CarModelType { get; init; }
+
+    /// <summary>
+    /// Categorisation of the current driver (Bronze/Silver/Gold/Platinum) from the
+    /// broadcast entry list. Null when the entry list has not reported the driver.
+    /// This is the driver's tier; it is not the safety rating, which ACC exposes to no
+    /// telemetry API.
+    /// </summary>
+    public AccDriverCategory? DriverCategory { get; init; }
+
+    /// <summary>Vehicle class (GT3/GT4/...) derived from <see cref="CarModelType"/>,
+    /// or unknown when the model id is missing or undocumented.</summary>
+    public AccCarClass CarClass =>
+        CarModelType is { } modelId ? AccCarModelCatalog.ClassOf(modelId) : AccCarClass.Unknown;
 }
 
 /// <summary>

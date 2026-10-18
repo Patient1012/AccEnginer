@@ -38,6 +38,10 @@ public sealed class StandingsRow : StandingsListItem
     /// <summary>Driver name, or an explicit unavailable placeholder. Never invented.</summary>
     public string Name { get; init; } = "--";
 
+    /// <summary>Driver-category badge text ("PLT"/"GLD"/"SLV"/"BRZ"); the driver's
+    /// Bronze..Platinum tier. Empty when the entry list has not reported it.</summary>
+    public string RatingText { get; init; } = string.Empty;
+
     /// <summary>Signed interval to the car ahead in seconds (positive: the car trails
     /// its predecessor), null for the leader, for laps-down markers and when the source
     /// cannot support a value. The distance behind this value is intentionally not stored.</summary>

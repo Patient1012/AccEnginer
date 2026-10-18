@@ -7,13 +7,14 @@
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
 
         <!-- Panel-local design constants for the broadcast leaderboard language:
-             the position block, car-number block, class badge and player highlight
-             are fixed by the design; the surface/text/separator colours track the
-             active theme through the shared Overlay* brush aliases. -->
+             the position block, car-number block, class/rating badges and player
+             highlight are fixed by the design; the surface/text/separator colours
+             track the active theme through the shared Overlay* brush aliases. -->
         <SolidColorBrush x:Key="RelPositionCellBrush" Color="#FFF4F4F4" />
         <SolidColorBrush x:Key="RelPositionTextBrush" Color="#FF101010" />
         <SolidColorBrush x:Key="RelBadgeBrush" Color="#FF2387E8" />
         <SolidColorBrush x:Key="RelBadgeTextBrush" Color="#FFFFFFFF" />
+        <SolidColorBrush x:Key="RelRatingBrush" Color="#FF44546A" />
         <SolidColorBrush x:Key="RelPlayerNameBrush" Color="#FFF0C400" />
 
         <!-- Row: consistent height, thin low-contrast separator, square corners. -->
@@ -62,7 +63,7 @@
             </Style.Triggers>
         </Style>
 
-        <!-- Cup-class badge: compact blue block, omitted cleanly when unknown. -->
+        <!-- Vehicle-class badge (GT3/GT4/...): compact blue block, collapsed when unknown. -->
         <Style x:Key="RelClassBadge" TargetType="Border">
             <Setter Property="Background" Value="{StaticResource RelBadgeBrush}" />
             <Setter Property="CornerRadius" Value="2" />
@@ -72,12 +73,36 @@
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="HorizontalAlignment" Value="Center" />
             <Style.Triggers>
-                <DataTrigger Binding="{Binding ClassText}" Value="">
+                <DataTrigger Binding="{Binding CarClassText}" Value="">
                     <Setter Property="Visibility" Value="Collapsed" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
         <Style x:Key="RelClassText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="9.5" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{StaticResource RelBadgeTextBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Driver-category badge (PLT/GLD/SLV/BRZ): compact slate block, collapsed
+             when the entry list has not reported the driver's category. -->
+        <Style x:Key="RelRatingBadge" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource RelRatingBrush}" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="Height" Value="15" />
+            <Setter Property="MinWidth" Value="28" />
+            <Setter Property="Padding" Value="4,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DriverCategoryText}" Value="">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="RelRatingText" TargetType="TextBlock">
             <Setter Property="FontSize" Value="9.5" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="Foreground" Value="{StaticResource RelBadgeTextBrush}" />
@@ -167,6 +192,8 @@
                                         </ColumnDefinition.Style>
                                     </ColumnDefinition>
                                     <ColumnDefinition Width="34" />
+                                    <ColumnDefinition Width="2" />
+                                    <ColumnDefinition Width="28" />
                                     <ColumnDefinition Width="4" />
                                     <ColumnDefinition Width="56">
                                         <ColumnDefinition.Style>
@@ -194,10 +221,14 @@
                                            Visibility="{Binding DataContext.ShowNameColumn, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}" />
 
                                 <Border Grid.Column="5" Style="{StaticResource RelClassBadge}">
-                                    <TextBlock Text="{Binding ClassText}" Style="{StaticResource RelClassText}" />
+                                    <TextBlock Text="{Binding CarClassText}" Style="{StaticResource RelClassText}" />
                                 </Border>
 
-                                <TextBlock Grid.Column="7" Text="{Binding GapText}" Style="{StaticResource RelGapText}"
+                                <Border Grid.Column="7" Style="{StaticResource RelRatingBadge}">
+                                    <TextBlock Text="{Binding DriverCategoryText}" Style="{StaticResource RelRatingText}" />
+                                </Border>
+
+                                <TextBlock Grid.Column="9" Text="{Binding GapText}" Style="{StaticResource RelGapText}"
                                            Visibility="{Binding DataContext.ShowGapColumn, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}" />
                             </Grid>
                         </Border>

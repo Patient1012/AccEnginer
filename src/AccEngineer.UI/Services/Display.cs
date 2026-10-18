@@ -1,4 +1,5 @@
 using System.Globalization;
+using AccEngineer.Telemetry.Broadcasting;
 
 namespace AccEngineer.UI.Services;
 
@@ -47,6 +48,34 @@ public static class Display
     /// </summary>
     public static string RelativeGapSeconds(double? seconds) =>
         seconds is not { } value ? "--" : value.ToString("+0.000;-0.000;0.000", Inv);
+
+    /// <summary>
+    /// Compact badge text for a car's vehicle class (<c>GT3</c>/<c>GT4</c>/<c>GT2</c>/
+    /// <c>GTC</c>/<c>TCX</c>). Unknown classes read empty so the badge collapses instead
+    /// of inventing a class.
+    /// </summary>
+    public static string CarClassCode(AccCarClass carClass) => carClass switch
+    {
+        AccCarClass.Gt3 => "GT3",
+        AccCarClass.Gt4 => "GT4",
+        AccCarClass.Gt2 => "GT2",
+        AccCarClass.Gtc => "GTC",
+        AccCarClass.Tcx => "TCX",
+        _ => string.Empty
+    };
+
+    /// <summary>
+    /// Compact badge text for a driver's category (<c>PLT</c>/<c>GLD</c>/<c>SLV</c>/
+    /// <c>BRZ</c>). Unknown categories read empty so the badge collapses.
+    /// </summary>
+    public static string DriverCategoryCode(AccDriverCategory? category) => category switch
+    {
+        AccDriverCategory.Platinum => "PLT",
+        AccDriverCategory.Gold => "GLD",
+        AccDriverCategory.Silver => "SLV",
+        AccDriverCategory.Bronze => "BRZ",
+        _ => string.Empty
+    };
 
     public static string Number(double? value, string format = "0.0") =>
         value is null ? Missing : value.Value.ToString(format, Inv);

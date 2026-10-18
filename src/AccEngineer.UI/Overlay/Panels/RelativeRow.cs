@@ -17,9 +17,13 @@ public sealed class RelativeRow
     /// <summary>Driver name from broadcasting, or "CAR nn" for the projection fallback.</summary>
     public string Name { get; init; } = "--";
 
-    /// <summary>Cup-class badge text ("PA"/"AM"/"SIL"/"NAT"). Empty means no badge,
-    /// which keeps the column aligned without inventing ratings.</summary>
-    public string ClassText { get; init; } = string.Empty;
+    /// <summary>Vehicle-class badge text ("GT3"/"GT4"/...). Empty means no badge,
+    /// which keeps the column aligned without inventing a class.</summary>
+    public string CarClassText { get; init; } = string.Empty;
+
+    /// <summary>Driver-category badge text ("PLT"/"GLD"/"SLV"/"BRZ"). Empty means no
+    /// badge, which keeps the column aligned without inventing a rating.</summary>
+    public string DriverCategoryText { get; init; } = string.Empty;
 
     /// <summary>Signed time gap to the player in seconds: positive when the car is
     /// behind the player, negative when ahead, exactly 0 on the player row. Null when

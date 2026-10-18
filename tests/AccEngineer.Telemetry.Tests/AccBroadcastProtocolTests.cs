@@ -175,8 +175,8 @@ public class AccBroadcastProtocolTests
             .U8(1)                // current driver index
             .U16(24)              // nationality
             .U8(2);               // two drivers
-        w.Str("Max").Str("Power").Str("MP").U8(1).U16(24);
-        w.Str("Ann").Str("Other").Str("AO").U8(2).U16(99);
+        w.Str("Max").Str("Power").Str("MP").U8(1).U16(24);  // category: Silver
+        w.Str("Ann").Str("Other").Str("AO").U8(2).U16(99);  // category: Gold
 
         var car = Assert.IsType<AccBroadcastEntryListCar>(AccBroadcastProtocol.Parse(w.Bytes()));
 
@@ -188,7 +188,9 @@ public class AccBroadcastProtocolTests
         Assert.Equal(2, car.Drivers.Count);
         Assert.Equal("Max", car.Drivers[0].FirstName);
         Assert.Equal("Power", car.Drivers[0].LastName);
+        Assert.Equal(AccDriverCategory.Silver, car.Drivers[0].Category);
         Assert.Equal("AO", car.Drivers[1].ShortName);
+        Assert.Equal(AccDriverCategory.Gold, car.Drivers[1].Category);
         Assert.Equal(99, car.Drivers[1].Nationality);
     }
 

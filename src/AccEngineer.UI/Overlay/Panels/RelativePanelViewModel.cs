@@ -14,10 +14,10 @@ namespace AccEngineer.UI.Overlay.Panels;
 /// used directly; the real ACC Broadcasting API reports none, so live gaps are an
 /// estimate obtained by integrating the player's own recent pace over the distance
 /// derived from spline positions wrapped to the nearest lap position (see
-/// <see cref="TrackPaceProfile"/>). Names, race numbers, cup classes and the official
-/// ordering come from broadcasting when it is connected; without it the panel falls
-/// back to projecting cars onto the player's recent driven line, where names are the
-/// explicit "CAR nn" placeholders.
+/// <see cref="TrackPaceProfile"/>). Names, race numbers, vehicle classes, driver
+/// categories and the official ordering come from broadcasting when it is connected;
+/// without it the panel falls back to projecting cars onto the player's recent driven
+/// line, where names are the explicit "CAR nn" placeholders.
 /// </summary>
 public sealed class RelativePanelViewModel : OverlayPanelViewModel
 {
@@ -174,7 +174,8 @@ public sealed class RelativePanelViewModel : OverlayPanelViewModel
                 Position = car.Position ?? i + 1,
                 CarNumberText = car.RaceNumber is { } raceNumber and > 0 ? "#" + raceNumber : string.Empty,
                 Name = DisplayName(car),
-                ClassText = ClassCode(car.CupCategory),
+                CarClassText = Display.CarClassCode(car.CarClass),
+                DriverCategoryText = Display.DriverCategoryCode(car.DriverCategory),
                 GapSeconds = gapSeconds,
                 GapText = Display.RelativeGapSeconds(gapSeconds)
             });
@@ -318,15 +319,4 @@ public sealed class RelativePanelViewModel : OverlayPanelViewModel
         !string.IsNullOrWhiteSpace(car.DriverFullName) ? car.DriverFullName!
         : !string.IsNullOrWhiteSpace(car.DriverShortName) ? car.DriverShortName!
         : $"CAR {car.CarIndex:00}";
-
-    /// <summary>Cup class as a compact badge code. Overall and unknown categories map
-    /// to an empty badge: the data model has no driver ratings, so nothing is invented.</summary>
-    public static string ClassCode(AccCupCategory? category) => category switch
-    {
-        AccCupCategory.ProAm => "PA",
-        AccCupCategory.Am => "AM",
-        AccCupCategory.Silver => "SIL",
-        AccCupCategory.National => "NAT",
-        _ => string.Empty
-    };
 }
