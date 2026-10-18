@@ -126,6 +126,20 @@ public class TestCompetitorFeedTests
     }
 
     [Fact]
+    public void Snapshot_OrdersCompetitorsByOfficialPosition()
+    {
+        // CompetitorStandings' contract is classified order (unclassified last), which
+        // the relative panel relies on to window rows around the player. The feed must
+        // honour it just like the ACC client does.
+        var feed = new TestCompetitorFeed();
+
+        var standings = feed.Snapshot(T0);
+
+        var positions = standings.Competitors.Select(c => c.Position!.Value).ToArray();
+        Assert.Equal(positions.OrderBy(p => p).ToArray(), positions);
+    }
+
+    [Fact]
     public void Snapshot_PlacesSomeCarsInThePit()
     {
         var feed = new TestCompetitorFeed(carCount: 8);

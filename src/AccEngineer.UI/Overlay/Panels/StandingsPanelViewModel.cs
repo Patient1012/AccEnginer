@@ -102,9 +102,9 @@ public sealed class StandingsPanelViewModel : OverlayPanelViewModel
             }
         }
 
-        // Official running order. The source list is not guaranteed to be classified order
-        // (the test feed is car-index ordered), so sort by class position, keeping the
-        // original order as a stable tie-break.
+        // Official running order, sorted defensively: sources are contracted to send
+        // classified order (the ACC client and the test feed both do), so this is a
+        // no-op for well-behaved sources but keeps the tower correct regardless.
         var ordered = competitors
             .Select((car, index) => (Car: car, Index: index))
             .OrderBy(t => t.Car.Position ?? int.MaxValue)

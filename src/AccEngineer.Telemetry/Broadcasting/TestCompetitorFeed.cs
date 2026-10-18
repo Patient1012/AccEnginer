@@ -53,9 +53,12 @@ public sealed class TestCompetitorFeed
             positions[order[rank]] = rank + 1;
         }
 
+        // Emit in official running order: CompetitorStandings' contract is that the
+        // list is classified position-first (matching the ACC client), and consumers
+        // such as the relative panel window their rows directly off that order.
         var playerDistance = distances[focusedCarIndex];
         var competitors = new List<Competitor>(_carCount);
-        for (var i = 1; i <= _carCount; i++)
+        foreach (var i in order)
         {
             var distance = distances[i];
             var laps = (int)Math.Floor(distance);
