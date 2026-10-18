@@ -38,7 +38,13 @@ public sealed class StandingsRow : StandingsListItem
     /// <summary>Driver name, or an explicit unavailable placeholder. Never invented.</summary>
     public string Name { get; init; } = "--";
 
-    /// <summary>Interval to the car ahead: a metre estimate or a laps-down marker; "--" when unknown.</summary>
+    /// <summary>Signed interval to the car ahead in seconds (positive: the car trails
+    /// its predecessor), null for the leader, for laps-down markers and when the source
+    /// cannot support a value. The distance behind this value is intentionally not stored.</summary>
+    public double? GapSeconds { get; init; }
+
+    /// <summary>Display text for <see cref="GapSeconds"/> from the shared formatter
+    /// (<c>+1.408</c>/<c>--</c>), or a <c>+1L</c> laps-down marker.</summary>
     public string GapText { get; init; } = "--";
 
     /// <summary>Best lap for this driver, or "--".</summary>

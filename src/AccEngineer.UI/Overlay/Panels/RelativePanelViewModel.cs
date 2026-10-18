@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
+using AccEngineer.Analysis.Telemetry;
 using AccEngineer.Telemetry;
 using AccEngineer.Telemetry.Broadcasting;
 using AccEngineer.UI.Services;
@@ -7,12 +8,16 @@ using AccEngineer.UI.Services;
 namespace AccEngineer.UI.Overlay.Panels;
 
 /// <summary>
-/// Compact broadcast-style relative leaderboard. When the ACC Broadcasting API is
-/// connected the names, race numbers, cup classes and official ordering come from it,
-/// and each gap is a signed proximity distance in metres derived from spline positions
-/// wrapped to the nearest lap position (ACC does not broadcast official time gaps).
-/// Without broadcasting the panel falls back to projecting cars onto the player's
-/// recent driven line, in which case names are the explicit "CAR nn" placeholders.
+/// Compact broadcast-style relative leaderboard. Gaps are signed time gaps in seconds
+/// (behind the player is positive, ahead is negative, the player reads 0.000). When a
+/// source genuinely knows the time gap — the deterministic test feed — that value is
+/// used directly; the real ACC Broadcasting API reports none, so live gaps are an
+/// estimate obtained by integrating the player's own recent pace over the distance
+/// derived from spline positions wrapped to the nearest lap position (see
+/// <see cref="TrackPaceProfile"/>). Names, race numbers, cup classes and the official
+/// ordering come from broadcasting when it is connected; without it the panel falls
+/// back to projecting cars onto the player's recent driven line, where names are the
+/// explicit "CAR nn" placeholders.
 /// </summary>
 public sealed class RelativePanelViewModel : OverlayPanelViewModel
 {
@@ -22,6 +27,11 @@ public sealed class RelativePanelViewModel : OverlayPanelViewModel
     /// kilometres; the broken values in the wild were hundreds of thousands of metres,
     /// so anything beyond this is rejected rather than displayed.</summary>
     internal const double MaxPlausibleTrackMeters = 50_000;
+
+    /// <summary>Sanity bound for a reported time gap (ten minutes — far wider than any
+    /// real half-lap wrap, so only corrupt values are rejected). Beyond it the gap
+    /// reads "--" instead of a wild number.</summary>
+    internal const int MaxPlausibleGapMs = 600_000;
 
     private int _maxRows = 8;
 
@@ -86,27 +96,32 @@ public sealed class RelativePanelViewModel : OverlayPanelViewModel
             ? position.ToString(CultureInfo.InvariantCulture) + "/" + activeCars.ToString(CultureInfo.InvariantCulture)
             : string.Empty;
 
+        // Pace profile for distance→time conversion, built once per tick from the same
+        // recent window the line projection uses. Null when history is too short, in
+        // which case gaps fall back to "--" rather than a fabricated number.
+        var profile = TrackPaceProfile.Build(Telemetry.Recent(LinePoints));
+
         // Prefer the ACC Broadcasting API: it is the only source of opponent names,
         // race numbers, cup classes and the official running order.
         if (Telemetry.Standings is { Competitors.Count: > 0 } standings
-            && TryBuildFromStandings(standings))
+            && TryBuildFromStandings(standings, profile))
         {
             OnAllPropertiesChanged();
             return;
         }
 
-        BuildFromProjection(sample);
+        BuildFromProjection(sample, profile);
         OnAllPropertiesChanged();
     }
 
     /// <summary>
     /// Builds the nearby list from broadcast standings: a window of cars centred on the
     /// player, ordered as the game reports, with names/numbers/classes from the API and
-    /// signed metre proximity gaps derived from spline positions. Returns false when
-    /// the player's car is not present in the feed so the caller can fall back to
-    /// line projection.
+    /// signed time gaps — the feed's genuine value when it reports one, otherwise an
+    /// estimate from the player's pace profile. Returns false when the player's car is
+    /// not present in the feed so the caller can fall back to line projection.
     /// </summary>
-    private bool TryBuildFromStandings(CompetitorStandings standings)
+    private bool TryBuildFromStandings(CompetitorStandings standings, TrackPaceProfile? profile)
     {
         var competitors = standings.Competitors;
         var playerIndex = -1;
@@ -122,6 +137,9 @@ public sealed class RelativePanelViewModel : OverlayPanelViewModel
         var playerHasLaps = player.LapCount is not null;
         var playerSplineValid = player.SplinePosition is >= 0f and <= 1f;
         var playerCum = player.LapCount is { } playerLaps ? playerLaps + player.SplinePosition : 0d;
+        var playerProgressMeters = playerSplineValid && trackMeters > 0
+            ? player.SplinePosition * trackMeters
+            : 0d;
 
         var start = Math.Clamp(playerIndex - _maxRows / 2, 0, Math.Max(0, competitors.Count - _maxRows));
         var end = Math.Min(competitors.Count, start + _maxRows);
@@ -147,6 +165,8 @@ public sealed class RelativePanelViewModel : OverlayPanelViewModel
                 deltaMeters = deltaLaps * trackMeters;
             }
 
+            var gapSeconds = isPlayer ? 0d : GapSecondsFor(car, deltaMeters, playerProgressMeters, trackMeters, profile);
+
             Rows.Add(new RelativeRow
             {
                 CarId = car.CarIndex,
@@ -155,7 +175,8 @@ public sealed class RelativePanelViewModel : OverlayPanelViewModel
                 CarNumberText = car.RaceNumber is { } raceNumber and > 0 ? "#" + raceNumber : string.Empty,
                 Name = DisplayName(car),
                 ClassText = ClassCode(car.CupCategory),
-                GapText = FormatGap(deltaMeters, isPlayer)
+                GapSeconds = gapSeconds,
+                GapText = Display.RelativeGapSeconds(gapSeconds)
             });
         }
 
@@ -163,12 +184,53 @@ public sealed class RelativePanelViewModel : OverlayPanelViewModel
     }
 
     /// <summary>
-    /// Fallback when broadcasting is off: project each car onto the player's recent
-    /// driven line, take the cars nearest the player and show signed metre gaps to
-    /// them. Names are the explicit "CAR nn" placeholders; race numbers and cup
-    /// classes are unknown so those cells stay empty.
+    /// Signed time gap for one car, in seconds with the panel's convention (behind is
+    /// positive, ahead is negative). Preference order: the source's genuine time gap
+    /// (the test feed reports one, real ACC does not), then an estimate that integrates
+    /// the player's recent pace over the wrapped distance, then null → "--".
     /// </summary>
-    private void BuildFromProjection(TelemetrySample sample)
+    internal static double? GapSecondsFor(
+        Competitor car, double? deltaMeters, double playerProgressMeters, double trackMeters, TrackPaceProfile? profile)
+    {
+        // Genuine source value: trusted within a generous plausibility bound so a
+        // corrupt feed shows "--" instead of a wild number.
+        if (car.RelativeTimeGapMs is { } reportedMs
+            && reportedMs is >= -MaxPlausibleGapMs and <= MaxPlausibleGapMs)
+        {
+            return reportedMs / 1000d;
+        }
+
+        return EstimateGapSeconds(profile, deltaMeters, playerProgressMeters, trackMeters);
+    }
+
+    /// <summary>
+    /// Converts a wrapped distance gap (positive = further along the lap than the
+    /// reference point) into a signed time gap using the pace profile: the duration
+    /// comes back non-negative from the integral, and the sign follows the panel's
+    /// convention (ahead → negative). Null when there is no usable profile or the
+    /// source data was already rejected upstream.
+    /// </summary>
+    internal static double? EstimateGapSeconds(
+        TrackPaceProfile? profile, double? deltaMeters, double fromProgressMeters, double lapMeters)
+    {
+        if (profile is null || deltaMeters is not { } metres) return null;
+
+        var duration = profile.TimeDeltaSeconds(fromProgressMeters, metres, lapMeters > 0 ? lapMeters : null);
+        if (duration is not { } seconds) return null;
+
+        if (metres > 0) return -seconds;
+        if (metres < 0) return seconds;
+        return 0d;
+    }
+
+    /// <summary>
+    /// Fallback when broadcasting is off: project each car onto the player's recent
+    /// driven line, take the cars nearest the player and show signed time gaps to them
+    /// via the same pace profile (with no broadcast track length to wrap against).
+    /// Names are the explicit "CAR nn" placeholders; race numbers and cup classes are
+    /// unknown so those cells stay empty.
+    /// </summary>
+    private void BuildFromProjection(TelemetrySample sample, TrackPaceProfile? profile)
     {
         var cars = sample.CarsOnTrack;
         if (cars is not { Count: > 0 })
@@ -225,13 +287,17 @@ public sealed class RelativePanelViewModel : OverlayPanelViewModel
         {
             var entry = window[i];
             double? deltaMeters = entry.Progress is { } progress ? progress - playerAt : null;
+            var gapSeconds = entry.IsPlayer
+                ? 0d
+                : EstimateGapSeconds(profile, deltaMeters, playerAt, lapMeters: 0d);
             Rows.Add(new RelativeRow
             {
                 CarId = entry.CarId,
                 IsPlayer = entry.IsPlayer,
                 Position = i + 1,
                 Name = $"CAR {entry.CarId:00}",
-                GapText = FormatGap(deltaMeters, entry.IsPlayer)
+                GapSeconds = gapSeconds,
+                GapText = Display.RelativeGapSeconds(gapSeconds)
             });
         }
     }
@@ -245,18 +311,6 @@ public sealed class RelativePanelViewModel : OverlayPanelViewModel
     /// equivalent position on the lap.</summary>
     internal static double WrapToHalfLap(double deltaLaps) =>
         deltaLaps - Math.Floor(deltaLaps + 0.5);
-
-    /// <summary>Formats a signed proximity distance. Negative means the car is ahead
-    /// (further along the lap). The player's own row reads "0.0"; sub-metre
-    /// differences read "0.0"; unavailable gaps read "--".</summary>
-    internal static string FormatGap(double? deltaMeters, bool isPlayer)
-    {
-        if (isPlayer) return "0.0";
-        if (deltaMeters is not { } delta) return "--";
-        if (Math.Abs(delta) < 0.5) return "0.0";
-        var sign = delta >= 0 ? "-" : "+";
-        return sign + Math.Abs(delta).ToString("0", CultureInfo.InvariantCulture) + " m";
-    }
 
     /// <summary>Best available name: full broadcast name first (the primary element
     /// the eye lands on), then short name, then the explicit placeholder.</summary>

@@ -21,7 +21,13 @@ public sealed class RelativeRow
     /// which keeps the column aligned without inventing ratings.</summary>
     public string ClassText { get; init; } = string.Empty;
 
-    /// <summary>Signed proximity distance in metres to the player ("0.0" on the player
-    /// row, "--" when it cannot be derived).</summary>
+    /// <summary>Signed time gap to the player in seconds: positive when the car is
+    /// behind the player, negative when ahead, exactly 0 on the player row. Null when
+    /// the source cannot support a value (never a fabricated number). The distance
+    /// behind this value is intentionally not stored — the column displays time.</summary>
+    public double? GapSeconds { get; init; }
+
+    /// <summary>Display text for <see cref="GapSeconds"/> from the shared formatter
+    /// (<c>+0.842</c>/<c>-1.275</c>/<c>0.000</c>/<c>--</c>).</summary>
     public string GapText { get; init; } = "--";
 }

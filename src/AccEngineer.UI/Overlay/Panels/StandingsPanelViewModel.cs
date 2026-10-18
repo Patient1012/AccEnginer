@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
+using AccEngineer.Analysis.Telemetry;
 using AccEngineer.Telemetry;
 using AccEngineer.Telemetry.Broadcasting;
 using AccEngineer.UI.Overlay.Controls;
@@ -9,10 +10,12 @@ namespace AccEngineer.UI.Overlay.Panels;
 
 /// <summary>
 /// Full-field standings tower. Names, race numbers, class categories and order come from
-/// the ACC Broadcasting API; the interval column is a metre estimate derived from each
-/// car's spline position and the track length (ACC does not broadcast official time gaps),
-/// so it is labelled as an estimate. When broadcasting is unavailable the panel shows the
-/// explicit reason rather than inventing driver names, gaps or lap times.
+/// the ACC Broadcasting API; the interval column shows signed seconds and is labelled as
+/// an estimate, because ACC broadcasts no official car-to-car time gaps: the source's own
+/// value is used when it genuinely reports one (the test feed), otherwise the interval is
+/// estimated by integrating the player's recent pace over the distance to the car ahead
+/// (see <see cref="TrackPaceProfile"/>). When broadcasting is unavailable the panel shows
+/// the explicit reason rather than inventing driver names, gaps or lap times.
 ///
 /// Drivers are grouped under class headers using the ACC cup category; within a group they
 /// keep their official classified position. The interval is always computed against the car
@@ -20,6 +23,14 @@ namespace AccEngineer.UI.Overlay.Panels;
 /// </summary>
 public sealed class StandingsPanelViewModel : OverlayPanelViewModel
 {
+    /// <summary>Recent-sample window for the pace profile, matching the relative panel.</summary>
+    private const int PaceWindowPoints = 900;
+
+    /// <summary>Beyond this, an interval derived from two reported time gaps cannot be
+    /// trusted (the values are wrapped to half a lap, so a wrap straddle reads roughly a
+    /// lap apart) and the pace estimate is used instead.</summary>
+    private const double MaxReportedIntervalSeconds = 60;
+
     private int _maxRows = 12;
 
     public StandingsPanelViewModel(IOverlayTelemetrySource telemetry) : base(telemetry, 200) { }
@@ -101,13 +112,17 @@ public sealed class StandingsPanelViewModel : OverlayPanelViewModel
             .Select(t => t.Car)
             .ToList();
 
+        // Pace profile used for the interval estimate, built once per tick from the
+        // player's recent samples. Null on a short history → intervals read "--".
+        var profile = TrackPaceProfile.Build(Telemetry.Recent(PaceWindowPoints));
+
         // Interval to the car physically ahead in the classification, independent of how the
         // list is later grouped by class.
-        var gapByCar = new Dictionary<int, string>(ordered.Count);
+        var gapByCar = new Dictionary<int, (double? Seconds, string Text)>(ordered.Count);
         for (var i = 0; i < ordered.Count; i++)
         {
-            gapByCar[ordered[i].CarIndex] = FormatGap(
-                i > 0 ? ordered[i - 1] : null, ordered[i], standings.TrackMeters);
+            gapByCar[ordered[i].CarIndex] = FormatInterval(
+                i > 0 ? ordered[i - 1] : null, ordered[i], standings.TrackMeters, profile);
         }
 
         var shown = ordered.Take(_maxRows).ToList();
@@ -149,11 +164,13 @@ public sealed class StandingsPanelViewModel : OverlayPanelViewModel
     }
 
     private static StandingsRow BuildRow(
-        Competitor car, IReadOnlyDictionary<int, string> gaps, int? fieldBest, int rowIndex)
+        Competitor car, IReadOnlyDictionary<int, (double? Seconds, string Text)> gaps,
+        int? fieldBest, int rowIndex)
     {
         var hasFastest = car.BestLapMs is { } best and > 0;
         var hasLast = car.LastLapMs is { } last and > 0;
         var isFieldBest = hasFastest && fieldBest is { } fb && car.BestLapMs == fb;
+        var gap = gaps.TryGetValue(car.CarIndex, out var found) ? found : (null, "--");
 
         return new StandingsRow
         {
@@ -164,7 +181,8 @@ public sealed class StandingsPanelViewModel : OverlayPanelViewModel
             Alternate = rowIndex % 2 == 1,
             RaceNumber = car.RaceNumber,
             Name = car.DisplayName,
-            GapText = gaps.TryGetValue(car.CarIndex, out var gap) ? gap : "--",
+            GapSeconds = gap.Seconds,
+            GapText = gap.Text,
             FastestText = hasFastest ? Display.LapTimeMs(car.BestLapMs) : "--",
             FastestState = isFieldBest ? TimingState.SessionBest
                 : hasFastest ? TimingState.Normal
@@ -176,28 +194,59 @@ public sealed class StandingsPanelViewModel : OverlayPanelViewModel
     }
 
     /// <summary>
-    /// Interval to the car ahead: a laps-down indicator when the lap counts differ,
-    /// otherwise a metre estimate from spline positions and the track length. Returns
-    /// "--" for the leader and whenever the source cannot support an estimate.
+    /// Interval to the car ahead, in seconds: a laps-down indicator when the lap counts
+    /// differ, otherwise the sources' own time gaps when both cars report one (test
+    /// feed only), otherwise an estimate from the player's recent pace over the distance
+    /// between the two cars. Returns "--" for the leader and whenever the data cannot
+    /// support an estimate; the number is always positive (how far the car trails).
     /// </summary>
-    private static string FormatGap(Competitor? ahead, Competitor car, int? trackMeters)
+    private static (double? Seconds, string Text) FormatInterval(
+        Competitor? ahead, Competitor car, int? trackMeters, TrackPaceProfile? profile)
     {
-        if (ahead is null) return "--";
+        if (ahead is null) return (null, "--");
 
         var aheadLaps = ahead.LapCount ?? 0;
         var carLaps = car.LapCount ?? 0;
         var lapDiff = aheadLaps - carLaps;
-        if (lapDiff >= 1) return $"+{lapDiff.ToString(CultureInfo.InvariantCulture)}L";
+        if (lapDiff >= 1) return (null, $"+{lapDiff.ToString(CultureInfo.InvariantCulture)}L");
 
-        if (trackMeters is not { } meters) return "--";
-        if (meters <= 0) return "--";
+        // Genuine reported gaps (signed distance to the player, negative = ahead). The
+        // difference between two of them is the true interval — but both are wrapped to
+        // half a lap, so anything implausibly large for adjacent cars is a wrap artefact
+        // and falls through to the estimate.
+        if (ahead.RelativeTimeGapMs is { } aheadMs && car.RelativeTimeGapMs is { } carMs
+            && aheadMs is >= -RelativePanelViewModel.MaxPlausibleGapMs and <= RelativePanelViewModel.MaxPlausibleGapMs
+            && carMs is >= -RelativePanelViewModel.MaxPlausibleGapMs and <= RelativePanelViewModel.MaxPlausibleGapMs)
+        {
+            var reported = (carMs - aheadMs) / 1000d;
+            if (reported > 0 && reported <= MaxReportedIntervalSeconds)
+            {
+                return (reported, Display.RelativeGapSeconds(reported));
+            }
+        }
 
-        var aheadCum = aheadLaps + ahead.SplinePosition;
-        var carCum = carLaps + car.SplinePosition;
-        var gapMeters = (aheadCum - carCum) * meters;
-        if (gapMeters < 0 || gapMeters > meters) return "--";
+        // Estimate: integrate the player's pace over the distance from the car ahead to
+        // this car. The gap must be a real forward distance (0 .. one lap) on a credible
+        // track length, otherwise it reads "--" instead of a fabricated number.
+        if (profile is not null
+            && trackMeters is { } meters && meters > 0 && meters <= RelativePanelViewModel.MaxPlausibleTrackMeters
+            && ahead.SplinePosition is >= 0f and <= 1f
+            && car.SplinePosition is >= 0f and <= 1f)
+        {
+            var aheadCum = aheadLaps + ahead.SplinePosition;
+            var carCum = carLaps + car.SplinePosition;
+            var gapMeters = (aheadCum - carCum) * meters;
+            if (gapMeters >= 0 && gapMeters <= meters)
+            {
+                var duration = profile.TimeDeltaSeconds(ahead.SplinePosition * meters, gapMeters, meters);
+                if (duration is { } seconds)
+                {
+                    return (seconds, Display.RelativeGapSeconds(seconds));
+                }
+            }
+        }
 
-        return gapMeters.ToString("0", CultureInfo.InvariantCulture) + " m";
+        return (null, "--");
     }
 
     /// <summary>Formats the elapsed session time as <c>H:MM:SS</c>; "--:--:--" when invalid.</summary>

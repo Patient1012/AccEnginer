@@ -14,8 +14,9 @@ public sealed class RelativePanelTests
         public CompetitorStandings? Standings { get; init; }
         public bool TestMode { get; init; }
         public string StandingsStatusText { get; init; } = "Broadcasting off.";
+        public IReadOnlyList<TelemetrySample> RecentSamples { get; init; } = Array.Empty<TelemetrySample>();
 
-        public IReadOnlyList<TelemetrySample> Recent(int maxCount) => Array.Empty<TelemetrySample>();
+        public IReadOnlyList<TelemetrySample> Recent(int maxCount) => RecentSamples;
         public bool IsTestData => TestMode;
     }
 
@@ -29,10 +30,25 @@ public sealed class RelativePanelTests
         int? position = null, int? activeCars = null, float? airTempC = null, int playerId = 1) =>
         new() { PlayerPosition = position, ActiveCars = activeCars, AirTempC = airTempC, PlayerCarId = playerId };
 
+    /// <summary>
+    /// Whole-lap pace history at a flat 50 m/s (180 km/h): dense enough for the profile
+    /// to be usable and slow enough that gap expectations are exact arithmetic.
+    /// </summary>
+    private static IReadOnlyList<TelemetrySample> PaceHistory()
+    {
+        var samples = new List<TelemetrySample>();
+        for (var p = 0d; p < 7004; p += 5)
+        {
+            samples.Add(new TelemetrySample { TrackProgressMeters = (float)p, SpeedMetersPerSecond = 50f });
+        }
+
+        return samples;
+    }
+
     // ---- Gap correctness (the -115,601,700 m class of bug) -------------------
 
     [Fact]
-    public void Refresh_WithSaneStandings_ShowsSaneSignedMetreGaps()
+    public void Refresh_WithSaneStandings_ShowsSignedSecondGapsFromThePaceProfile()
     {
         var standings = new CompetitorStandings(
             "Spa", 7004, 0f, 0, 1,
@@ -44,12 +60,77 @@ public sealed class RelativePanelTests
             },
             DateTimeOffset.UnixEpoch);
 
-        using var vm = new RelativePanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+        using var vm = new RelativePanelViewModel(
+            new FakeSource { Latest = Sample(), Standings = standings, RecentSamples = PaceHistory() });
 
         Assert.Equal(3, vm.Rows.Count);
-        Assert.Equal("0.0", vm.Rows[0].GapText);
-        Assert.Equal("-70 m", vm.Rows[1].GapText);
-        Assert.Equal("+350 m", vm.Rows[2].GapText);
+
+        // 0.01 lap = 70.04 m ahead at 50 m/s = 1.4008 s → negative (ahead).
+        Assert.Equal("0.000", vm.Rows[0].GapText);
+        Assert.Equal(-1.4008, vm.Rows[1].GapSeconds!.Value, 3);
+        Assert.Equal("-1.401", vm.Rows[1].GapText);
+        // 0.05 lap = 350.2 m behind = 7.004 s → positive (behind).
+        Assert.Equal(7.004, vm.Rows[2].GapSeconds!.Value, 3);
+        Assert.Equal("+7.004", vm.Rows[2].GapText);
+    }
+
+    [Fact]
+    public void Refresh_WithReportedTimeGapFromTheSource_UsesItInsteadOfTheEstimate()
+    {
+        // Sources that genuinely know time gaps (the synthetic test feed) win over the
+        // estimate; real ACC never sets this, so it stays null there.
+        var standings = new CompetitorStandings(
+            "Spa", 7004, 0f, 0, 1,
+            new[]
+            {
+                Car(1, true, "Player", 7, 1, 0.60f, 3),
+                Car(2, false, "Ahead", 9, 2, 0.61f, 3) with { RelativeTimeGapMs = -2_500 },
+                Car(3, false, "Behind", 4, 3, 0.55f, 3) with { RelativeTimeGapMs = 4_000 }
+            },
+            DateTimeOffset.UnixEpoch);
+
+        using var vm = new RelativePanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+
+        Assert.Equal("0.000", vm.Rows[0].GapText);
+        Assert.Equal("-2.500", vm.Rows[1].GapText);
+        Assert.Equal("+4.000", vm.Rows[2].GapText);
+    }
+
+    [Fact]
+    public void Refresh_WithImplausibleReportedTimeGap_TreatsItAsUnavailable()
+    {
+        var standings = new CompetitorStandings(
+            "Spa", 7004, 0f, 0, 1,
+            new[]
+            {
+                Car(1, true, "Player", 7, 1, 0.60f, 3),
+                Car(2, false, "Garbage", 9, 2, 0.61f, 3) with { RelativeTimeGapMs = 10_000_000 }
+            },
+            DateTimeOffset.UnixEpoch);
+
+        using var vm = new RelativePanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+
+        Assert.Equal("--", vm.Rows[1].GapText);
+    }
+
+    [Fact]
+    public void Refresh_WithoutPaceHistory_ShowsUnavailableNotMetres()
+    {
+        var standings = new CompetitorStandings(
+            "Spa", 7004, 0f, 0, 1,
+            new[]
+            {
+                Car(1, true, "Player", 7, 1, 0.60f, 3),
+                Car(2, false, "Rival", 9, 2, 0.61f, 3)
+            },
+            DateTimeOffset.UnixEpoch);
+
+        using var vm = new RelativePanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+
+        Assert.Equal("0.000", vm.Rows[0].GapText);
+        Assert.Equal("--", vm.Rows[1].GapText);
+        Assert.Null(vm.Rows[1].GapSeconds);
+        Assert.DoesNotContain(" m", vm.Rows[1].GapText);
     }
 
     [Fact]
@@ -66,9 +147,10 @@ public sealed class RelativePanelTests
             },
             DateTimeOffset.UnixEpoch);
 
-        using var vm = new RelativePanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+        using var vm = new RelativePanelViewModel(
+            new FakeSource { Latest = Sample(), Standings = standings, RecentSamples = PaceHistory() });
 
-        Assert.Equal("0.0", vm.Rows[0].GapText);
+        Assert.Equal("0.000", vm.Rows[0].GapText);
         Assert.Equal("--", vm.Rows[1].GapText);
     }
 
@@ -84,7 +166,8 @@ public sealed class RelativePanelTests
             },
             DateTimeOffset.UnixEpoch);
 
-        using var vm = new RelativePanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+        using var vm = new RelativePanelViewModel(
+            new FakeSource { Latest = Sample(), Standings = standings, RecentSamples = PaceHistory() });
 
         Assert.Equal("--", vm.Rows[1].GapText);
     }
@@ -101,9 +184,10 @@ public sealed class RelativePanelTests
             },
             DateTimeOffset.UnixEpoch);
 
-        using var vm = new RelativePanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+        using var vm = new RelativePanelViewModel(
+            new FakeSource { Latest = Sample(), Standings = standings, RecentSamples = PaceHistory() });
 
-        Assert.Equal("0.0", vm.Rows[1].GapText);
+        Assert.Equal("0.000", vm.Rows[1].GapText);
     }
 
     [Fact]
@@ -118,7 +202,8 @@ public sealed class RelativePanelTests
             },
             DateTimeOffset.UnixEpoch);
 
-        using var vm = new RelativePanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+        using var vm = new RelativePanelViewModel(
+            new FakeSource { Latest = Sample(), Standings = standings, RecentSamples = PaceHistory() });
 
         Assert.Equal("--", vm.Rows[1].GapText);
     }

@@ -15,8 +15,9 @@ public sealed class StandingsPanelTests
         public CompetitorStandings? Standings { get; init; }
         public bool TestMode { get; init; }
         public string StandingsStatusText { get; init; } = "Broadcasting off.";
+        public IReadOnlyList<TelemetrySample> RecentSamples { get; init; } = Array.Empty<TelemetrySample>();
 
-        public IReadOnlyList<TelemetrySample> Recent(int maxCount) => Array.Empty<TelemetrySample>();
+        public IReadOnlyList<TelemetrySample> Recent(int maxCount) => RecentSamples;
         public bool IsTestData => TestMode;
     }
 
@@ -31,12 +32,29 @@ public sealed class StandingsPanelTests
         int? bestLapMs = null,
         int? lastLapMs = null,
         AccCupCategory? cup = null,
-        AccCarLocation location = AccCarLocation.Track) =>
+        AccCarLocation location = AccCarLocation.Track,
+        int? relativeTimeGapMs = null) =>
         new(index, isPlayer, name, null, number, null, cup, location,
-            position, position, laps, null, bestLapMs, lastLapMs, spline, 200);
+            position, position, laps, null, bestLapMs, lastLapMs, spline, 200)
+        {
+            RelativeTimeGapMs = relativeTimeGapMs
+        };
 
     private static TelemetrySample Sample(SessionType type = SessionType.Race, string? track = "Spa") =>
         new() { SessionType = type, TrackName = track };
+
+    /// <summary>Whole-lap pace history at a flat 50 m/s so interval expectations are
+    /// exact arithmetic (distance ÷ 50).</summary>
+    private static IReadOnlyList<TelemetrySample> PaceHistory()
+    {
+        var samples = new List<TelemetrySample>();
+        for (var p = 0d; p < 7004; p += 5)
+        {
+            samples.Add(new TelemetrySample { TrackProgressMeters = (float)p, SpeedMetersPerSecond = 50f });
+        }
+
+        return samples;
+    }
 
     private static IReadOnlyList<StandingsRow> Rows(StandingsPanelViewModel vm) =>
         vm.Items.OfType<StandingsRow>().ToList();
@@ -70,7 +88,8 @@ public sealed class StandingsPanelTests
             },
             DateTimeOffset.UnixEpoch);
 
-        using var vm = new StandingsPanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+        using var vm = new StandingsPanelViewModel(
+            new FakeSource { Latest = Sample(), Standings = standings, RecentSamples = PaceHistory() });
 
         Assert.True(vm.IsLive);
         Assert.Equal("LIVE", vm.StatusText);
@@ -87,18 +106,87 @@ public sealed class StandingsPanelTests
         Assert.Equal("7", rows[0].NumberText);
         Assert.True(rows[0].IsPlayer);
         Assert.Equal("--", rows[0].GapText);
+        Assert.Null(rows[0].GapSeconds);
         Assert.Equal("1:40.000", rows[0].FastestText);
         Assert.Equal(TimingState.SessionBest, rows[0].FastestState);
 
         Assert.Equal("Rival", rows[1].Name);
-        Assert.Equal("700 m", rows[1].GapText);
+        // 0.10 lap = 700.4 m from the car ahead at 50 m/s = 14.008 s.
+        Assert.Equal(14.008, rows[1].GapSeconds!.Value, 3);
+        Assert.Equal("+14.008", rows[1].GapText);
         Assert.Equal("1:41.000", rows[1].FastestText);
         Assert.Equal(TimingState.Normal, rows[1].FastestState);
         Assert.Equal("1:42.000", rows[1].LastText);
     }
 
     [Fact]
-    public void Refresh_WithLapDeficit_ShowsLapsDownInsteadOfMetres()
+    public void Refresh_WithReportedTimeGaps_TakesTheIntervalFromTheSource()
+    {
+        // The synthetic feed reports each car's time gap to the player; the interval is
+        // the difference between neighbours, never the distance divided by a constant.
+        var standings = new CompetitorStandings(
+            "Spa", 7004, 0f, 0, 1,
+            new[]
+            {
+                Car(1, true, "Player", 7, 1, 0.60f, 3, relativeTimeGapMs: 0),
+                Car(2, false, "Second", 9, 2, 0.50f, 3, relativeTimeGapMs: 2_000),
+                Car(3, false, "Third", 4, 3, 0.40f, 3, relativeTimeGapMs: 6_000)
+            },
+            DateTimeOffset.UnixEpoch);
+
+        using var vm = new StandingsPanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+
+        var rows = Rows(vm);
+        Assert.Equal("--", rows[0].GapText);   // leader has no interval
+        Assert.Equal("+2.000", rows[1].GapText);
+        Assert.Equal(2.0, rows[1].GapSeconds!.Value, 3);
+        Assert.Equal("+4.000", rows[2].GapText);
+        Assert.Equal(4.0, rows[2].GapSeconds!.Value, 3);
+    }
+
+    [Fact]
+    public void Refresh_WithImplausibleReportedInterval_FallsBackToThePaceEstimate()
+    {
+        // Two half-lap-wrapped values from opposite sides of the track read ~96 s apart;
+        // that is a wrap artefact, so the estimate takes over.
+        var standings = new CompetitorStandings(
+            "Spa", 7004, 0f, 0, 1,
+            new[]
+            {
+                Car(1, true, "Player", 7, 1, 0.60f, 3, relativeTimeGapMs: -48_000),
+                Car(2, false, "Rival", 9, 2, 0.50f, 3, relativeTimeGapMs: 48_000)
+            },
+            DateTimeOffset.UnixEpoch);
+
+        using var vm = new StandingsPanelViewModel(
+            new FakeSource { Latest = Sample(), Standings = standings, RecentSamples = PaceHistory() });
+
+        Assert.Equal("+14.008", Rows(vm)[1].GapText);
+    }
+
+    [Fact]
+    public void Refresh_WithoutPaceHistoryOrReportedGaps_ShowsUnavailableNotMetres()
+    {
+        var standings = new CompetitorStandings(
+            "Spa", 7004, 0f, 0, 1,
+            new[]
+            {
+                Car(1, true, "Player", 7, 1, 0.60f, 3),
+                Car(2, false, "Rival", 9, 2, 0.50f, 3)
+            },
+            DateTimeOffset.UnixEpoch);
+
+        using var vm = new StandingsPanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+
+        var rows = Rows(vm);
+        Assert.Equal("--", rows[0].GapText);
+        Assert.Equal("--", rows[1].GapText);
+        Assert.Null(rows[1].GapSeconds);
+        Assert.DoesNotContain(" m", rows[1].GapText);
+    }
+
+    [Fact]
+    public void Refresh_WithLapDeficit_ShowsLapsDownInsteadOfSeconds()
     {
         var standings = new CompetitorStandings(
             "Spa", 7004, 0f, 0, 1,
@@ -109,9 +197,11 @@ public sealed class StandingsPanelTests
             },
             DateTimeOffset.UnixEpoch);
 
-        using var vm = new StandingsPanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+        using var vm = new StandingsPanelViewModel(
+            new FakeSource { Latest = Sample(), Standings = standings, RecentSamples = PaceHistory() });
 
         Assert.Equal("+1L", Rows(vm)[1].GapText);
+        Assert.Null(Rows(vm)[1].GapSeconds);
     }
 
     [Fact]
@@ -128,15 +218,16 @@ public sealed class StandingsPanelTests
             },
             DateTimeOffset.UnixEpoch);
 
-        using var vm = new StandingsPanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+        using var vm = new StandingsPanelViewModel(
+            new FakeSource { Latest = Sample(), Standings = standings, RecentSamples = PaceHistory() });
 
         var rows = Rows(vm);
         Assert.Equal(new[] { "Winner", "Second", "Third" }, rows.Select(r => r.Name));
         Assert.Equal(new[] { "1", "2", "3" }, rows.Select(r => r.PositionText));
         // Gap is against the car ahead in the classification, computed before grouping.
         Assert.Equal("--", rows[0].GapText);
-        Assert.Equal("700 m", rows[1].GapText);
-        Assert.Equal("700 m", rows[2].GapText);
+        Assert.Equal("+14.008", rows[1].GapText);
+        Assert.Equal("+14.008", rows[2].GapText);
     }
 
     [Fact]

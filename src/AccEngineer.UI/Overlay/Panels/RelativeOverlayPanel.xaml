@@ -85,7 +85,9 @@
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
 
-        <!-- Gap: right-aligned, tabular digits so changing values never jitter. -->
+        <!-- Gap: signed seconds (+0.842 / -1.275 / 0.000 / double-dash for unknown),
+             right-aligned with tabular digits and a fixed-width column so changing
+             values never jitter. -->
         <Style x:Key="RelGapText" TargetType="TextBlock">
             <Setter Property="FontSize" Value="12" />
             <Setter Property="FontWeight" Value="Bold" />
@@ -166,10 +168,10 @@
                                     </ColumnDefinition>
                                     <ColumnDefinition Width="34" />
                                     <ColumnDefinition Width="4" />
-                                    <ColumnDefinition Width="50">
+                                    <ColumnDefinition Width="56">
                                         <ColumnDefinition.Style>
                                             <Style TargetType="ColumnDefinition">
-                                                <Setter Property="Width" Value="50" />
+                                                <Setter Property="Width" Value="56" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding DataContext.ShowGapColumn, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="False">
                                                         <Setter Property="Width" Value="0" />
