@@ -323,9 +323,7 @@
                        Fill="{DynamicResource OverlaySeparatorBrush}" />
 
             <!-- Rows: class headers and driver rows scroll together as one table. -->
-            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <ItemsControl ItemsSource="{Binding Items}" />
-            </ScrollViewer>
+            <ItemsControl Grid.Row="2" ItemsSource="{Binding Items}" />
         </Grid>
     </Border>
 </UserControl>
