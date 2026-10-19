@@ -139,6 +139,31 @@
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
 
+        <!-- Car-brand monogram badge (POR/FER/AUD/...): compact block tinted with the
+             manufacturer accent, collapsed when the entry list has not reported the car. -->
+        <Style x:Key="StBrandBadge" TargetType="Border">
+            <Setter Property="Background" Value="{Binding BrandAccent}" />
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="Height" Value="15" />
+            <Setter Property="MinWidth" Value="30" />
+            <Setter Property="Padding" Value="4,0" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding BrandText}" Value="">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="StBrandText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="9" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{StaticResource StRatingTextBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
         <!-- Gap: right-aligned tabular digits. -->
         <Style x:Key="StGapText" TargetType="TextBlock">
             <Setter Property="FontSize" Value="9" />
@@ -189,11 +214,11 @@
             </Border>
         </DataTemplate>
 
-        <!-- Driver row item. The seven columns are repeated verbatim in the column header
+        <!-- Driver row item. The eight columns are repeated verbatim in the column header
              above so the headings stay over their data. The data columns are kept as
              narrow as their widest value allows so the flexible driver column keeps the
              most width for the name.
-             Columns: position 36 | number 46 | rating 40 | name * | gap 80 | fastest 88 | last 88. -->
+             Columns: position 30 | number 38 | rating 32 | name 6* | car 46 | gap 70 | fastest 80 | last 80. -->
         <DataTemplate DataType="{x:Type p:StandingsRow}">
             <Border Style="{StaticResource StDriverRow}">
                 <Grid>
@@ -202,6 +227,7 @@
                         <ColumnDefinition Width="38" />
                         <ColumnDefinition Width="32" />
                         <ColumnDefinition Width="6*" />
+                        <ColumnDefinition Width="46" />
                         <ColumnDefinition Width="70" />
                         <ColumnDefinition Width="80" />
                         <ColumnDefinition Width="80" />
@@ -241,14 +267,18 @@
                         </Border>
                     </StackPanel>
 
-                    <TextBlock Grid.Column="4" Text="{Binding GapText}" Style="{StaticResource StGapText}"
+                    <Border Grid.Column="4" Style="{StaticResource StBrandBadge}">
+                        <TextBlock Text="{Binding BrandText}" Style="{StaticResource StBrandText}" />
+                    </Border>
+
+                    <TextBlock Grid.Column="5" Text="{Binding GapText}" Style="{StaticResource StGapText}"
                                HorizontalAlignment="Right" Margin="0,0,8,0" />
 
-                    <oc:OverlayTimingValue Grid.Column="5" Text="{Binding FastestText}"
+                    <oc:OverlayTimingValue Grid.Column="6" Text="{Binding FastestText}"
                                            State="{Binding FastestState}" FontSize="13"
                                            HorizontalAlignment="Right" Margin="0,0,12,0" />
 
-                    <oc:OverlayTimingValue Grid.Column="6" Text="{Binding LastText}"
+                    <oc:OverlayTimingValue Grid.Column="7" Text="{Binding LastText}"
                                            State="{Binding LastState}" FontSize="13"
                                            HorizontalAlignment="Right" Margin="0,0,12,0" />
                 </Grid>
@@ -304,6 +334,7 @@
                     <ColumnDefinition Width="38" />
                     <ColumnDefinition Width="32" />
                     <ColumnDefinition Width="6*" />
+                    <ColumnDefinition Width="46" />
                     <ColumnDefinition Width="70" />
                     <ColumnDefinition Width="80" />
                     <ColumnDefinition Width="80" />
@@ -312,11 +343,13 @@
                 <TextBlock Grid.Column="1" Text="#" Style="{StaticResource StColumnHead}" HorizontalAlignment="Center" />
                 <TextBlock Grid.Column="2" Text="RATING" Style="{StaticResource StColumnHead}" HorizontalAlignment="Center" />
                 <TextBlock Grid.Column="3" Text="DRIVER" Style="{StaticResource StColumnHead}" Margin="12,0,0,0" />
-                    <TextBlock Grid.Column="4" Text="GAP (s est.)" Style="{StaticResource StColumnHead}"
+                    <TextBlock Grid.Column="4" Text="CAR" Style="{StaticResource StColumnHead}"
                            HorizontalAlignment="Right" Margin="0,0,8,0" />
-                <TextBlock Grid.Column="5" Text="FASTEST" Style="{StaticResource StColumnHead}"
+                <TextBlock Grid.Column="5" Text="GAP (s est.)" Style="{StaticResource StColumnHead}"
+                           HorizontalAlignment="Right" Margin="0,0,8,0" />
+                <TextBlock Grid.Column="6" Text="FASTEST" Style="{StaticResource StColumnHead}"
                            HorizontalAlignment="Right" Margin="0,0,12,0" />
-                <TextBlock Grid.Column="6" Text="LAST" Style="{StaticResource StColumnHead}"
+                <TextBlock Grid.Column="7" Text="LAST" Style="{StaticResource StColumnHead}"
                            HorizontalAlignment="Right" Margin="0,0,12,0" />
             </Grid>
             <Rectangle Grid.Row="1" Height="1" VerticalAlignment="Bottom"

@@ -176,6 +176,10 @@ public sealed class StandingsPanelViewModel : OverlayPanelViewModel
         var isFieldBest = hasFastest && fieldBest is { } fb && car.BestLapMs == fb;
         var gap = gaps.TryGetValue(car.CarIndex, out var found) ? found : (null, "--");
 
+        var brand = car.CarModelType is { } modelId
+            ? AccCarBrandCatalog.BrandOf(modelId)
+            : AccCarBrand.Unknown;
+
         return new StandingsRow
         {
             CarIndex = car.CarIndex,
@@ -194,7 +198,9 @@ public sealed class StandingsPanelViewModel : OverlayPanelViewModel
                 : TimingState.Unavailable,
             LastText = hasLast ? Display.LapTimeMs(car.LastLapMs) : "--",
             LastState = hasLast ? TimingState.Normal : TimingState.Unavailable,
-            ClassAccent = StandingsClass.Accent(car.CarClass)
+            ClassAccent = StandingsClass.Accent(car.CarClass),
+            BrandText = StandingsBrand.Code(brand),
+            BrandAccent = StandingsBrand.Accent(brand)
         };
     }
 

@@ -21,6 +21,18 @@ public sealed class TestCompetitorFeed
         "B. Wilson", "F. Delgado", "I. Haugen", "W. Zhang", "O. Reyes"
     };
 
+    // Documented ACC car model ids cycled across the synthetic field so the standings
+    // badges and class grouping show a realistic spread of brands without inventing data.
+    private static readonly byte[] SimulatedCarModels =
+    {
+        0,   // Porsche 991 GT3 R   (GT3)
+        2,   // Ferrari 488 GT3     (GT3)
+        1,   // Mercedes-AMG GT3    (GT3)
+        3,   // Audi R8 LMS         (GT3)
+        50,  // Alpine A110 GT4     (GT4)
+        4    // Lamborghini Huracan (GT3)
+    };
+
     private readonly int _carCount;
     private readonly int _trackMeters;
 
@@ -89,10 +101,12 @@ public sealed class TestCompetitorFeed
                 // in whole milliseconds so both cars ahead and behind display as
                 // plausible seconds rather than lap fractions.
                 RelativeTimeGapMs = relativeTimeGapMs,
-                // Mixed field for the overlay's class grouping: every fifth car is a
-                // GT4 (A110 GT4), the rest GT3 (991 GT3 R). Driver categories cycle
-                // Bronze..Platinum so the rating column shows every badge.
-                CarModelType = (byte)(i % 5 == 0 ? 50 : 0),
+                // Mixed field for the overlay's class grouping and brand badges: the model
+                // ids cycle through a few documented GT3/GT4/GTC entries (991 GT3 R, 488
+                // GT3, AMG GT3, R8 LMS, A110 GT4, Huracan GT3) so every badge colour is
+                // exercised. Driver categories cycle Bronze..Platinum so the rating column
+                // shows every tier.
+                CarModelType = SimulatedCarModels[(i - 1) % SimulatedCarModels.Length],
                 DriverCategory = (AccDriverCategory)((i - 1) % 4)
             });
         }

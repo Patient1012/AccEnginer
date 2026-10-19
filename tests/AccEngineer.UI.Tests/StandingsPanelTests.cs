@@ -358,4 +358,52 @@ public sealed class StandingsPanelTests
         Assert.Equal("CAR 04", Rows(vm)[0].Name);
         Assert.Equal("", Rows(vm)[0].NumberText);
     }
+
+    // ---- Brand badges --------------------------------------------------------
+
+    [Fact]
+    public void Refresh_ProjectsBrandMonogramFromTheCarModelId()
+    {
+        var standings = new CompetitorStandings(
+            "Spa", 7004, 0f, 0, 1,
+            new[]
+            {
+                Car(1, true, "Player", 7, 1, 0.60f, 3, model: 0),   // Porsche
+                Car(2, false, "Rival", 9, 2, 0.50f, 3, model: 2)    // Ferrari
+            },
+            DateTimeOffset.UnixEpoch);
+
+        using var vm = new StandingsPanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+
+        var rows = Rows(vm);
+        Assert.Equal("POR", rows[0].BrandText);
+        Assert.Equal("FER", rows[1].BrandText);
+        Assert.False(ReferenceEquals(rows[0].BrandAccent, rows[1].BrandAccent));
+    }
+
+    [Fact]
+    public void Refresh_WithoutCarModel_LeavesBrandEmptySoNoBadgeGuessed()
+    {
+        var standings = new CompetitorStandings(
+            "Spa", 7004, 0f, 0, 1,
+            new[] { Car(1, true, "Player", 7, 1, 0.60f, 3) },
+            DateTimeOffset.UnixEpoch);
+
+        using var vm = new StandingsPanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+
+        Assert.Equal(string.Empty, Rows(vm)[0].BrandText);
+    }
+
+    [Fact]
+    public void Refresh_WithUndocumentedModelId_LeavesBrandEmpty()
+    {
+        var standings = new CompetitorStandings(
+            "Spa", 7004, 0f, 0, 1,
+            new[] { Car(1, true, "Player", 7, 1, 0.60f, 3, model: 200) },
+            DateTimeOffset.UnixEpoch);
+
+        using var vm = new StandingsPanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+
+        Assert.Equal(string.Empty, Rows(vm)[0].BrandText);
+    }
 }

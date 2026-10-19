@@ -64,4 +64,11 @@ public sealed class StandingsRow : StandingsListItem
 
     /// <summary>Class accent colour for the car-number marker.</summary>
     public Brush ClassAccent { get; init; } = Brushes.Gray;
+
+    /// <summary>Car manufacturer monogram ("POR", "FER", ...); empty when the entry
+    /// list has not reported the car model, so the badge can be hidden.</summary>
+    public string BrandText { get; init; } = string.Empty;
+
+    /// <summary>Brand accent colour for the monogram badge (tinted per manufacturer).</summary>
+    public Brush BrandAccent { get; init; } = Brushes.Gray;
 }
