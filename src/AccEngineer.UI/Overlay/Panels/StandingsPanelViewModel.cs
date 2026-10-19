@@ -33,7 +33,13 @@ public sealed class StandingsPanelViewModel : OverlayPanelViewModel
     /// lap apart) and the pace estimate is used instead.</summary>
     private const double MaxReportedIntervalSeconds = 60;
 
-    private int _maxRows = 12;
+    /// <summary>
+    /// Driver rows shown in the tower: a fixed, player-centred window (4 ahead + self +
+    /// 4 behind in the classification). Fixed by design so the panel always fits the same
+    /// nine lines without any user row-count or mouse resizing; the overall size is
+    /// changed only through the single overlay scale slider.
+    /// </summary>
+    private const int RowWindow = 9;
 
     public StandingsPanelViewModel(IOverlayTelemetrySource telemetry) : base(telemetry, 200) { }
 
@@ -59,9 +65,8 @@ public sealed class StandingsPanelViewModel : OverlayPanelViewModel
     /// <inheritdoc />
     public override void ApplyAppearance(OverlayAppearance appearance)
     {
-        _maxRows = Math.Clamp(appearance.StandingsRows, 3, 30);
-        // Rebuild immediately so an editor row-count change is reflected without
-        // waiting for the next poll tick.
+        // The tower shows a fixed nine-car, player-centred window; the global scale
+        // slider is its only sizing control, so there is no per-panel row count.
         Refresh(Telemetry.Latest);
     }
 
@@ -129,7 +134,7 @@ public sealed class StandingsPanelViewModel : OverlayPanelViewModel
                 i > 0 ? ordered[i - 1] : null, ordered[i], standings.TrackMeters, profile);
         }
 
-        var shown = ordered.Take(_maxRows).ToList();
+        var shown = PlayerCentredWindow(ordered, standings.FocusedCarIndex, RowWindow);
 
         if (shown.Any(c => c.CarClass is not AccCarClass.Unknown))
         {
@@ -165,6 +170,34 @@ public sealed class StandingsPanelViewModel : OverlayPanelViewModel
         }
 
         OnAllPropertiesChanged();
+    }
+
+    /// <summary>
+    /// The window of driver rows shown in the tower: a fixed-size slice centred on the
+    /// player's position in the classification (roughly half ahead, half behind), clamped
+    /// to the ends of the field. Mirrors the relative panel's centred window so the player
+    /// is always visible. When the player is not in the field the window falls back to the
+    /// top of the order. Returns fewer rows only when the field itself is smaller than the
+    /// window.
+    /// </summary>
+    private static List<Competitor> PlayerCentredWindow(
+        IReadOnlyList<Competitor> ordered, int focusedCarIndex, int size)
+    {
+        if (ordered.Count <= size) return ordered.ToList();
+
+        var playerIndex = -1;
+        for (var i = 0; i < ordered.Count; i++)
+        {
+            if (ordered[i].CarIndex == focusedCarIndex) { playerIndex = i; break; }
+        }
+
+        if (playerIndex < 0) return ordered.Take(size).ToList();
+
+        // Centre the window on the player, then clamp so it stays a full-size slice at
+        // either end of the field (near the leader or the last car).
+        var before = (size - 1) / 2;
+        var start = Math.Clamp(playerIndex - before, 0, ordered.Count - size);
+        return ordered.Skip(start).Take(size).ToList();
     }
 
     private static StandingsRow BuildRow(

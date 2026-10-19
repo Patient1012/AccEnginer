@@ -429,13 +429,21 @@ public sealed class OverlayManager : IDisposable
             Configurable = relativeVm
         });
 
-        // Full-field standings tower (ACC Broadcasting API).
+        // Full-field standings tower (ACC Broadcasting API). Content-sized: a fixed
+        // nine-car, player-centred window drives both the height (no dead space) and the
+        // width (every column fits); the single overlay scale slider is its only sizing
+        // control, so the edit grip is suppressed.
         var standingsVm = new StandingsPanelViewModel(_source);
+        var standingsWindow = new OverlayPanelWindow("standings", "ACC Engineer - Standings", new StandingsOverlayPanel { DataContext = standingsVm }, DefaultState("standings"))
+        {
+            AutoFitHeight = true,
+            CanResize = false
+        };
         _panels.Add(new PanelHost
         {
             Id = "standings",
             Title = "Standings",
-            Window = new OverlayPanelWindow("standings", "ACC Engineer - Standings", new StandingsOverlayPanel { DataContext = standingsVm }, DefaultState("standings")),
+            Window = standingsWindow,
             ViewModel = standingsVm,
             Configurable = standingsVm
         });

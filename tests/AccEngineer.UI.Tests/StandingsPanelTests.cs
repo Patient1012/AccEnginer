@@ -309,9 +309,9 @@ public sealed class StandingsPanelTests
     // ---- Appearance ----------------------------------------------------------
 
     [Fact]
-    public void ApplyAppearance_LimitsTheNumberOfDriverRows()
+    public void Refresh_ShowsAFixedNineCarWindow_IgnoringAppearanceRowCount()
     {
-        var cars = Enumerable.Range(1, 10)
+        var cars = Enumerable.Range(1, 20)
             .Select(i => Car((ushort)i, i == 1, "Driver" + i, i, i, 0.9f - i * 0.02f, 3))
             .ToArray();
         var standings = new CompetitorStandings("Spa", 7004, 0f, 0, 1, cars, DateTimeOffset.UnixEpoch);
@@ -319,8 +319,61 @@ public sealed class StandingsPanelTests
         using var vm = new StandingsPanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
         vm.ApplyAppearance(new OverlayAppearance { StandingsRows = 3 });
 
-        Assert.Equal(3, Rows(vm).Count);
-        Assert.Equal(new[] { "1", "2", "3" }, Rows(vm).Select(r => r.PositionText));
+        // The tower is a fixed nine-car window; the editor's row count is no longer used.
+        Assert.Equal(9, Rows(vm).Count);
+    }
+
+    [Fact]
+    public void Refresh_WindowsNineCarsAroundThePlayer_AlwaysIncludingThePlayer()
+    {
+        // 20-car field; the player is P10 (focused car index 10). The window is centred:
+        // 4 ahead (P6..P9), self (P10), 4 behind (P11..P14).
+        var cars = Enumerable.Range(1, 20)
+            .Select(i => Car((ushort)i, i == 10, "Driver" + i, i, i, 0.9f - i * 0.02f, 3))
+            .ToArray();
+        var standings = new CompetitorStandings("Spa", 7004, 0f, 0, 10, cars, DateTimeOffset.UnixEpoch);
+
+        using var vm = new StandingsPanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+
+        var rows = Rows(vm);
+        Assert.Equal(9, rows.Count);
+        Assert.Contains(rows, r => r.IsPlayer);
+        Assert.Equal(new[] { "6", "7", "8", "9", "10", "11", "12", "13", "14" },
+            rows.Select(r => r.PositionText));
+    }
+
+    [Fact]
+    public void Refresh_NearTheLeader_ClampsTheWindowToAFullNineCars()
+    {
+        // Player is P2: the window cannot show 4 cars ahead, so it clamps to P1..P9.
+        var cars = Enumerable.Range(1, 20)
+            .Select(i => Car((ushort)i, i == 2, "Driver" + i, i, i, 0.9f - i * 0.02f, 3))
+            .ToArray();
+        var standings = new CompetitorStandings("Spa", 7004, 0f, 0, 2, cars, DateTimeOffset.UnixEpoch);
+
+        using var vm = new StandingsPanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+
+        var rows = Rows(vm);
+        Assert.Equal(9, rows.Count);
+        Assert.Equal(new[] { "1", "2", "3", "4", "5", "6", "7", "8", "9" },
+            rows.Select(r => r.PositionText));
+    }
+
+    [Fact]
+    public void Refresh_SmallField_ShowsEveryCar()
+    {
+        var standings = new CompetitorStandings(
+            "Spa", 7004, 0f, 0, 1,
+            new[]
+            {
+                Car(1, true, "Player", 7, 1, 0.60f, 3),
+                Car(2, false, "Rival", 9, 2, 0.50f, 3)
+            },
+            DateTimeOffset.UnixEpoch);
+
+        using var vm = new StandingsPanelViewModel(new FakeSource { Latest = Sample(), Standings = standings });
+
+        Assert.Equal(2, Rows(vm).Count);
     }
 
     // ---- Player pit marker / placeholder safety ------------------------------

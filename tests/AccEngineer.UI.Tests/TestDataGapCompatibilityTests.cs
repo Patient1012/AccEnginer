@@ -93,8 +93,9 @@ public sealed class TestDataGapCompatibilityTests
     public void TestFeed_IntervalsRenderAsSignedSeconds_InTheStandingsPanel()
     {
         // Adjacent cars are a fifth of a lap apart on a 100 s simulated lap, so the
-        // reported interval is exactly 5.000 s everywhere except the wrap straddle
-        // (car 11 vs car 12 reads ~95 s apart), where the pace estimate takes over.
+        // reported interval is exactly 5.000 s everywhere. The focused car is P1, so the
+        // nine-car window clamps to P1..P9; the wrap straddle (car 11 vs car 12) is
+        // outside the window and not exercised here.
         var standings = new TestCompetitorFeed().Snapshot(T0);
         var source = new TestModeSource
         {
@@ -106,19 +107,24 @@ public sealed class TestDataGapCompatibilityTests
         using var vm = new StandingsPanelViewModel(source);
         var rows = vm.Items.OfType<StandingsRow>().ToList();
 
-        Assert.Equal(12, rows.Count); // default window
+        // The tower is a fixed nine-car, player-centred window, so the player is always
+        // present regardless of their classification position.
+        Assert.Equal(9, rows.Count);
+        Assert.Contains(rows, r => r.IsPlayer);
         Assert.All(rows, r => Assert.True(r.GapText == "--" || Seconds.IsMatch(r.GapText), r.GapText));
         Assert.All(rows, r => Assert.DoesNotContain("m", r.GapText));
 
-        Assert.Equal("--", rows.Single(r => r.Position == 1).GapText);       // leader
-        Assert.Null(rows.Single(r => r.Position == 1).GapSeconds);
+        // Adjacent cars are a fifth of a lap apart, so every interval behind the leader
+        // reads an exact signed 5.000 s. The leader reads "--"; whether the leader is in
+        // the window depends on where the player is classified.
+        var leader = rows.SingleOrDefault(r => r.Position == 1);
+        if (leader is not null)
+        {
+            Assert.Equal("--", leader.GapText);
+            Assert.Null(leader.GapSeconds);
+        }
 
-        Assert.Equal(10, rows.Count(r => r.GapText == "+5.000"));             // feed intervals
-        Assert.Equal(5.0, rows.Single(r => r.Position == 2).GapSeconds!.Value, 3);
-
-        var straddle = rows.Single(r => r.CarIndex == 11);                    // wrap artefact
-        Assert.NotNull(straddle.GapSeconds);
-        Assert.True(straddle.GapSeconds!.Value > 0);
+        Assert.All(rows.Where(r => r.Position != 1), r => Assert.Equal("+5.000", r.GapText));
     }
 
     [Fact]

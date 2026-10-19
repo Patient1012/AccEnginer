@@ -226,7 +226,7 @@
                         <ColumnDefinition Width="30" />
                         <ColumnDefinition Width="38" />
                         <ColumnDefinition Width="32" />
-                        <ColumnDefinition Width="6*" />
+                        <ColumnDefinition Width="6*" MinWidth="180" />
                         <ColumnDefinition Width="46" />
                         <ColumnDefinition Width="70" />
                         <ColumnDefinition Width="80" />
@@ -333,7 +333,7 @@
                     <ColumnDefinition Width="30" />
                     <ColumnDefinition Width="38" />
                     <ColumnDefinition Width="32" />
-                    <ColumnDefinition Width="6*" />
+                    <ColumnDefinition Width="6*" MinWidth="180" />
                     <ColumnDefinition Width="46" />
                     <ColumnDefinition Width="70" />
                     <ColumnDefinition Width="80" />

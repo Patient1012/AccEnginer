@@ -55,11 +55,20 @@ public sealed class OverlayPanelWindow : OverlayWindowBase
         {
             var visibility = IsEditing ? Visibility.Visible : Visibility.Collapsed;
             outline.Visibility = visibility;
-            grip.Visibility = visibility;
+            // Panels with a content-driven size (standings, relative) expose no grip: the
+            // single overlay scale slider is their only sizing control, never the mouse.
+            grip.Visibility = CanResize ? visibility : Visibility.Collapsed;
         };
 
         ApplyState(defaults);
     }
+
+    /// <summary>
+    /// True when the panel shows the edit-mode resize grip and accepts mouse resizing.
+    /// False for content-sized panels whose size is owned by the scale slider, so the
+    /// user cannot drag them to a clipped or stretched state.
+    /// </summary>
+    public bool CanResize { get; init; } = true;
 
     /// <summary>
     /// Scales the panel content uniformly (the editor's font scale). Uses a layout
@@ -121,7 +130,9 @@ public sealed class OverlayPanelWindow : OverlayWindowBase
         }
 
         var userWidth = double.IsFinite(UserWidth) ? UserWidth : Width;
-        var targetWidth = Math.Max(userWidth, minWidth);
+        // A panel that suppresses mouse resizing has no user width to honour: its width
+        // tracks the content exactly, so every column stays visible at any scale.
+        var targetWidth = CanResize ? Math.Max(userWidth, minWidth) : minWidth;
 
         if (!double.IsFinite(Width) || Math.Abs(Width - targetWidth) > 0.5)
         {
