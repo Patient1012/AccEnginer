@@ -52,6 +52,13 @@ public sealed class AppSettings
     public bool FuelCalculatorPreferTimeLimitedEstimate { get; set; }
 
     /// <summary>
+    /// How fuel requirements are displayed: "Litres" (default) or "Laps". In laps mode the
+    /// engine still computes in litres; the results are converted to a lap count using the
+    /// effective litres-per-lap. Unknown/missing values resolve to "Litres".
+    /// </summary>
+    public string? FuelCalculatorDisplayUnit { get; set; } = "Litres";
+
+    /// <summary>
     /// Whether to connect to the ACC UDP Broadcasting API. Competitor names, race
     /// numbers, teams and official gaps exist only there (shared memory has none),
     /// so the standings/relative panels stay unavailable until this is enabled and

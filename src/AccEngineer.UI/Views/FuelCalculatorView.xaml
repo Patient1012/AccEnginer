@@ -51,11 +51,21 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Current fuel (L)"
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Fuel display unit"
                                        VerticalAlignment="Center" />
-                            <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
+                            <ComboBox Grid.Row="0" Grid.Column="1" Width="140" HorizontalAlignment="Left"
+                                      Style="{StaticResource InputCombo}"
+                                      SelectedItem="{Binding DisplayUnit}">
+                                <ComboBoxItem Content="Litres" />
+                                <ComboBoxItem Content="Laps" />
+                            </ComboBox>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Current fuel (L)"
+                                       VerticalAlignment="Center" Margin="0,10,0,0" />
+                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
                                 <TextBox Width="120" Style="{StaticResource InputBox}"
                                          Text="{Binding CurrentFuelLitres, UpdateSourceTrigger=PropertyChanged}" />
                                 <Button Content="Use live" Margin="6,0,0,0" Padding="8,2"
@@ -64,27 +74,27 @@
                                         Visibility="{Binding CurrentFuelOverridden, Converter={StaticResource BoolToVis}}" />
                             </StackPanel>
 
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Remaining race laps"
-                                       VerticalAlignment="Center" Margin="0,10,0,0" />
-                            <TextBox Grid.Row="1" Grid.Column="1" Width="120" HorizontalAlignment="Left"
-                                     Margin="0,10,0,0" Style="{StaticResource InputBox}"
-                                     Text="{Binding ManualRemainingLaps, UpdateSourceTrigger=PropertyChanged}" />
-
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Planned stint (laps)"
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Remaining race laps"
                                        VerticalAlignment="Center" Margin="0,10,0,0" />
                             <TextBox Grid.Row="2" Grid.Column="1" Width="120" HorizontalAlignment="Left"
                                      Margin="0,10,0,0" Style="{StaticResource InputBox}"
-                                     Text="{Binding StintLaps, UpdateSourceTrigger=PropertyChanged}" />
+                                     Text="{Binding ManualRemainingLaps, UpdateSourceTrigger=PropertyChanged}" />
 
-                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Finish reserve (L)"
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Planned stint (laps)"
                                        VerticalAlignment="Center" Margin="0,10,0,0" />
                             <TextBox Grid.Row="3" Grid.Column="1" Width="120" HorizontalAlignment="Left"
                                      Margin="0,10,0,0" Style="{StaticResource InputBox}"
+                                     Text="{Binding StintLaps, UpdateSourceTrigger=PropertyChanged}" />
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Finish reserve (L)"
+                                       VerticalAlignment="Center" Margin="0,10,0,0" />
+                            <TextBox Grid.Row="4" Grid.Column="1" Width="120" HorizontalAlignment="Left"
+                                     Margin="0,10,0,0" Style="{StaticResource InputBox}"
                                      Text="{Binding ReserveLitres, UpdateSourceTrigger=PropertyChanged}" />
 
-                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Safety margin mode"
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="Safety margin mode"
                                        VerticalAlignment="Center" Margin="0,10,0,0" />
-                            <ComboBox Grid.Row="4" Grid.Column="1" Width="140" HorizontalAlignment="Left"
+                            <ComboBox Grid.Row="5" Grid.Column="1" Width="140" HorizontalAlignment="Left"
                                       Margin="0,10,0,0" Style="{StaticResource InputCombo}"
                                       SelectedItem="{Binding SafetyMarginMode}">
                                 <ComboBoxItem Content="Litres" />

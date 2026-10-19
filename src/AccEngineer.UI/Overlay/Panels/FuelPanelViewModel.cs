@@ -83,7 +83,6 @@ public sealed class FuelPanelViewModel : OverlayPanelViewModel
         StatusText = "LIVE";
 
         var currentFuel = sample.FuelLevel is { } fuel ? Math.Max(0d, fuel) : (double?)null;
-        CurrentFuelText = currentFuel is { } current ? FormatL(current) : Display.Missing;
 
         // Consumption: manual override (from persisted prefs) wins when positive,
         // otherwise the measured average, otherwise the last measured lap.
@@ -108,6 +107,11 @@ public sealed class FuelPanelViewModel : OverlayPanelViewModel
 
         ConsumptionText = consumptionPerLap is { } perLap
             ? perLap.ToString("0.00", CultureInfo.InvariantCulture) + " L/lap"
+            : Display.Missing;
+
+        // Current fuel in the active display unit (needs the effective consumption).
+        CurrentFuelText = currentFuel is { } current
+            ? FormatFuel(current, consumptionPerLap, LapsMode)
             : Display.Missing;
 
         // Remaining laps: manual override wins, otherwise lap-limited session total,
@@ -161,7 +165,7 @@ public sealed class FuelPanelViewModel : OverlayPanelViewModel
         var result = _calculator.Calculate(inputs);
 
         FuelToAddText = result.FuelToAddLitres is { } toAdd
-            ? FormatL(toAdd)
+            ? FormatFuel(toAdd, consumptionPerLap, LapsMode)
             : Display.Missing;
 
         LapsPossibleText = result.EstimatedLapsWithCurrentFuel is { } possible
@@ -171,7 +175,7 @@ public sealed class FuelPanelViewModel : OverlayPanelViewModel
         IsSufficient = result.Outcome == FuelPlanOutcome.Sufficient;
         HasShortfall = result.Outcome == FuelPlanOutcome.Shortfall;
 
-        StatusLineText = BuildStatusLine(result, consumptionPerLap is not null, remainingLaps is not null);
+        StatusLineText = BuildStatusLine(result, consumptionPerLap is not null, remainingLaps is not null, consumptionPerLap, LapsMode);
 
         // Honest source label.
         if (Telemetry.IsTestData)
@@ -194,7 +198,8 @@ public sealed class FuelPanelViewModel : OverlayPanelViewModel
         OnAllPropertiesChanged();
     }
 
-    private static string BuildStatusLine(FuelPlanResult result, bool hasConsumption, bool hasRemainingLaps)
+    private static string BuildStatusLine(
+        FuelPlanResult result, bool hasConsumption, bool hasRemainingLaps, double? litresPerLap, bool lapsMode)
     {
         if (!hasConsumption)
         {
@@ -219,20 +224,27 @@ public sealed class FuelPanelViewModel : OverlayPanelViewModel
         if (result.Outcome == FuelPlanOutcome.Sufficient)
         {
             return result.FuelToAddLitres is { } add && add > 0
-                ? $"Add {FormatL(add)} to meet the planned requirement."
+                ? $"Add {FormatFuel(add, litresPerLap, lapsMode)} to meet the planned requirement."
                 : "Fuel is sufficient for the planned requirement.";
         }
 
         if (result.Outcome == FuelPlanOutcome.Shortfall)
         {
             return result.FuelToAddLitres is { } add
-                ? $"Short {FormatL(add)} — add to meet the planned requirement."
+                ? $"Short {FormatFuel(add, litresPerLap, lapsMode)} — add to meet the planned requirement."
                 : "Fuel does not cover the planned requirement.";
         }
 
         return "Fuel plan incomplete — check the Fuel Calculator inputs.";
     }
 
-    private static string FormatL(double litres) =>
-        litres.ToString("0.0", CultureInfo.InvariantCulture) + " L";
+    /// <summary>
+    /// Formats a litre quantity in the active display unit: "<c>x.x L</c>" in litres mode,
+    /// or a converted "<c>x.x laps</c>" in laps mode (missing when the rate is unknown).
+    /// </summary>
+    private static string FormatFuel(double litres, double? litresPerLap, bool lapsMode) =>
+        Display.FuelQuantity(litres, lapsMode, litresPerLap);
+
+    private bool LapsMode =>
+        string.Equals(_options?.FuelCalculatorDisplayUnit, "Laps", StringComparison.OrdinalIgnoreCase);
 }

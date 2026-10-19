@@ -35,6 +35,7 @@ public sealed class FuelCalculatorViewModel : PageViewModel
     private double _safetyMarginLitres;
     private double _safetyMarginPercent;
     private bool _preferTimeLimitedEstimate;
+    private string _displayUnit = "Litres";
 
     private string _statusText = "Insufficient fuel data — enter consumption manually or complete another lap.";
     private string _dataSourceText = "MANUAL INPUT";
@@ -74,6 +75,7 @@ public sealed class FuelCalculatorViewModel : PageViewModel
         _manualRemainingLaps = _options.FuelCalculatorManualRemainingLaps;
         _stintLaps = _options.FuelCalculatorStintLaps ?? 0;
         _preferTimeLimitedEstimate = _options.FuelCalculatorPreferTimeLimitedEstimate;
+        _displayUnit = NormalizeUnit(_options.FuelCalculatorDisplayUnit);
 
         SaveCommand = new RelayCommand(SaveAndRecalculate);
         ResetLiveFuelCommand = new RelayCommand(() =>
@@ -228,6 +230,26 @@ public sealed class FuelCalculatorViewModel : PageViewModel
         }
     }
 
+    /// <summary>
+    /// Display unit for fuel quantities: "Litres" or "Laps". The engine always computes in
+    /// litres; in laps mode the results are divided by the effective litres-per-lap.
+    /// </summary>
+    public string DisplayUnit
+    {
+        get => _displayUnit;
+        set
+        {
+            if (SetProperty(ref _displayUnit, NormalizeUnit(value)))
+            {
+                OnPropertyChanged(nameof(LapsMode));
+                Recalculate();
+            }
+        }
+    }
+
+    /// <summary>True when results are shown as a lap count rather than litres.</summary>
+    public bool LapsMode => _displayUnit == "Laps";
+
     public string StatusText
     {
         get => _statusText;
@@ -379,7 +401,11 @@ public sealed class FuelCalculatorViewModel : PageViewModel
         _options.FuelCalculatorManualRemainingLaps = _manualRemainingLaps;
         _options.FuelCalculatorStintLaps = _stintLaps;
         _options.FuelCalculatorPreferTimeLimitedEstimate = _preferTimeLimitedEstimate;
+        _options.FuelCalculatorDisplayUnit = _displayUnit;
     }
+
+    private static string NormalizeUnit(string? unit) =>
+        string.Equals(unit, "Laps", StringComparison.OrdinalIgnoreCase) ? "Laps" : "Litres";
 
     private void Recalculate()
     {
@@ -395,8 +421,6 @@ public sealed class FuelCalculatorViewModel : PageViewModel
             _currentFuelLitres = Math.Max(0d, liveFuel);
             OnPropertyChanged(nameof(CurrentFuelLitres));
         }
-
-        CurrentFuelText = FormatL(_currentFuelLitres, CurrentFuelOverridden ? " (entered)" : null);
 
         // Consumption: a manual override always wins when > 0; zero is treated as "no
         // override" and falls through to telemetry; negative values are passed to
@@ -440,6 +464,12 @@ public sealed class FuelCalculatorViewModel : PageViewModel
         ConsumptionText = consumptionPerLap is { } c
             ? $"{c.ToString("0.00", CultureInfo.InvariantCulture)} L/lap ({consumptionSource})"
             : Display.Missing;
+
+        // Current fuel now that the effective consumption is known (needed for laps mode).
+        var enteredSuffix = CurrentFuelOverridden ? " (entered)" : null;
+        CurrentFuelText = LapsMode
+            ? Display.FuelQuantity(_currentFuelLitres, true, consumptionPerLap) + (enteredSuffix ?? string.Empty)
+            : FormatL(_currentFuelLitres, enteredSuffix);
         ValidLapCountText = consumption.ValidLapCount.ToString(CultureInfo.InvariantCulture);
         ConfidenceText = consumption.Confidence switch
         {
@@ -453,7 +483,9 @@ public sealed class FuelCalculatorViewModel : PageViewModel
             : Display.Missing;
 
         double? tankCapacity = sample?.TankCapacityLitres is { } tank && tank > 0 ? tank : null;
-        TankCapacityText = tankCapacity is { } t ? FormatL(t) : Display.Missing;
+        TankCapacityText = tankCapacity is { } t
+            ? Display.FuelQuantity(t, LapsMode, consumptionPerLap)
+            : Display.Missing;
 
         // Remaining laps. A manual override wins when >= 0; negative values are passed
         // to the engine so its validation can reject them with a clear message.
@@ -517,21 +549,19 @@ public sealed class FuelCalculatorViewModel : PageViewModel
 
         var result = _calculator.Calculate(inputs);
 
-        BaseFuelRequiredText = FormatNullableL(result.BaseFuelRequiredLitres);
-        SafetyMarginAppliedText = FormatNullableL(result.SafetyMarginLitres);
-        ReserveAppliedText = FormatNullableL(result.ReserveLitres);
-        TotalFuelRequiredText = FormatNullableL(result.TotalFuelRequiredLitres);
+        BaseFuelRequiredText = FormatFuelResult(result.BaseFuelRequiredLitres, consumptionPerLap);
+        SafetyMarginAppliedText = FormatFuelResult(result.SafetyMarginLitres, consumptionPerLap);
+        ReserveAppliedText = FormatFuelResult(result.ReserveLitres, consumptionPerLap);
+        TotalFuelRequiredText = FormatFuelResult(result.TotalFuelRequiredLitres, consumptionPerLap);
         FuelToAddText = result.FuelToAddLitres is { } toAdd
-            ? $"{toAdd.ToString("0.0", CultureInfo.InvariantCulture)} L"
+            ? Display.FuelQuantity(toAdd, LapsMode, consumptionPerLap)
             : Display.Missing;
-        SurplusShortfallText = result.SurplusOrShortfallLitres is { } surplus
-            ? $"{surplus.ToString("+0.0;-0.0;0.0", CultureInfo.InvariantCulture)} L"
-            : Display.Missing;
+        SurplusShortfallText = Display.FuelSigned(result.SurplusOrShortfallLitres, LapsMode, consumptionPerLap);
         LapsPossibleText = result.EstimatedLapsWithCurrentFuel is { } possible
             ? $"{possible.ToString("0.#", CultureInfo.InvariantCulture)} laps"
             : Display.Missing;
-        StintFuelRequiredText = FormatNullableL(result.StintFuelRequiredLitres);
-        StintReserveAtEndText = FormatNullableL(result.StintReserveAtEndLitres);
+        StintFuelRequiredText = FormatFuelResult(result.StintFuelRequiredLitres, consumptionPerLap);
+        StintReserveAtEndText = FormatFuelResult(result.StintReserveAtEndLitres, consumptionPerLap);
         StintSufficiencyText = result.StintFuelSufficient switch
         {
             true => "Sufficient",
@@ -641,4 +671,12 @@ public sealed class FuelCalculatorViewModel : PageViewModel
 
     private static string FormatNullableL(double? litres) =>
         litres is { } value ? FormatL(value) : Display.Missing;
+
+    /// <summary>
+    /// Formats a litre result in the active display unit. In litres mode it reads
+    /// "<c>x.x L</c>"; in laps mode it is converted using the effective litres-per-lap and
+    /// reads "<c>x.x laps</c>" (or the missing placeholder when the rate is unknown).
+    /// </summary>
+    private string FormatFuelResult(double? litres, double? litresPerLap) =>
+        LapsMode ? Display.FuelQuantity(litres, true, litresPerLap) : FormatNullableL(litres);
 }

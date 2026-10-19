@@ -124,4 +124,53 @@ public sealed class FuelPanelTests
         Assert.Equal("NO SIGNAL", vm.StatusText);
         Assert.Equal("—", vm.CurrentFuelText);
     }
+
+    [Fact]
+    public void Refresh_LapsMode_ConvertsFuelToAddAndCurrentFuelToLaps()
+    {
+        // 40 L in the car at 2.5 L/lap = 16.0 laps; 21 L required = 8.4 laps, so nothing to add.
+        var options = new AppSettings
+        {
+            FuelCalculatorLastReserveLitres = 1.0,
+            FuelCalculatorDisplayUnit = "Laps"
+        };
+        var source = new FakeSource { Latest = Sample(), Fuel = Consumption(2.5) };
+
+        using var vm = new FuelPanelViewModel(source, options);
+
+        Assert.Equal("16.0 laps", vm.CurrentFuelText);
+        Assert.Equal("0.0 laps", vm.FuelToAddText);
+        Assert.True(vm.IsSufficient);
+    }
+
+    [Fact]
+    public void Refresh_LapsMode_ShortfallReportsLapsInStatusLine()
+    {
+        // 21 L required, 5 L (2.0 laps) available -> 16 L to add = 6.4 laps.
+        var options = new AppSettings
+        {
+            FuelCalculatorLastReserveLitres = 1.0,
+            FuelCalculatorDisplayUnit = "Laps"
+        };
+        var sample = Sample() with { FuelLevel = 5f };
+        var source = new FakeSource { Latest = sample, Fuel = Consumption(2.5) };
+
+        using var vm = new FuelPanelViewModel(source, options);
+
+        Assert.Equal("2.0 laps", vm.CurrentFuelText);
+        Assert.Equal("6.4 laps", vm.FuelToAddText);
+        Assert.Contains("6.4 laps", vm.StatusLineText);
+    }
+
+    [Fact]
+    public void Refresh_LapsModeWithoutConsumption_ShowsMissing()
+    {
+        var options = new AppSettings { FuelCalculatorDisplayUnit = "Laps" };
+        var source = new FakeSource { Latest = Sample(), Fuel = null };
+
+        using var vm = new FuelPanelViewModel(source, options);
+
+        Assert.Equal("—", vm.CurrentFuelText);
+        Assert.Equal("—", vm.FuelToAddText);
+    }
 }

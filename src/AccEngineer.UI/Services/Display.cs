@@ -102,6 +102,53 @@ public static class Display
 
     public static string Litres(float? litres) => litres is null ? Missing : litres.Value.ToString("0.0", Inv);
 
+    /// <summary>
+    /// Formats a fuel quantity in the selected display unit. In litres mode the value is
+    /// shown as "<c>x.x L</c>". In laps mode it is divided by the effective litres-per-lap
+    /// and shown as "<c>x.x laps</c>"; when the consumption is unknown (or non-positive)
+    /// the value cannot be expressed in laps and reads <see cref="Missing"/>.
+    /// </summary>
+    public static string FuelQuantity(double? litres, bool lapsMode, double? litresPerLap, int decimals = 1)
+    {
+        if (litres is not { } value) return Missing;
+
+        if (!lapsMode)
+        {
+            return value.ToString("0.0", Inv) + " L";
+        }
+
+        if (litresPerLap is not { } perLap || !double.IsFinite(perLap) || perLap <= 0d)
+        {
+            return Missing;
+        }
+
+        var laps = value / perLap;
+        return laps.ToString(decimals == 1 ? "0.0" : "0.##", Inv) + " laps";
+    }
+
+    /// <summary>
+    /// Formats a signed fuel surplus/shortfall in the selected display unit (litres or
+    /// laps), preserving the explicit sign. Reads <see cref="Missing"/> when the value
+    /// cannot be expressed in the selected unit.
+    /// </summary>
+    public static string FuelSigned(double? litres, bool lapsMode, double? litresPerLap)
+    {
+        if (litres is not { } value) return Missing;
+
+        if (!lapsMode)
+        {
+            return value.ToString("+0.0;-0.0;0.0", Inv) + " L";
+        }
+
+        if (litresPerLap is not { } perLap || !double.IsFinite(perLap) || perLap <= 0d)
+        {
+            return Missing;
+        }
+
+        var laps = value / perLap;
+        return laps.ToString("+0.0;-0.0;0.0", Inv) + " laps";
+    }
+
     public static string Steering(float? normalized)
     {
         if (normalized is null) return Missing;

@@ -150,7 +150,8 @@ public class FuelCalculatorViewModelTests
             FuelCalculatorManualConsumptionPerLap = 2.75,
             FuelCalculatorManualRemainingLaps = 18,
             FuelCalculatorStintLaps = 12,
-            FuelCalculatorPreferTimeLimitedEstimate = true
+            FuelCalculatorPreferTimeLimitedEstimate = true,
+            FuelCalculatorDisplayUnit = "Laps"
         };
 
         var json = JsonSerializer.Serialize(settings, JsonOptions);
@@ -163,11 +164,13 @@ public class FuelCalculatorViewModelTests
         Assert.Equal(18, loaded.FuelCalculatorManualRemainingLaps);
         Assert.Equal(12, loaded.FuelCalculatorStintLaps);
         Assert.True(loaded.FuelCalculatorPreferTimeLimitedEstimate);
+        Assert.Equal("Laps", loaded.FuelCalculatorDisplayUnit);
 
         // A settings file written before this feature must simply default to empty.
         var legacy = JsonSerializer.Deserialize<AppSettings>("{}", JsonOptions)!;
         Assert.Null(legacy.FuelCalculatorManualConsumptionPerLap);
         Assert.Equal("Litres", legacy.FuelCalculatorSafetyMarginMode);
+        Assert.Equal("Litres", legacy.FuelCalculatorDisplayUnit);
     }
 
     [Fact]
@@ -186,6 +189,55 @@ public class FuelCalculatorViewModelTests
         Assert.Equal(4, vm.ReserveLitres);
         Assert.Equal(9, vm.StintLaps);
         Assert.Equal(2.2, vm.ManualConsumptionPerLap);
+    }
+
+    [Fact]
+    public void LapsMode_ConvertsResults_UsingEffectiveConsumption()
+    {
+        using var telemetry = new LiveTelemetryService(new SessionEventLog(), new AppSettings { PollIntervalMs = 5 });
+        var vm = new FuelCalculatorViewModel(telemetry, new AppSettings());
+
+        vm.DisplayUnit = "Laps";
+        vm.ManualConsumptionPerLap = 2.5;
+        vm.ManualRemainingLaps = 20;
+        vm.CurrentFuelLitres = 40;
+
+        // Engine: 2.5 x 20 = 50 L base + 1 L reserve = 51 L required; add 11 L.
+        // In laps mode everything is divided by 2.5 L/lap.
+        Assert.True(vm.LapsMode);
+        Assert.Equal("4.4 laps", vm.FuelToAddText);
+        Assert.Equal("16.0 laps (entered)", vm.CurrentFuelText);
+        Assert.Equal("20.4 laps", vm.TotalFuelRequiredText);
+    }
+
+    [Fact]
+    public void LapsMode_WithoutConsumption_ShowsMissingNotAFabricatedConversion()
+    {
+        using var telemetry = new LiveTelemetryService(new SessionEventLog(), new AppSettings { PollIntervalMs = 5 });
+        var vm = new FuelCalculatorViewModel(telemetry, new AppSettings { FuelCalculatorDisplayUnit = "Laps" });
+
+        vm.ManualRemainingLaps = 20;
+        vm.CurrentFuelLitres = 40;
+
+        Assert.True(vm.LapsMode);
+        Assert.Equal(Display.Missing, vm.FuelToAddText);
+        Assert.StartsWith(Display.Missing, vm.CurrentFuelText, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void DisplayUnit_DefaultsToLitres_AndPersistsThroughSave()
+    {
+        var settings = new AppSettings();
+        using var telemetry = new LiveTelemetryService(new SessionEventLog(), settings);
+        var vm = new FuelCalculatorViewModel(telemetry, settings);
+
+        Assert.Equal("Litres", vm.DisplayUnit);
+        Assert.False(vm.LapsMode);
+
+        vm.DisplayUnit = "Laps";
+        vm.SaveCommand.Execute(null);
+
+        Assert.Equal("Laps", settings.FuelCalculatorDisplayUnit);
     }
 
     private static bool WaitForTestData(LiveTelemetryService service, TimeSpan timeout)
