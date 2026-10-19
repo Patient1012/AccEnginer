@@ -12,7 +12,7 @@ public sealed record OverlayPreset(string Name, string Description, IReadOnlySet
 }
 
 /// <summary>The built-in preset library. Panel ids must match those registered by
-/// <see cref="OverlayManager"/> (timing, relative, standings, inputs, map, conditions, tyres, dynamics).</summary>
+/// <see cref="OverlayManager"/> (timing, relative, standings, inputs, map, conditions, tyres, dynamics, fuel).</summary>
 public static class OverlayPresets
 {
     public const string Practice = "Practice";
@@ -34,8 +34,8 @@ public static class OverlayPresets
 
         new OverlayPreset(
             Race,
-            "Standings, relative, timing, tyres and inputs for wheel-to-wheel racing.",
-            new HashSet<string>(StringComparer.Ordinal) { "standings", "relative", "timing", "tyres", "inputs", "map" }),
+            "Standings, relative, timing, tyres, fuel and inputs for wheel-to-wheel racing.",
+            new HashSet<string>(StringComparer.Ordinal) { "standings", "relative", "timing", "tyres", "inputs", "map", "fuel" }),
 
         new OverlayPreset(
             MinimalHud,

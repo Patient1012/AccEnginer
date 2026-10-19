@@ -42,7 +42,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         Telemetry = new LiveTelemetryService(EventLog, Options);
         Reports = new ReportService(Options);
         Library = new RecordingLibrary(Options);
-        Overlays = new OverlayManager(new LiveOverlayTelemetrySource(Telemetry));
+        Overlays = new OverlayManager(new LiveOverlayTelemetrySource(Telemetry), Options);
         Overlays.EditorRequested += OpenOverlayManager;
 
         Live = new LiveDataViewModel(Telemetry);

@@ -1,3 +1,4 @@
+using AccEngineer.Analysis.Fuel;
 using AccEngineer.Telemetry;
 using AccEngineer.Telemetry.Broadcasting;
 
@@ -29,6 +30,14 @@ public interface IOverlayTelemetrySource
 
     /// <summary>Short human-readable broadcasting state for panel status lines.</summary>
     string StandingsStatusText { get; }
+
+    /// <summary>
+    /// The current per-lap fuel consumption measurements, or null when the source cannot
+    /// supply them (demo data). Panels render an explicit "collecting"/unavailable state
+    /// rather than a guessed consumption when this is null. Defaults to null so existing
+    /// sources that do not model fuel keep compiling.
+    /// </summary>
+    FuelConsumptionSnapshot? FuelConsumption => null;
 }
 
 /// <summary>
@@ -50,4 +59,6 @@ public sealed class LiveOverlayTelemetrySource : IOverlayTelemetrySource
 
     public CompetitorStandings? Standings => _telemetry.Standings;
     public string StandingsStatusText => _telemetry.BroadcastingStatusText;
+
+    public FuelConsumptionSnapshot? FuelConsumption => _telemetry.FuelConsumption;
 }

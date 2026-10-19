@@ -61,6 +61,12 @@ public sealed class DemoOverlayTelemetrySource : IOverlayTelemetrySource, IDispo
 
     public string StandingsStatusText => "Demo data";
 
+    /// <summary>
+    /// Null: the overlay-only demo feed does not model fuel burn. The fuel panel shows
+    /// its explicit "collecting"/unavailable state instead of an invented consumption.
+    /// </summary>
+    public AccEngineer.Analysis.Fuel.FuelConsumptionSnapshot? FuelConsumption => null;
+
     /// <summary>Advances the synthetic session one step and publishes it as latest.</summary>
     private void Advance()
     {

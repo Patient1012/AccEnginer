@@ -42,10 +42,11 @@ public sealed class OverlayManager : IDisposable
     private DemoOverlayTelemetrySource? _demoSource;
     private bool _disposed;
 
-    public OverlayManager(IOverlayTelemetrySource liveSource)
+    public OverlayManager(IOverlayTelemetrySource liveSource, AccEngineer.UI.Services.AppSettings? options = null)
     {
         _liveSource = liveSource;
         _source = liveSource;
+        Options = options;
 
         _store = new OverlayLayoutStore();
         _document = _store.Load();
@@ -65,6 +66,12 @@ public sealed class OverlayManager : IDisposable
 
     /// <summary>Raised when the user asks to open the layout editor (hotkey or UI).</summary>
     public event Action? EditorRequested;
+
+    /// <summary>
+    /// Persisted user options, used by the fuel panel to mirror the page's planning
+    /// inputs (reserve, safety margin, manual laps/stint). Null in tests/headless use.
+    /// </summary>
+    public AccEngineer.UI.Services.AppSettings? Options { get; }
 
     /// <summary>True when panels are being fed synthetic data for layout testing.</summary>
     public bool IsDemoMode { get; private set; }
@@ -484,6 +491,17 @@ public sealed class OverlayManager : IDisposable
             ViewModel = dynamicsVm
         });
 
+        // Fuel planning panel: fuel to add and laps possible, fed by the same engine
+        // as the Fuel Calculator page plus the user's persisted planning inputs.
+        var fuelVm = new FuelPanelViewModel(_source, Options);
+        _panels.Add(new PanelHost
+        {
+            Id = "fuel",
+            Title = "Fuel",
+            Window = new OverlayPanelWindow("fuel", "ACC Engineer - Fuel", new FuelOverlayPanel { DataContext = fuelVm }, DefaultState("fuel")),
+            ViewModel = fuelVm
+        });
+
         // Legacy Phase 1 test panel (kept available; hidden by default).
         var testVm = new TestPanelViewModel(_source);
         _panels.Add(new PanelHost
@@ -616,6 +634,7 @@ public sealed class OverlayManager : IDisposable
         "conditions" => new OverlayPanelState { Id = id, Visible = false, X = 560, Y = 300, Width = 220, Height = 172, Opacity = 0.92 },
         "tyres" => new OverlayPanelState { Id = id, Visible = false, X = 820, Y = 300, Width = 320, Height = 210, Opacity = 0.92 },
         "dynamics" => new OverlayPanelState { Id = id, Visible = false, X = 820, Y = 40, Width = 300, Height = 200, Opacity = 0.92 },
+        "fuel" => new OverlayPanelState { Id = id, Visible = false, X = 820, Y = 520, Width = 260, Height = 168, Opacity = 0.92 },
         _ => new OverlayPanelState { Id = id, Visible = false, X = 40, Y = 400, Width = 300, Height = 230, Opacity = 0.92 }
     };
 }

@@ -47,6 +47,7 @@ public sealed class OverlayPresetTests
         Assert.True(preset.Shows("standings"));
         Assert.True(preset.Shows("relative"));
         Assert.True(preset.Shows("timing"));
+        Assert.True(preset.Shows("fuel"));
     }
 
     [Fact]
