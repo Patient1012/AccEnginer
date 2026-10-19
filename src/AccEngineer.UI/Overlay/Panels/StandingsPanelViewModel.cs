@@ -150,7 +150,7 @@ public sealed class StandingsPanelViewModel : OverlayPanelViewModel
                 Items.Add(new StandingsClassHeader
                 {
                     ClassLabel = StandingsClass.Label(carClass),
-                    CountText = members.Count.ToString(CultureInfo.InvariantCulture),
+                    CountText = $"{members.Count} {(members.Count == 1 ? "car" : "cars")}",
                     Accent = StandingsClass.Accent(carClass)
                 });
 

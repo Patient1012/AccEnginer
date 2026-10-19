@@ -276,7 +276,7 @@ public sealed class StandingsPanelTests
 
         var headers = vm.Items.OfType<StandingsClassHeader>().ToList();
         Assert.Equal(new[] { "GT3", "GT4" }, headers.Select(h => h.ClassLabel));
-        Assert.Equal(new[] { "2", "1" }, headers.Select(h => h.CountText));
+        Assert.Equal(new[] { "2 cars", "1 car" }, headers.Select(h => h.CountText));
 
         // Rows appear under their own header, contiguous.
         Assert.IsType<StandingsClassHeader>(vm.Items[0]);

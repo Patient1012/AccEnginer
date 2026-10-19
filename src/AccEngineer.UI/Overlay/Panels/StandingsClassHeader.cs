@@ -12,7 +12,8 @@ public sealed class StandingsClassHeader : StandingsListItem
     /// <summary>Display name of the ACC cup category, for example <c>PRO-AM</c>.</summary>
     public string ClassLabel { get; init; } = string.Empty;
 
-    /// <summary>Number of classified drivers shown in this group.</summary>
+    /// <summary>Number of classified drivers shown in this group, labelled for display,
+    /// for example <c>6 cars</c>.</summary>
     public string CountText { get; init; } = string.Empty;
 
     /// <summary>Class accent colour, shared with the group's driver rows.</summary>
