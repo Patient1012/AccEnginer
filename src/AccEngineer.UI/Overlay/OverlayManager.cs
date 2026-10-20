@@ -499,14 +499,20 @@ public sealed class OverlayManager : IDisposable
             ViewModel = dynamicsVm
         });
 
-        // Fuel planning panel: fuel to add and laps possible, fed by the same engine
-        // as the Fuel Calculator page plus the user's persisted planning inputs.
+        // Fuel planning panel: current fuel, predicted consumption, usage history and the
+        // fuel required to finish, all fed by the same engine as the Fuel Calculator page
+        // plus the user's persisted planning inputs. Content-sized vertically so the dense
+        // four-section HUD never leaves dead space or clips its bottom line.
         var fuelVm = new FuelPanelViewModel(_source, Options);
+        var fuelWindow = new OverlayPanelWindow("fuel", "ACC Engineer - Fuel", new FuelOverlayPanel { DataContext = fuelVm }, DefaultState("fuel"))
+        {
+            AutoFitHeight = true
+        };
         _panels.Add(new PanelHost
         {
             Id = "fuel",
             Title = "Fuel",
-            Window = new OverlayPanelWindow("fuel", "ACC Engineer - Fuel", new FuelOverlayPanel { DataContext = fuelVm }, DefaultState("fuel")),
+            Window = fuelWindow,
             ViewModel = fuelVm
         });
 

@@ -53,6 +53,47 @@ public class FuelConsumptionTrackerTests
     }
 
     [Fact]
+    public void Observe_FewerLapsThanTheWindow_ReportsTheActualSampleCount()
+    {
+        var tracker = new FuelConsumptionTracker();
+
+        tracker.Observe(Sample(1, 60f));
+        tracker.Observe(Sample(2, 57.3f, lastLapMs: 95_000));
+        tracker.Observe(Sample(3, 54.6f, lastLapMs: 95_000));
+        tracker.Observe(Sample(4, 51.9f, lastLapMs: 95_000));
+
+        var snapshot = tracker.Snapshot();
+
+        // Only two clean laps exist, so the recent figure is honest about using two.
+        Assert.Equal(2, snapshot.RecentLapCount);
+        Assert.Equal(2.7, snapshot.RecentLitresPerLap!.Value, 4);
+    }
+
+    [Fact]
+    public void Observe_MoreLapsThanTheWindow_AveragesOnlyTheNewest()
+    {
+        var tracker = new FuelConsumptionTracker();
+
+        // Seven laps: the first two burn high (5.0 L), the newest five burn 2.0 L.
+        tracker.Observe(Sample(1, 60f));
+        tracker.Observe(Sample(2, 55f, lastLapMs: 95_000));
+        tracker.Observe(Sample(3, 50f, lastLapMs: 95_000));
+        tracker.Observe(Sample(4, 48f, lastLapMs: 95_000));
+        tracker.Observe(Sample(5, 46f, lastLapMs: 95_000));
+        tracker.Observe(Sample(6, 44f, lastLapMs: 95_000));
+        tracker.Observe(Sample(7, 42f, lastLapMs: 95_000));
+        tracker.Observe(Sample(8, 40f, lastLapMs: 95_000));
+
+        var snapshot = tracker.Snapshot();
+
+        Assert.Equal(FuelConsumptionTracker.RecentWindow, snapshot.RecentLapCount);
+        Assert.Equal(2.0, snapshot.RecentLitresPerLap!.Value, 4);
+
+        // The session-wide average still reflects every measured lap (a mix, so > 2.0).
+        Assert.True(snapshot.AverageLitresPerLap!.Value > 2.0);
+    }
+
+    [Fact]
     public void Observe_AverageLapSeconds_IsDerivedFromMeasuredLaps()
     {
         var tracker = new FuelConsumptionTracker();

@@ -2,10 +2,44 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:oc="clr-namespace:AccEngineer.UI.Overlay.Controls"
-             xmlns:conv="clr-namespace:AccEngineer.UI.Converters">
+             xmlns:conv="clr-namespace:AccEngineer.UI.Converters"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+    <!-- Dense fuel HUD modelled on a compact sim-racing widget: a current-fuel header with
+         a coloured sufficiency bar, a predicted litres-per-lap row, a historical usage
+         table, and the fuel required to finish with its surplus/shortfall. Values come
+         only from the shared FuelCalculator engine via FuelPanelViewModel; the fuel-specific
+         green/amber/red accents deliberately differ from the app's amber overlay accent. -->
     <UserControl.Resources>
         <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <conv:FractionToGridLengthConverter x:Key="FractionToLength" />
+
+        <!-- Section label: small, muted, uppercase, slightly tracked. -->
+        <Style x:Key="FhSectionLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="9" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{DynamicResource OverlayMutedBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Usage-table label / value cells: tight, tabular. -->
+        <Style x:Key="FhUsageLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="Foreground" Value="{DynamicResource OverlayMutedBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="FhUsageValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontFamily" Value="{StaticResource OverlayValueFont}" />
+            <Setter Property="Foreground" Value="{DynamicResource OverlayTextBrush}" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="FhUsageLaps" TargetType="TextBlock" BasedOn="{StaticResource FhUsageValue}">
+            <Setter Property="Foreground" Value="{DynamicResource OverlayMutedBrush}" />
+        </Style>
     </UserControl.Resources>
+
     <Border Style="{StaticResource OverlayPanelBorder}">
         <Grid Margin="6,4">
             <Grid.RowDefinitions>
@@ -16,56 +50,164 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
 
-            <!-- Header -->
-            <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,2">
-                <Border Width="3" Background="{DynamicResource OverlayAccentBrush}" Margin="0,0,6,0" />
-                <TextBlock Text="FUEL" Style="{StaticResource OverlayHeader}" VerticalAlignment="Center" />
-                <TextBlock Text="{Binding SourceText}" Margin="8,0,0,0"
-                           Style="{StaticResource OverlayCellMuted}" VerticalAlignment="Center" />
-            </StackPanel>
-            <oc:OverlayStatusIndicator Grid.Row="0" Grid.Column="1"
-                                       Text="{Binding StatusText}"
-                                       IsActive="{Binding IsLive}"
-                                       TestData="{Binding IsTestData}" />
+            <!-- Section A header: FUEL + source + status indicator. -->
+            <Grid Grid.Row="0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Border Width="3" Background="{DynamicResource OverlayAccentBrush}" Margin="0,0,6,0" />
+                    <TextBlock Text="FUEL" Style="{StaticResource OverlayHeader}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding SourceText}" Margin="8,0,0,0"
+                               Style="{StaticResource OverlayCellMuted}" VerticalAlignment="Center" />
+                </StackPanel>
+                <oc:OverlayStatusIndicator HorizontalAlignment="Right"
+                                           Text="{Binding StatusText}"
+                                           IsActive="{Binding IsLive}"
+                                           TestData="{Binding IsTestData}" />
+            </Grid>
 
-            <Rectangle Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource OverlaySeparator}"
-                       Margin="0,2,0,2" />
+            <!-- Section A: current fuel (prominent), fuel-pump glyph, laps remaining. -->
+            <Grid Grid.Row="1" Margin="0,4,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding CurrentFuelText}"
+                           FontSize="22" FontWeight="Bold" FontFamily="{StaticResource OverlayValueFont}"
+                           Foreground="{DynamicResource OverlayTextBrush}" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="&#xF043;" FontFamily="Segoe MDL2 Assets" FontSize="13"
+                           Foreground="{DynamicResource OverlayMutedBrush}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" Margin="8,0,8,0" />
+                <TextBlock Grid.Column="2" Text="{Binding LapsRemainingText}"
+                           FontSize="13" FontFamily="{StaticResource OverlayValueFont}"
+                           Foreground="{DynamicResource OverlayTextBrush}"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" />
+            </Grid>
 
-            <!-- Prominent result: fuel to add. Colour flips to the warning accent on a shortfall. -->
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="FUEL TO ADD" Style="{StaticResource OverlayLabel}" />
-            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding FuelToAddText}">
-                <TextBlock.Style>
-                    <Style TargetType="TextBlock" BasedOn="{StaticResource OverlayValueBig}">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding HasShortfall}" Value="True">
-                                <Setter Property="Foreground" Value="{DynamicResource OverlayWarningBrush}" />
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding IsSufficient}" Value="True">
-                                <Setter Property="Foreground" Value="{DynamicResource OverlaySuccessBrush}" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBlock.Style>
-            </TextBlock>
+            <!-- Section A: fuel-status bar, green → amber → red by BarState. -->
+            <Grid Grid.Row="2" Height="6" Margin="0,4,0,0" ClipToBounds="True">
+                <Border CornerRadius="1" Background="{DynamicResource OverlayBarTrackBrush}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="{Binding FuelBarFraction, Converter={StaticResource FractionToLength}}" />
+                        <ColumnDefinition Width="{Binding FuelBarFraction, Converter={StaticResource FractionToLength}, ConverterParameter=inverse}" />
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" CornerRadius="1">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="{DynamicResource OverlaySuccessBrush}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding BarState}" Value="Warning">
+                                        <Setter Property="Background" Value="{DynamicResource OverlayWarningBrush}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding BarState}" Value="Shortfall">
+                                        <Setter Property="Background" Value="{DynamicResource OverlayFlagRedBrush}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding BarState}" Value="Unknown">
+                                        <Setter Property="Background" Value="Transparent" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                    </Border>
+                </Grid>
+            </Grid>
 
-            <!-- Supporting values -->
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="LAPS POSSIBLE" Style="{StaticResource OverlayLabel}" />
-            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding LapsPossibleText}" Style="{StaticResource OverlayCellMono}" />
+            <!-- Section B: predicted fuel per lap (bright green) vs muted session average. -->
+            <Grid Grid.Row="3" Margin="0,6,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <TextBlock Text="&#xF043;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                               Foreground="{DynamicResource OverlaySuccessBrush}"
+                               VerticalAlignment="Center" Margin="0,0,5,0" />
+                    <TextBlock Text="Predicted Fuel / Lap" Style="{StaticResource FhSectionLabel}" />
+                </StackPanel>
+                <TextBlock Grid.Column="1" Text="{Binding AveragePerLapText}"
+                           FontSize="10" FontFamily="{StaticResource OverlayValueFont}"
+                           Foreground="{DynamicResource OverlayMutedBrush}"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <TextBlock Grid.Column="2" Text="{Binding PredictedPerLapText}"
+                           FontSize="14" FontWeight="Bold" FontFamily="{StaticResource OverlayValueFont}"
+                           Foreground="{DynamicResource OverlaySuccessBrush}"
+                           HorizontalAlignment="Right" VerticalAlignment="Center" />
+            </Grid>
 
-            <TextBlock Grid.Row="4" Grid.Column="0" Text="CURRENT FUEL" Style="{StaticResource OverlayLabel}" />
-            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding CurrentFuelText}" Style="{StaticResource OverlayCellMono}" />
+            <!-- Section C: historical usage table (last lap / recent window / session average),
+                 each with the laps the current fuel would cover at that rate. -->
+            <TextBlock Grid.Row="4" Text="USAGE" Style="{StaticResource FhSectionLabel}" Margin="0,7,0,2" />
+            <Grid Grid.Row="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="LAST" Style="{StaticResource FhUsageLabel}" />
+                <TextBlock Grid.Column="1" Text="{Binding LastLapUsageText}" Style="{StaticResource FhUsageValue}" Margin="0,0,8,0" />
+                <TextBlock Grid.Column="2" Text="{Binding LastLapLapsText}" Style="{StaticResource FhUsageLaps}" MinWidth="34" />
+            </Grid>
+            <Grid Grid.Row="6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding RecentLapLabelText}" Style="{StaticResource FhUsageLabel}" />
+                <TextBlock Grid.Column="1" Text="{Binding RecentLapUsageText}" Style="{StaticResource FhUsageValue}" Margin="0,0,8,0" />
+                <TextBlock Grid.Column="2" Text="{Binding RecentLapLapsText}" Style="{StaticResource FhUsageLaps}" MinWidth="34" />
+            </Grid>
+            <Grid Grid.Row="7">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="AVG" Style="{StaticResource FhUsageLabel}" />
+                <TextBlock Grid.Column="1" Text="{Binding AverageUsageText}" Style="{StaticResource FhUsageValue}" Margin="0,0,8,0" />
+                <TextBlock Grid.Column="2" Text="{Binding AverageLapsText}" Style="{StaticResource FhUsageLaps}" MinWidth="34" />
+            </Grid>
 
-            <TextBlock Grid.Row="5" Grid.Column="0" Text="CONSUMPTION" Style="{StaticResource OverlayLabel}" />
-            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding ConsumptionText}" Style="{StaticResource OverlayCellMono}" />
+            <Rectangle Grid.Row="8" Style="{StaticResource OverlaySeparator}" Margin="0,5,0,4" />
 
-            <TextBlock Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding StatusLineText}"
-                       Style="{StaticResource OverlayCellMuted}" TextWrapping="Wrap" Margin="0,3,0,0" />
+            <!-- Section D: fuel required to finish (left) and the spare/short margin (right). -->
+            <Grid Grid.Row="9">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="TO FINISH" Style="{StaticResource FhSectionLabel}" />
+                    <TextBlock Text="{Binding ToFinishText}"
+                               FontSize="15" FontWeight="Bold" FontFamily="{StaticResource OverlayValueFont}"
+                               Foreground="{DynamicResource OverlayTextBrush}" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" Text="{Binding SpareText}"
+                           FontSize="12" FontFamily="{StaticResource OverlayValueFont}"
+                           VerticalAlignment="Bottom">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{DynamicResource OverlaySuccessBrush}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasShortfall}" Value="True">
+                                    <Setter Property="Foreground" Value="{DynamicResource OverlayWarningBrush}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+
+            <TextBlock Grid.Row="10" Text="{Binding StatusLineText}"
+                       Style="{StaticResource OverlayCellMuted}" TextWrapping="Wrap" Margin="0,4,0,0" />
         </Grid>
     </Border>
 </UserControl>

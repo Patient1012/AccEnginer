@@ -35,6 +35,19 @@ public sealed record FuelConsumptionSnapshot
     /// <summary>Average fuel consumed across all cleanly measured laps.</summary>
     public double? AverageLitresPerLap { get; init; }
 
+    /// <summary>
+    /// Average fuel consumed across the most recent <see cref="FuelConsumptionTracker.RecentWindow"/> cleanly
+    /// measured laps (fewer when the session has not yet produced that many). Null until
+    /// at least one lap is measured.
+    /// </summary>
+    public double? RecentLitresPerLap { get; init; }
+
+    /// <summary>
+    /// Number of laps actually averaged into <see cref="RecentLitresPerLap"/> — the sample
+    /// count the UI must report so a short window is never mislabelled as a full one.
+    /// </summary>
+    public int RecentLapCount { get; init; }
+
     /// <summary>Number of cleanly measured laps contributing to the average.</summary>
     public int ValidLapCount { get; init; }
 
@@ -67,6 +80,9 @@ public sealed class FuelConsumptionTracker
 
     /// <summary>Fuel above this per lap is treated as a measurement error or refuel rather than a real lap.</summary>
     public const double MaxPlausibleLitresPerLap = 30.0;
+
+    /// <summary>Size of the recent-consumption window (the overlay's "5 lap" figure).</summary>
+    public const int RecentWindow = 5;
 
     /// <summary>A rise in fuel above this (litres) during a lap is treated as a refuel.</summary>
     private const double RefuelEpsilon = 0.01;
@@ -169,6 +185,14 @@ public sealed class FuelConsumptionTracker
             double? last = observations.Length > 0 ? observations[^1].LitresConsumed : null;
             double? average = observations.Length > 0 ? observations.Average(o => o.LitresConsumed) : null;
 
+            // Recent window: the newest observations only, so a stale early-lap stint
+            // cannot dilute what the car is using right now. Fewer than the window when
+            // the session is young; the count is reported so the UI can say so.
+            var recentCount = Math.Min(RecentWindow, observations.Length);
+            double? recent = recentCount > 0
+                ? observations.Skip(observations.Length - recentCount).Average(o => o.LitresConsumed)
+                : null;
+
             var lapTimes = new List<int>();
             foreach (var observation in observations)
             {
@@ -182,6 +206,8 @@ public sealed class FuelConsumptionTracker
             {
                 LastLapLitresPerLap = last,
                 AverageLitresPerLap = average,
+                RecentLitresPerLap = recent,
+                RecentLapCount = recentCount,
                 ValidLapCount = observations.Length,
                 AverageLapSeconds = FuelLapEstimator.AverageLapSeconds(lapTimes),
                 Confidence = Classify(observations),
