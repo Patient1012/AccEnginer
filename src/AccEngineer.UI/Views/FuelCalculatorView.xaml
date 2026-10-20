@@ -3,313 +3,612 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:conv="clr-namespace:AccEngineer.UI.Converters"
              mc:Ignorable="d"
-             d:DesignHeight="760" d:DesignWidth="1080">
+             d:DesignHeight="820" d:DesignWidth="520">
+    <!--
+        The Fuel Calculator page is scoped to its own near-black, high-contrast palette so it
+        reads like a dedicated motorsport planner rather than the application's blue-grey
+        dashboard. The brushes and control styles below are local to this page and deliberately
+        small-radius / pill-shaped; the rest of the application keeps the shared theme.
+    -->
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <conv:StringMatchToBoolConverter x:Key="StringMatch" />
+
+        <SolidColorBrush x:Key="FuelBrushPage" Color="#FF000000" />
+        <SolidColorBrush x:Key="FuelBrushSurface" Color="#FF101010" />
+        <SolidColorBrush x:Key="FuelBrushCard" Color="#FF171717" />
+        <SolidColorBrush x:Key="FuelBrushInput" Color="#FF0A0A0A" />
+        <SolidColorBrush x:Key="FuelBrushBorder" Color="#FF303030" />
+        <SolidColorBrush x:Key="FuelBrushBorderStrong" Color="#FF414141" />
+        <SolidColorBrush x:Key="FuelBrushTextPrimary" Color="#FFF2F2F2" />
+        <SolidColorBrush x:Key="FuelBrushTextSecondary" Color="#FFA0A0A0" />
+        <SolidColorBrush x:Key="FuelBrushTextMuted" Color="#FF858585" />
+        <SolidColorBrush x:Key="FuelBrushAccent" Color="#FF20E69A" />
+        <SolidColorBrush x:Key="FuelBrushAccentDim" Color="#FF0E5C3E" />
+        <SolidColorBrush x:Key="FuelBrushWarning" Color="#FFFFC24D" />
+        <SolidColorBrush x:Key="FuelBrushError" Color="#FFFF6B74" />
+        <SolidColorBrush x:Key="FuelBrushOnAccent" Color="#FF06120D" />
+
+        <!-- Compact section label used to introduce each group of the form. -->
+        <Style x:Key="FuelSectionLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource FuelBrushTextSecondary}" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+        </Style>
+
+        <Style x:Key="FuelFieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{StaticResource FuelBrushTextMuted}" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+
+        <!-- The value that matters most: white, bold, and slightly larger than body text. -->
+        <Style x:Key="FuelValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource FuelBrushTextPrimary}" />
+        </Style>
+
+        <Style x:Key="FuelValueMuted" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{StaticResource FuelBrushTextSecondary}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <!-- Dark numeric input, matching the reference's thin grey border and small radius. -->
+        <Style x:Key="FuelInput" TargetType="TextBox">
+            <Setter Property="Background" Value="{StaticResource FuelBrushInput}" />
+            <Setter Property="Foreground" Value="{StaticResource FuelBrushTextPrimary}" />
+            <Setter Property="BorderBrush" Value="{StaticResource FuelBrushBorderStrong}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="CaretBrush" Value="{StaticResource FuelBrushAccent}" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="7">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Same input but with a right-aligned muted unit suffix inside the field. -->
+        <Style x:Key="FuelInputWithUnit" TargetType="TextBox">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource FuelBrushTextPrimary}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="CaretBrush" Value="{StaticResource FuelBrushAccent}" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FuelFieldFrame" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource FuelBrushInput}" />
+            <Setter Property="BorderBrush" Value="{StaticResource FuelBrushBorderStrong}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="7" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="Height" Value="36" />
+        </Style>
+
+        <!-- Fully rounded dark button (Clear). -->
+        <Style x:Key="FuelGhostButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource FuelBrushCard}" />
+            <Setter Property="Foreground" Value="{StaticResource FuelBrushTextPrimary}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root" Background="{TemplateBinding Background}"
+                                BorderBrush="{StaticResource FuelBrushBorderStrong}" BorderThickness="1"
+                                CornerRadius="15" Padding="12,0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#FF232323" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Fully rounded bright-green primary button (Calculate / Save). -->
+        <Style x:Key="FuelPrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource FuelBrushAccent}" />
+            <Setter Property="Foreground" Value="{StaticResource FuelBrushOnAccent}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="15"
+                                Padding="12,0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.88" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- The small outlined "Ghost"/pill button used for inline secondary actions. -->
+        <Style x:Key="FuelPillButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource FuelBrushTextPrimary}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Padding" Value="14,4" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root" Background="Transparent"
+                                BorderBrush="{StaticResource FuelBrushBorderStrong}" BorderThickness="1"
+                                CornerRadius="13" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="#FF1F1F1F" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Pill-style segmented option: a RadioButton painted as a rounded toggle. The selected
+             option gets the white pill with dark text; the unselected one stays muted on charcoal. -->
+        <Style x:Key="FuelSegmentOption" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource FuelBrushTextMuted}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Root" Background="Transparent" CornerRadius="12" Padding="12,4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="{StaticResource FuelBrushTextPrimary}" />
+                                <Setter Property="Foreground" Value="{StaticResource FuelBrushOnAccent}" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Opacity" Value="0.85" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
-        <StackPanel MaxWidth="1200" HorizontalAlignment="Left">
+    <Border Background="{StaticResource FuelBrushPage}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <!-- The reference is a narrow phone-width column; centre it and cap the width so a
+                 wide desktop monitor never stretches inputs across the whole screen. -->
+            <StackPanel MaxWidth="520" HorizontalAlignment="Center" Margin="0,0,0,24">
 
-            <!-- Header -->
-            <DockPanel Margin="0,0,0,4">
-                <Border DockPanel.Dock="Right" Padding="8,2" CornerRadius="4" BorderThickness="1"
-                        BorderBrush="{DynamicResource BrushBorder}"
-                        Background="{DynamicResource BrushSurfaceAlt}" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding DataSourceText}" FontSize="11"
-                               Foreground="{DynamicResource BrushTextSecondary}" />
+                <!-- Header: bold title with a thin bottom rule and unobtrusive data-source text. -->
+                <Border BorderBrush="{StaticResource FuelBrushBorder}" BorderThickness="0,0,0,1"
+                        Padding="14,16" MinHeight="74">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Right" Text="{Binding DataSourceText}" FontSize="11"
+                                   Foreground="{StaticResource FuelBrushTextMuted}" VerticalAlignment="Center" />
+                        <TextBlock Text="Fuel Calculator" FontSize="29" FontWeight="Bold"
+                                   Foreground="{StaticResource FuelBrushTextPrimary}" />
+                    </DockPanel>
                 </Border>
-                <TextBlock Text="Fuel Calculator" Style="{StaticResource PageTitle}" />
-            </DockPanel>
-            <TextBlock Text="{Binding StatusText}" Style="{StaticResource Caption}"
-                       TextWrapping="Wrap" Margin="0,0,0,16" />
 
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <!-- A. Race and stint planning -->
-                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource Card}" Margin="0,0,8,8">
+                <!-- Main form container. -->
+                <Border Background="{StaticResource FuelBrushSurface}" BorderBrush="{StaticResource FuelBrushBorder}"
+                        BorderThickness="1" CornerRadius="15" Padding="13,14" Margin="0,12,0,0">
                     <StackPanel>
-                        <TextBlock Text="RACE AND STINT PLANNING" Style="{StaticResource SectionHeader}" />
-                        <Grid Margin="0,12,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="190" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
 
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Fuel display unit"
-                                       VerticalAlignment="Center" />
-                            <ComboBox Grid.Row="0" Grid.Column="1" Width="140" HorizontalAlignment="Left"
-                                      Style="{StaticResource InputCombo}"
-                                      SelectedItem="{Binding DisplayUnit}">
-                                <ComboBoxItem Content="Litres" />
-                                <ComboBoxItem Content="Laps" />
-                            </ComboBox>
-
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Current fuel (L)"
-                                       VerticalAlignment="Center" Margin="0,10,0,0" />
-                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,10,0,0">
-                                <TextBox Width="120" Style="{StaticResource InputBox}"
-                                         Text="{Binding CurrentFuelLitres, UpdateSourceTrigger=PropertyChanged}" />
-                                <Button Content="Use live" Margin="6,0,0,0" Padding="8,2"
-                                        Style="{StaticResource GhostButton}"
-                                        Command="{Binding ResetLiveFuelCommand}"
+                        <!-- Stint: compact card with the planned-stint length and its fuel need. -->
+                        <Border Background="{StaticResource FuelBrushCard}" BorderBrush="{StaticResource FuelBrushBorder}"
+                                BorderThickness="1" CornerRadius="9" Padding="15" MinHeight="88">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Stint" FontSize="11"
+                                               Foreground="{StaticResource FuelBrushTextMuted}" />
+                                    <TextBlock Text="Planned stint" FontSize="18" FontWeight="Bold"
+                                               Foreground="{StaticResource FuelBrushTextPrimary}" Margin="0,4,0,0" />
+                                    <Grid Margin="0,8,0,0" MaxWidth="200" HorizontalAlignment="Left">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Style="{StaticResource FuelFieldFrame}" Height="32">
+                                            <Grid>
+                                                <TextBox Style="{StaticResource FuelInputWithUnit}"
+                                                         Text="{Binding StintLaps, UpdateSourceTrigger=PropertyChanged}"
+                                                         VerticalAlignment="Center" />
+                                                <TextBlock Text="laps" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                           FontSize="12" Foreground="{StaticResource FuelBrushTextMuted}" />
+                                            </Grid>
+                                        </Border>
+                                    </Grid>
+                                    <TextBlock Text="{Binding StintFuelRequiredText, StringFormat=Requires {0}}"
+                                               FontSize="11" Foreground="{StaticResource FuelBrushTextMuted}"
+                                               Margin="0,6,0,0" />
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="Use live fuel" Style="{StaticResource FuelPillButton}"
+                                        VerticalAlignment="Top" Command="{Binding ResetLiveFuelCommand}"
                                         Visibility="{Binding CurrentFuelOverridden, Converter={StaticResource BoolToVis}}" />
-                            </StackPanel>
+                            </Grid>
+                        </Border>
 
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Remaining race laps"
-                                       VerticalAlignment="Center" Margin="0,10,0,0" />
-                            <TextBox Grid.Row="2" Grid.Column="1" Width="120" HorizontalAlignment="Left"
-                                     Margin="0,10,0,0" Style="{StaticResource InputBox}"
-                                     Text="{Binding ManualRemainingLaps, UpdateSourceTrigger=PropertyChanged}" />
-
-                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Planned stint (laps)"
-                                       VerticalAlignment="Center" Margin="0,10,0,0" />
-                            <TextBox Grid.Row="3" Grid.Column="1" Width="120" HorizontalAlignment="Left"
-                                     Margin="0,10,0,0" Style="{StaticResource InputBox}"
-                                     Text="{Binding StintLaps, UpdateSourceTrigger=PropertyChanged}" />
-
-                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Finish reserve (L)"
-                                       VerticalAlignment="Center" Margin="0,10,0,0" />
-                            <TextBox Grid.Row="4" Grid.Column="1" Width="120" HorizontalAlignment="Left"
-                                     Margin="0,10,0,0" Style="{StaticResource InputBox}"
-                                     Text="{Binding ReserveLitres, UpdateSourceTrigger=PropertyChanged}" />
-
-                            <TextBlock Grid.Row="5" Grid.Column="0" Text="Safety margin mode"
-                                       VerticalAlignment="Center" Margin="0,10,0,0" />
-                            <ComboBox Grid.Row="5" Grid.Column="1" Width="140" HorizontalAlignment="Left"
-                                      Margin="0,10,0,0" Style="{StaticResource InputCombo}"
-                                      SelectedItem="{Binding SafetyMarginMode}">
-                                <ComboBoxItem Content="Litres" />
-                                <ComboBoxItem Content="Percentage" />
-                                <ComboBoxItem Content="Both" />
-                            </ComboBox>
-                        </Grid>
-
-                        <Grid Margin="0,10,0,0">
+                        <!-- Race length: remaining laps plus the litres/laps display-unit pill. -->
+                        <TextBlock Text="Race Length" Style="{StaticResource FuelSectionLabel}" Margin="2,16,0,6" />
+                        <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="190" />
+                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Column="0" Text="Remaining race laps" VerticalAlignment="Center"
+                                       Foreground="{StaticResource FuelBrushTextPrimary}" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Border Background="{StaticResource FuelBrushCard}" CornerRadius="14" Padding="2">
+                                    <StackPanel Orientation="Horizontal">
+                                        <RadioButton Style="{StaticResource FuelSegmentOption}" Content="Litres"
+                                                     GroupName="FuelUnit"
+                                                     IsChecked="{Binding DisplayUnit, Converter={StaticResource StringMatch}, ConverterParameter=Litres, Mode=TwoWay}" />
+                                        <RadioButton Style="{StaticResource FuelSegmentOption}" Content="Laps"
+                                                     GroupName="FuelUnit"
+                                                     IsChecked="{Binding DisplayUnit, Converter={StaticResource StringMatch}, ConverterParameter=Laps, Mode=TwoWay}" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                        <TextBox Style="{StaticResource FuelInput}" Margin="0,8,0,0"
+                                 Text="{Binding ManualRemainingLaps, UpdateSourceTrigger=PropertyChanged}" />
 
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Safety margin (L)"
-                                       VerticalAlignment="Center"
-                                       Opacity="{Binding SafetyMarginLitresEnabled, Converter={StaticResource BoolToVis}}" />
-                            <TextBox Grid.Row="0" Grid.Column="1" Width="120" HorizontalAlignment="Left"
-                                     Style="{StaticResource InputBox}"
-                                     Text="{Binding SafetyMarginLitres, UpdateSourceTrigger=PropertyChanged}"
-                                     IsEnabled="{Binding SafetyMarginLitresEnabled}" />
-
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Safety margin (%)"
-                                       VerticalAlignment="Center" Margin="0,10,0,0" />
-                            <TextBox Grid.Row="1" Grid.Column="1" Width="120" HorizontalAlignment="Left"
-                                     Margin="0,10,0,0" Style="{StaticResource InputBox}"
-                                     Text="{Binding SafetyMarginPercent, UpdateSourceTrigger=PropertyChanged}"
-                                     IsEnabled="{Binding SafetyMarginPercentEnabled}" />
+                        <!-- Laptime: the measured average, shown as a compact secondary value. -->
+                        <TextBlock Text="Laptime" Style="{StaticResource FuelSectionLabel}" Margin="2,16,0,6" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Measured average" VerticalAlignment="Center"
+                                       Foreground="{StaticResource FuelBrushTextPrimary}" />
+                            <TextBlock Grid.Column="1" Text="{Binding AvgLapSecondsText}" Style="{StaticResource FuelValue}"
+                                       HorizontalAlignment="Right" />
                         </Grid>
 
-                        <CheckBox Margin="0,12,0,0" Foreground="{DynamicResource BrushTextPrimary}"
-                                  IsChecked="{Binding PreferTimeLimitedEstimate}"
+                        <!-- Fuel consumption and tank capacity side by side. -->
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Fuel Consumption" Style="{StaticResource FuelFieldLabel}" />
+                                <Border Style="{StaticResource FuelFieldFrame}">
+                                    <Grid>
+                                        <TextBox Style="{StaticResource FuelInputWithUnit}"
+                                                 Text="{Binding ManualConsumptionPerLap, UpdateSourceTrigger=PropertyChanged}"
+                                                 VerticalAlignment="Center" />
+                                        <TextBlock Text="L/Lap" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                   FontSize="12" Foreground="{StaticResource FuelBrushTextMuted}" />
+                                    </Grid>
+                                </Border>
+                                <TextBlock Text="{Binding ConsumptionText}" FontSize="10"
+                                           Foreground="{StaticResource FuelBrushTextMuted}" Margin="0,4,0,0"
+                                           TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Tank Capacity" Style="{StaticResource FuelFieldLabel}" />
+                                <Border Style="{StaticResource FuelFieldFrame}">
+                                    <Grid>
+                                        <TextBlock Text="{Binding TankCapacityText}" VerticalAlignment="Center"
+                                                   Foreground="{StaticResource FuelBrushTextPrimary}" FontSize="14" />
+                                    </Grid>
+                                </Border>
+                                <TextBlock Text="{Binding TankCapacityWarningText}" FontSize="10"
+                                           Foreground="{StaticResource FuelBrushWarning}" Margin="0,4,0,0"
+                                           TextWrapping="Wrap">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding TankCapacityWarningText}" Value="">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding TankCapacityWarningText}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Current fuel and finish reserve. -->
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Current Fuel" Style="{StaticResource FuelFieldLabel}" />
+                                <Border Style="{StaticResource FuelFieldFrame}">
+                                    <Grid>
+                                        <TextBox Style="{StaticResource FuelInputWithUnit}"
+                                                 Text="{Binding CurrentFuelLitres, UpdateSourceTrigger=PropertyChanged}"
+                                                 VerticalAlignment="Center" />
+                                        <TextBlock Text="L" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                   FontSize="12" Foreground="{StaticResource FuelBrushTextMuted}" />
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Finish Reserve" Style="{StaticResource FuelFieldLabel}" />
+                                <Border Style="{StaticResource FuelFieldFrame}">
+                                    <Grid>
+                                        <TextBox Style="{StaticResource FuelInputWithUnit}"
+                                                 Text="{Binding ReserveLitres, UpdateSourceTrigger=PropertyChanged}"
+                                                 VerticalAlignment="Center" />
+                                        <TextBlock Text="L" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                   FontSize="12" Foreground="{StaticResource FuelBrushTextMuted}" />
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Safety margin. -->
+                        <TextBlock Text="Safety Margin" Style="{StaticResource FuelSectionLabel}" Margin="2,16,0,6" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Mode" Style="{StaticResource FuelFieldLabel}" />
+                                <ComboBox Style="{StaticResource InputCombo}" Height="36"
+                                          SelectedItem="{Binding SafetyMarginMode}">
+                                    <ComboBoxItem Content="Litres" />
+                                    <ComboBoxItem Content="Percentage" />
+                                    <ComboBoxItem Content="Both" />
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Litres" Style="{StaticResource FuelFieldLabel}" />
+                                <Border Style="{StaticResource FuelFieldFrame}">
+                                    <TextBox Style="{StaticResource FuelInputWithUnit}"
+                                             Text="{Binding SafetyMarginLitres, UpdateSourceTrigger=PropertyChanged}"
+                                             IsEnabled="{Binding SafetyMarginLitresEnabled}" VerticalAlignment="Center" />
+                                </Border>
+                            </StackPanel>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="Percent" Style="{StaticResource FuelFieldLabel}" />
+                                <Border Style="{StaticResource FuelFieldFrame}">
+                                    <Grid>
+                                        <TextBox Style="{StaticResource FuelInputWithUnit}"
+                                                 Text="{Binding SafetyMarginPercent, UpdateSourceTrigger=PropertyChanged}"
+                                                 IsEnabled="{Binding SafetyMarginPercentEnabled}" VerticalAlignment="Center" />
+                                        <TextBlock Text="%" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                   FontSize="12" Foreground="{StaticResource FuelBrushTextMuted}" />
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Filters: the honest, existing session-estimate toggle. -->
+                        <TextBlock Text="Filters" Style="{StaticResource FuelSectionLabel}" Margin="2,16,0,6" />
+                        <CheckBox IsChecked="{Binding PreferTimeLimitedEstimate}"
+                                  Foreground="{StaticResource FuelBrushTextSecondary}"
                                   Content="Estimate remaining laps from session time (time-limited sessions)" />
+
+                        <!-- Actions: Clear resets the live-derived current fuel; Save persists defaults. -->
+                        <Grid Margin="0,18,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0" Content="Clear" Style="{StaticResource FuelGhostButton}"
+                                    Command="{Binding ResetLiveFuelCommand}" />
+                            <Button Grid.Column="2" Content="Save as defaults" Style="{StaticResource FuelPrimaryButton}"
+                                    Command="{Binding SaveCommand}" />
+                        </Grid>
                     </StackPanel>
                 </Border>
 
-                <!-- B. Fuel consumption -->
-                <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource Card}" Margin="8,0,0,8">
+                <!-- Results: the same compact visual language, not the old oversized dashboard cards. -->
+                <Border Background="{StaticResource FuelBrushSurface}" BorderBrush="{StaticResource FuelBrushBorder}"
+                        BorderThickness="1" CornerRadius="15" Padding="15" Margin="0,12,0,0">
                     <StackPanel>
-                        <TextBlock Text="FUEL CONSUMPTION" Style="{StaticResource SectionHeader}" />
-                        <Grid Margin="0,12,0,0">
+                        <TextBlock Text="Result" Style="{StaticResource FuelSectionLabel}" />
+
+                        <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="190" />
                                 <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Consumption (L/lap)"
-                                       VerticalAlignment="Center" />
-                            <TextBox Grid.Row="0" Grid.Column="1" Width="120" HorizontalAlignment="Left"
-                                     Style="{StaticResource InputBox}"
-                                     Text="{Binding ManualConsumptionPerLap, UpdateSourceTrigger=PropertyChanged}" />
-
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Measured"
-                                       VerticalAlignment="Center" Margin="0,10,0,0" />
-                            <TextBlock Grid.Row="1" Grid.Column="1" Margin="0,10,0,0"
-                                       Text="{Binding ConsumptionText}"
-                                       Foreground="{DynamicResource BrushTextSecondary}" />
-
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Clean laps used"
-                                       VerticalAlignment="Center" Margin="0,10,0,0" />
-                            <TextBlock Grid.Row="2" Grid.Column="1" Margin="0,10,0,0"
-                                       Text="{Binding ValidLapCountText}"
-                                       Foreground="{DynamicResource BrushTextSecondary}" />
-
-                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Average lap time"
-                                       VerticalAlignment="Center" Margin="0,10,0,0" />
-                            <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,10,0,0"
-                                       Text="{Binding AvgLapSecondsText}"
-                                       Foreground="{DynamicResource BrushTextSecondary}" />
-
-                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Confidence"
-                                       VerticalAlignment="Center" Margin="0,10,0,0" />
-                            <TextBlock Grid.Row="4" Grid.Column="1" Margin="0,10,0,0"
-                                       Text="{Binding ConfidenceText}"
-                                       Foreground="{DynamicResource BrushTextSecondary}" />
-
-                            <TextBlock Grid.Row="5" Grid.Column="0" Text="Remaining laps"
-                                       VerticalAlignment="Center" Margin="0,10,0,0" />
-                            <TextBlock Grid.Row="5" Grid.Column="1" Margin="0,10,0,0"
-                                       Text="{Binding RemainingRaceLapsText}"
-                                       Foreground="{DynamicResource BrushTextSecondary}" />
-
-                            <TextBlock Grid.Row="6" Grid.Column="0" Text="Tank capacity"
-                                       VerticalAlignment="Center" Margin="0,10,0,0" />
-                            <TextBlock Grid.Row="6" Grid.Column="1" Margin="0,10,0,0"
-                                       Text="{Binding TankCapacityText}"
-                                       Foreground="{DynamicResource BrushTextSecondary}" />
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Fuel to add" FontSize="11"
+                                           Foreground="{StaticResource FuelBrushTextMuted}" />
+                                <TextBlock Text="{Binding FuelToAddText}" FontSize="34" FontWeight="Bold"
+                                           Foreground="{StaticResource FuelBrushAccent}" Margin="0,2,0,0" />
+                            </StackPanel>
                         </Grid>
 
-                        <TextBlock Style="{StaticResource Caption}" Margin="0,14,0,0" TextWrapping="Wrap"
+                        <Border BorderBrush="{StaticResource FuelBrushBorder}" BorderThickness="0,1,0,0"
+                                Margin="0,12,0,0" Padding="0,8,0,0" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Current fuel" Style="{StaticResource FuelValueMuted}" />
+                            <TextBlock Grid.Column="1" Text="{Binding CurrentFuelText}" Style="{StaticResource FuelValue}" />
+                        </Grid>
+                        <Grid Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Base fuel required" Style="{StaticResource FuelValueMuted}" />
+                            <TextBlock Grid.Column="1" Text="{Binding BaseFuelRequiredText}" Style="{StaticResource FuelValue}" />
+                        </Grid>
+                        <Grid Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Safety margin" Style="{StaticResource FuelValueMuted}" />
+                            <TextBlock Grid.Column="1" Text="{Binding SafetyMarginAppliedText}" Style="{StaticResource FuelValue}" />
+                        </Grid>
+                        <Grid Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Finish reserve" Style="{StaticResource FuelValueMuted}" />
+                            <TextBlock Grid.Column="1" Text="{Binding ReserveAppliedText}" Style="{StaticResource FuelValue}" />
+                        </Grid>
+                        <Grid Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Total fuel required" Style="{StaticResource FuelValueMuted}" />
+                            <TextBlock Grid.Column="1" Text="{Binding TotalFuelRequiredText}" Style="{StaticResource FuelValue}" />
+                        </Grid>
+                        <Grid Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Laps possible on current fuel" Style="{StaticResource FuelValueMuted}" />
+                            <TextBlock Grid.Column="1" Text="{Binding LapsPossibleText}" Style="{StaticResource FuelValue}" />
+                        </Grid>
+                        <Grid Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Surplus / shortfall" Style="{StaticResource FuelValueMuted}" />
+                            <TextBlock Grid.Column="1" Text="{Binding SurplusShortfallText}" Style="{StaticResource FuelValue}" />
+                        </Grid>
+                        <Grid Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Stint fuel (required / left)"
+                                       Style="{StaticResource FuelValueMuted}" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <TextBlock Text="{Binding StintFuelRequiredText}" Style="{StaticResource FuelValue}" />
+                                <TextBlock Text=" / " Foreground="{StaticResource FuelBrushTextMuted}" />
+                                <TextBlock Text="{Binding StintReserveAtEndText}" Style="{StaticResource FuelValue}" />
+                                <TextBlock Text=" (" Foreground="{StaticResource FuelBrushTextMuted}" />
+                                <TextBlock Text="{Binding StintSufficiencyText}" Style="{StaticResource FuelValue}" />
+                                <TextBlock Text=")" Foreground="{StaticResource FuelBrushTextMuted}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="{Binding BreakdownText}" FontSize="11"
+                                   Foreground="{StaticResource FuelBrushTextMuted}" Margin="0,12,0,0"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Consumption status: the retained measurement details in compact secondary text. -->
+                <Border Background="{StaticResource FuelBrushSurface}" BorderBrush="{StaticResource FuelBrushBorder}"
+                        BorderThickness="1" CornerRadius="15" Padding="15" Margin="0,12,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Fuel Data" Style="{StaticResource FuelSectionLabel}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Clean laps used" Style="{StaticResource FuelValueMuted}" />
+                            <TextBlock Grid.Column="1" Text="{Binding ValidLapCountText}" Style="{StaticResource FuelValue}" />
+                        </Grid>
+                        <Grid Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Confidence" Style="{StaticResource FuelValueMuted}" />
+                            <TextBlock Grid.Column="1" Text="{Binding ConfidenceText}" Style="{StaticResource FuelValue}" />
+                        </Grid>
+                        <Grid Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Remaining laps" Style="{StaticResource FuelValueMuted}" />
+                            <TextBlock Grid.Column="1" Text="{Binding RemainingRaceLapsText}" Style="{StaticResource FuelValue}" />
+                        </Grid>
+                        <Grid Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Tank capacity" Style="{StaticResource FuelValueMuted}" />
+                            <TextBlock Grid.Column="1" Text="{Binding TankCapacityText}" Style="{StaticResource FuelValue}" />
+                        </Grid>
+                        <TextBlock Text="{Binding StatusText}" FontSize="11"
+                                   Foreground="{StaticResource FuelBrushTextSecondary}" Margin="0,12,0,0"
+                                   TextWrapping="Wrap" />
+                        <TextBlock Margin="0,8,0,0" FontSize="11" TextWrapping="Wrap"
+                                   Foreground="{StaticResource FuelBrushTextMuted}"
                                    Text="Leave consumption empty to use the measured average from completed laps. Invalid laps, refuels and implausible readings are excluded. Enter a value to override the measurement." />
                     </StackPanel>
                 </Border>
-
-                <!-- C. Results and recommendations -->
-                <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Style="{StaticResource Card}" Margin="0,0,0,8">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <TextBlock Text="RESULTS AND RECOMMENDATIONS" Style="{StaticResource SectionHeader}" />
-                            <Grid Margin="0,12,0,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="170" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Current fuel"
-                                           VerticalAlignment="Center" />
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentFuelText}"
-                                           Foreground="{DynamicResource BrushTextSecondary}" />
-
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Base fuel required"
-                                           VerticalAlignment="Center" Margin="0,8,0,0" />
-                                <TextBlock Grid.Row="1" Grid.Column="1" Margin="0,8,0,0"
-                                           Text="{Binding BaseFuelRequiredText}"
-                                           Foreground="{DynamicResource BrushTextSecondary}" />
-
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Safety margin"
-                                           VerticalAlignment="Center" Margin="0,8,0,0" />
-                                <TextBlock Grid.Row="2" Grid.Column="1" Margin="0,8,0,0"
-                                           Text="{Binding SafetyMarginAppliedText}"
-                                           Foreground="{DynamicResource BrushTextSecondary}" />
-
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Finish reserve"
-                                           VerticalAlignment="Center" Margin="0,8,0,0" />
-                                <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,8,0,0"
-                                           Text="{Binding ReserveAppliedText}"
-                                           Foreground="{DynamicResource BrushTextSecondary}" />
-
-                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Total fuel required"
-                                           VerticalAlignment="Center" Margin="0,8,0,0" />
-                                <TextBlock Grid.Row="4" Grid.Column="1" Margin="0,8,0,0"
-                                           Text="{Binding TotalFuelRequiredText}" FontWeight="SemiBold" />
-
-                                <TextBlock Grid.Row="5" Grid.Column="0" Text="Laps possible on current fuel"
-                                           VerticalAlignment="Center" Margin="0,8,0,0" />
-                                <TextBlock Grid.Row="5" Grid.Column="1" Margin="0,8,0,0"
-                                           Text="{Binding LapsPossibleText}"
-                                           Foreground="{DynamicResource BrushTextSecondary}" />
-
-                                <TextBlock Grid.Row="6" Grid.Column="0" Text="Surplus / shortfall"
-                                           VerticalAlignment="Center" Margin="0,8,0,0" />
-                                <TextBlock Grid.Row="6" Grid.Column="1" Margin="0,8,0,0"
-                                           Text="{Binding SurplusShortfallText}"
-                                           Foreground="{DynamicResource BrushTextSecondary}" />
-
-                                <TextBlock Grid.Row="7" Grid.Column="0" Text="Stint fuel (required / left)"
-                                           VerticalAlignment="Center" Margin="0,8,0,0" />
-                                <StackPanel Grid.Row="7" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0">
-                                    <TextBlock Text="{Binding StintFuelRequiredText}"
-                                               Foreground="{DynamicResource BrushTextSecondary}" />
-                                    <TextBlock Text=" / " Foreground="{DynamicResource BrushTextMuted}" />
-                                    <TextBlock Text="{Binding StintReserveAtEndText}"
-                                               Foreground="{DynamicResource BrushTextSecondary}" />
-                                    <TextBlock Text=" (" Foreground="{DynamicResource BrushTextMuted}" />
-                                    <TextBlock Text="{Binding StintSufficiencyText}" FontWeight="SemiBold" />
-                                    <TextBlock Text=")" Foreground="{DynamicResource BrushTextMuted}" />
-                                </StackPanel>
-                            </Grid>
-
-                            <TextBlock Text="{Binding BreakdownText}" Style="{StaticResource Caption}"
-                                       Margin="0,14,0,0" TextWrapping="Wrap" />
-                            <TextBlock Text="{Binding TankCapacityWarningText}"
-                                       Foreground="{DynamicResource BrushWarning}" Margin="0,8,0,0"
-                                       TextWrapping="Wrap" />
-                        </StackPanel>
-
-                        <Border Grid.Column="1" Background="{DynamicResource BrushSurfaceAlt}"
-                                BorderBrush="{DynamicResource BrushBorder}" BorderThickness="1"
-                                CornerRadius="8" Padding="20" VerticalAlignment="Stretch">
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="FUEL TO ADD" FontSize="13" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource BrushTextSecondary}"
-                                           HorizontalAlignment="Center" />
-                                <TextBlock Text="{Binding FuelToAddText}" FontSize="40" FontWeight="Bold"
-                                           Foreground="{DynamicResource BrushAccent}"
-                                           HorizontalAlignment="Center" Margin="0,8,0,0" />
-                                <TextBlock Text="{Binding StatusText}" Style="{StaticResource Caption}"
-                                           TextWrapping="Wrap" TextAlignment="Center" Margin="0,14,0,0" />
-                                <Button Content="Save as defaults" Style="{StaticResource GhostButton}"
-                                        Margin="0,18,0,0" Padding="14,5" HorizontalAlignment="Center"
-                                        Command="{Binding SaveCommand}" />
-                            </StackPanel>
-                        </Border>
-                    </Grid>
-                </Border>
-
-            </Grid>
-        </StackPanel>
-    </ScrollViewer>
+            </StackPanel>
+        </ScrollViewer>
+    </Border>
 </UserControl>
