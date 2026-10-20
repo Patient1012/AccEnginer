@@ -134,8 +134,42 @@ public sealed class FuelCalculatorViewModel : PageViewModel
         {
             if (SetProperty(ref _manualConsumptionPerLap, value))
             {
+                OnPropertyChanged(nameof(ManualConsumptionText));
                 Recalculate();
             }
+        }
+    }
+
+    /// <summary>
+    /// Text view of <see cref="ManualConsumptionPerLap"/> for the page's input box. Binding the
+    /// box to a string (rather than to the double) is what lets the operator type a fractional
+    /// value such as <c>2.14</c>; parsing a partially typed "2." into a double would otherwise
+    /// reject the decimal separator as it is pressed. An unparseable or empty entry maps to a
+    /// null override so the engine falls back to the measured average.
+    /// </summary>
+    public string ManualConsumptionText
+    {
+        get => _manualConsumptionPerLap is { } value
+            ? value.ToString(CultureInfo.CurrentCulture)
+            : string.Empty;
+        set
+        {
+            double? parsed = null;
+            var text = value?.Trim();
+            if (!string.IsNullOrEmpty(text)
+                && double.TryParse(text, NumberStyles.Float, CultureInfo.CurrentCulture, out var typed))
+            {
+                parsed = typed;
+            }
+
+            if (Nullable.Equals(_manualConsumptionPerLap, parsed))
+            {
+                return;
+            }
+
+            _manualConsumptionPerLap = parsed;
+            OnPropertyChanged(nameof(ManualConsumptionPerLap));
+            Recalculate();
         }
     }
 

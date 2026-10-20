@@ -263,8 +263,7 @@
                                         <Border Grid.Column="0" Style="{StaticResource FuelFieldFrame}" Height="32">
                                             <Grid>
                                                 <TextBox Style="{StaticResource FuelInputWithUnit}"
-                                                         Text="{Binding StintLaps, UpdateSourceTrigger=PropertyChanged}"
-                                                         VerticalAlignment="Center" />
+                                                         Text="{Binding StintLaps, UpdateSourceTrigger=PropertyChanged}" />
                                                 <TextBlock Text="laps" HorizontalAlignment="Right" VerticalAlignment="Center"
                                                            FontSize="12" Foreground="{StaticResource FuelBrushTextMuted}" />
                                             </Grid>
@@ -330,8 +329,7 @@
                                 <Border Style="{StaticResource FuelFieldFrame}">
                                     <Grid>
                                         <TextBox Style="{StaticResource FuelInputWithUnit}"
-                                                 Text="{Binding ManualConsumptionPerLap, UpdateSourceTrigger=PropertyChanged}"
-                                                 VerticalAlignment="Center" />
+                                                 Text="{Binding ManualConsumptionText, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock Text="L/Lap" HorizontalAlignment="Right" VerticalAlignment="Center"
                                                    FontSize="12" Foreground="{StaticResource FuelBrushTextMuted}" />
                                     </Grid>
@@ -380,8 +378,7 @@
                                 <Border Style="{StaticResource FuelFieldFrame}">
                                     <Grid>
                                         <TextBox Style="{StaticResource FuelInputWithUnit}"
-                                                 Text="{Binding CurrentFuelLitres, UpdateSourceTrigger=PropertyChanged}"
-                                                 VerticalAlignment="Center" />
+                                                 Text="{Binding CurrentFuelLitres, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock Text="L" HorizontalAlignment="Right" VerticalAlignment="Center"
                                                    FontSize="12" Foreground="{StaticResource FuelBrushTextMuted}" />
                                     </Grid>
@@ -392,8 +389,7 @@
                                 <Border Style="{StaticResource FuelFieldFrame}">
                                     <Grid>
                                         <TextBox Style="{StaticResource FuelInputWithUnit}"
-                                                 Text="{Binding ReserveLitres, UpdateSourceTrigger=PropertyChanged}"
-                                                 VerticalAlignment="Center" />
+                                                 Text="{Binding ReserveLitres, UpdateSourceTrigger=PropertyChanged}" />
                                         <TextBlock Text="L" HorizontalAlignment="Right" VerticalAlignment="Center"
                                                    FontSize="12" Foreground="{StaticResource FuelBrushTextMuted}" />
                                     </Grid>
@@ -423,9 +419,9 @@
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Litres" Style="{StaticResource FuelFieldLabel}" />
                                 <Border Style="{StaticResource FuelFieldFrame}">
-                                    <TextBox Style="{StaticResource FuelInputWithUnit}"
-                                             Text="{Binding SafetyMarginLitres, UpdateSourceTrigger=PropertyChanged}"
-                                             IsEnabled="{Binding SafetyMarginLitresEnabled}" VerticalAlignment="Center" />
+                                     <TextBox Style="{StaticResource FuelInputWithUnit}"
+                                              Text="{Binding SafetyMarginLitres, UpdateSourceTrigger=PropertyChanged}"
+                                              IsEnabled="{Binding SafetyMarginLitresEnabled}" />
                                 </Border>
                             </StackPanel>
                             <StackPanel Grid.Column="4">
@@ -434,7 +430,7 @@
                                     <Grid>
                                         <TextBox Style="{StaticResource FuelInputWithUnit}"
                                                  Text="{Binding SafetyMarginPercent, UpdateSourceTrigger=PropertyChanged}"
-                                                 IsEnabled="{Binding SafetyMarginPercentEnabled}" VerticalAlignment="Center" />
+                                                 IsEnabled="{Binding SafetyMarginPercentEnabled}" />
                                         <TextBlock Text="%" HorizontalAlignment="Right" VerticalAlignment="Center"
                                                    FontSize="12" Foreground="{StaticResource FuelBrushTextMuted}" />
                                     </Grid>
