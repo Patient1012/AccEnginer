@@ -49,6 +49,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         Overview = new OverviewViewModel(this);
         Analysis = new AnalysisViewModel(this);
         FuelPage = new FuelCalculatorViewModel(Telemetry, Options);
+        RaceEngineer = new RaceEngineerViewModel(this);
         LiveEvents = new LiveReportViewModel(this);
         ReportsPage = new ReportsViewModel(this);
         Sessions = new SessionsViewModel(this);
@@ -60,6 +61,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
             Live,
             Analysis,
             FuelPage,
+            RaceEngineer,
             LiveEvents,
             ReportsPage,
             Sessions
@@ -101,6 +103,8 @@ public sealed class MainViewModel : ObservableObject, IDisposable
     public AnalysisViewModel Analysis { get; }
 
     public FuelCalculatorViewModel FuelPage { get; }
+
+    public RaceEngineerViewModel RaceEngineer { get; }
 
     public LiveReportViewModel LiveEvents { get; }
 
@@ -278,6 +282,7 @@ public sealed class MainViewModel : ObservableObject, IDisposable
         _overlayManagerWindow?.Close();
         _overlayManagerWindow = null;
         SettingsPage.Dispose();
+        RaceEngineer?.Dispose();
         Overlays.Dispose();
         Telemetry.Dispose();
     }

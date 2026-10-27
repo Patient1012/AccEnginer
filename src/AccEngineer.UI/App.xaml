@@ -9,6 +9,8 @@
                 <ResourceDictionary Source="Themes/Controls.xaml" />
                 <ResourceDictionary Source="Themes/OverlayClassic.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <local:BoolToEnabledTextConverter x:Key="BoolToEnabledText" xmlns:local="clr-namespace:AccEngineer.UI.Converters" />
+            <local:BoolToMuteTextConverter x:Key="BoolToMuteText" xmlns:local="clr-namespace:AccEngineer.UI.Converters" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

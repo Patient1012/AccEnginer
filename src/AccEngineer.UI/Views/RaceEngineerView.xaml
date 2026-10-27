@@ -1,0 +1,75 @@
+<UserControl x:Class="AccEngineer.UI.Views.RaceEngineerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="1000">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+        <StackPanel MaxWidth="900" HorizontalAlignment="Left">
+            <TextBlock Text="Race Engineer" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="{Binding StatusText}" Style="{StaticResource Caption}" Margin="0,4,0,0" TextWrapping="Wrap" />
+            
+            <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                <Button Content="{Binding Enabled, Converter={StaticResource BoolToEnabledText}}" 
+                        Style="{StaticResource PrimaryButton}" 
+                        Command="{Binding ToggleEnabledCommand}" />
+                <Button Content="{Binding Muted, Converter={StaticResource BoolToMuteText}}" 
+                        Style="{StaticResource GhostButton}" Margin="8,0,0,0" 
+                        Command="{Binding ToggleMuteCommand}" />
+                <Button Content="Ask Question (Push-to-Talk: Alt)" Style="{StaticResource GhostButton}" Margin="8,0,0,0" 
+                        Command="{Binding AskQuestionCommand}" />
+            </StackPanel>
+            
+            <TextBlock Text="ANNOUNCEMENTS" Style="{StaticResource SectionHeader}" Margin="0,24,0,8" />
+            <Border Style="{StaticResource Card}">
+                <ItemsControl ItemsSource="{Binding Announcements}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="{DynamicResource BrushBorder}" BorderThickness="0,0,0,1" Padding="0,10" Margin="0,0,0,4">
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding Category}" FontWeight="SemiBold" 
+                                                   Foreground="{DynamicResource BrushAccent}" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Message}" TextWrapping="Wrap" Margin="12,0" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Priority}" 
+                                                   Foreground="{DynamicResource BrushTextSecondary}" />
+                                    </Grid>
+                                    <TextBlock Text="{Binding TimestampUtc, StringFormat='{}{0:HH:mm:ss}'}" 
+                                               Style="{StaticResource Caption}" Margin="0,4,0,0" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
+            
+            <TextBlock Text="FEATURES" Style="{StaticResource SectionHeader}" Margin="0,24,0,8" />
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="• Deterministic fuel monitoring and critical warnings" TextWrapping="Wrap" />
+                    <TextBlock Text="• Local TTS using Windows Speech Synthesis (offline)" TextWrapping="Wrap" Margin="0,4,0,0" />
+                    <TextBlock Text="• Push-to-talk voice input using Windows Speech Recognition (offline)" TextWrapping="Wrap" Margin="0,4,0,0" />
+                    <TextBlock Text="• Priority queue with critical interruptions and mute override" TextWrapping="Wrap" Margin="0,4,0,0" />
+                    <TextBlock Text="• AI coaching integration with existing provider (when configured)" TextWrapping="Wrap" Margin="0,4,0,0" />
+                    <TextBlock Text="• Works offline; AI is optional and never blocks critical warnings" TextWrapping="Wrap" Margin="0,8,0,0" 
+                               Foreground="{DynamicResource BrushTextSecondary}" />
+                </StackPanel>
+            </Border>
+            
+            <TextBlock Text="SETTINGS" Style="{StaticResource SectionHeader}" Margin="0,24,0,8" />
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="Configure in Settings page under Race Engineer section" Style="{StaticResource Caption}" />
+                    <TextBlock Text="Push-to-talk: Hold Left Alt while asking a question" Margin="0,4,0,0" />
+                    <TextBlock Text="Emergency warnings break through mute by default (configurable)" Margin="0,4,0,0" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -58,6 +58,20 @@ public sealed class AppSettings
     /// </summary>
     public string? FuelCalculatorDisplayUnit { get; set; } = "Litres";
 
+    // Race Engineer settings
+    public bool RaceEngineerEnabled { get; set; } = true;
+    public bool RaceEngineerMuted { get; set; } = false;
+    public bool RaceEngineerEmergencyOverrideMute { get; set; } = true;
+    public double RaceEngineerSpeechVolume { get; set; } = 1.0;
+    public string? RaceEngineerPushToTalkKey { get; set; } = "LeftAlt";
+    public bool RaceEngineerEnableFuel { get; set; } = true;
+    public bool RaceEngineerEnablePace { get; set; } = true;
+    public bool RaceEngineerEnableTyres { get; set; } = true;
+    public bool RaceEngineerEnableSession { get; set; } = true;
+    public bool RaceEngineerEnableSetup { get; set; } = true;
+    public bool RaceEngineerUseLocalSpeechRecognition { get; set; } = true;
+    public bool RaceEngineerUseLocalTts { get; set; } = true;
+
     /// <summary>
     /// Whether to connect to the ACC UDP Broadcasting API. Competitor names, race
     /// numbers, teams and official gaps exist only there (shared memory has none),

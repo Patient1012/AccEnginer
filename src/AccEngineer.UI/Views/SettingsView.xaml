@@ -264,6 +264,63 @@
                 </StackPanel>
             </Border>
 
+            <TextBlock Text="RACE ENGINEER" Style="{StaticResource SectionHeader}" Margin="0,20,0,8" />
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Enable Race Engineer" VerticalAlignment="Center" />
+                        <CheckBox Grid.Row="0" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                  Foreground="{DynamicResource BrushTextPrimary}"
+                                  IsChecked="{Binding RaceEngineerEnabled, Mode=TwoWay}" />
+                        
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Mute" VerticalAlignment="Center" Margin="0,10,0,0" />
+                        <CheckBox Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,10,0,0"
+                                  Foreground="{DynamicResource BrushTextPrimary}"
+                                  IsChecked="{Binding RaceEngineerMuted, Mode=TwoWay}" />
+                        
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Emergency override mute" VerticalAlignment="Center" Margin="0,10,0,0" />
+                        <CheckBox Grid.Row="2" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,10,0,0"
+                                  Foreground="{DynamicResource BrushTextPrimary}"
+                                  IsChecked="{Binding RaceEngineerEmergencyOverrideMute, Mode=TwoWay}" />
+                        
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Speech volume" VerticalAlignment="Center" Margin="0,10,0,0" />
+                        <Slider Grid.Row="3" Grid.Column="1" Minimum="0" Maximum="1" SmallChange="0.1" LargeChange="0.2"
+                                Value="{Binding RaceEngineerSpeechVolume, Mode=TwoWay}" Margin="0,10,0,0" />
+                        
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Push-to-talk key" VerticalAlignment="Center" Margin="0,10,0,0" />
+                        <TextBox Grid.Row="4" Grid.Column="1" Style="{StaticResource InputBox}" Width="150" HorizontalAlignment="Left" Margin="0,10,0,0"
+                                 Text="{Binding RaceEngineerPushToTalkKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+                    
+                    <TextBlock Text="Fuel" Style="{StaticResource Caption}" Margin="0,14,0,6" FontWeight="SemiBold" />
+                    <CheckBox Content="Enable fuel warnings" IsChecked="{Binding RaceEngineerEnableFuel, Mode=TwoWay}" 
+                              Foreground="{DynamicResource BrushTextPrimary}" />
+                    
+                    <TextBlock Text="Pace/Session" Style="{StaticResource Caption}" Margin="0,10,0,6" FontWeight="SemiBold" />
+                    <StackPanel>
+                        <CheckBox Content="Enable pace coaching" IsChecked="{Binding RaceEngineerEnablePace, Mode=TwoWay}" 
+                                  Foreground="{DynamicResource BrushTextPrimary}" />
+                        <CheckBox Content="Enable session events" IsChecked="{Binding RaceEngineerEnableSession, Mode=TwoWay}" Margin="0,4,0,0"
+                                  Foreground="{DynamicResource BrushTextPrimary}" />
+                    </StackPanel>
+                    
+                    <TextBlock Style="{StaticResource Caption}" Margin="0,12,0,0" TextWrapping="Wrap"
+                               Text="All speech output uses local TTS (Windows Speech Synthesis). Push-to-talk uses local speech recognition. Critical fuel warnings break through mute by default. AI coaching uses the configured provider if available." />
+                </StackPanel>
+            </Border>
+
             <TextBlock Text="APPLICATION" Style="{StaticResource SectionHeader}" Margin="0,20,0,8" />
             <Border Style="{StaticResource Card}">
                 <StackPanel>

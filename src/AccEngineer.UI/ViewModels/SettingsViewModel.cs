@@ -34,6 +34,14 @@ public sealed class SettingsViewModel : PageViewModel, IDisposable
     private bool _broadcastingEnabled;
     private int _broadcastingPort;
     private string _broadcastingPassword = string.Empty;
+    private bool _raceEngineerEnabled;
+    private bool _raceEngineerMuted;
+    private bool _raceEngineerEmergencyOverrideMute;
+    private double _raceEngineerSpeechVolume;
+    private string _raceEngineerPushToTalkKey = "LeftAlt";
+    private bool _raceEngineerEnableFuel = true;
+    private bool _raceEngineerEnablePace = true;
+    private bool _raceEngineerEnableSession = true;
 
     public SettingsViewModel(MainViewModel shell)
         : base("Settings")
@@ -50,6 +58,14 @@ public sealed class SettingsViewModel : PageViewModel, IDisposable
         _broadcastingEnabled = options.BroadcastingEnabled;
         _broadcastingPort = options.BroadcastingPort;
         _broadcastingPassword = options.BroadcastingPassword;
+        _raceEngineerEnabled = options.RaceEngineerEnabled;
+        _raceEngineerMuted = options.RaceEngineerMuted;
+        _raceEngineerEmergencyOverrideMute = options.RaceEngineerEmergencyOverrideMute;
+        _raceEngineerSpeechVolume = options.RaceEngineerSpeechVolume;
+        _raceEngineerPushToTalkKey = options.RaceEngineerPushToTalkKey ?? "LeftAlt";
+        _raceEngineerEnableFuel = options.RaceEngineerEnableFuel;
+        _raceEngineerEnablePace = options.RaceEngineerEnablePace;
+        _raceEngineerEnableSession = options.RaceEngineerEnableSession;
 
         // Show what is actually in effect, which is the resolved value rather than
         // whatever the file happened to contain.
@@ -219,6 +235,110 @@ public sealed class SettingsViewModel : PageViewModel, IDisposable
     {
         get => _broadcastingPassword;
         set => SetProperty(ref _broadcastingPassword, value);
+    }
+
+    public bool RaceEngineerEnabled
+    {
+        get => _raceEngineerEnabled;
+        set
+        {
+            if (SetProperty(ref _raceEngineerEnabled, value))
+            {
+                _shell.Options.RaceEngineerEnabled = value;
+                _shell.Options.Save();
+            }
+        }
+    }
+
+    public bool RaceEngineerMuted
+    {
+        get => _raceEngineerMuted;
+        set
+        {
+            if (SetProperty(ref _raceEngineerMuted, value))
+            {
+                _shell.Options.RaceEngineerMuted = value;
+                _shell.Options.Save();
+            }
+        }
+    }
+
+    public bool RaceEngineerEmergencyOverrideMute
+    {
+        get => _raceEngineerEmergencyOverrideMute;
+        set
+        {
+            if (SetProperty(ref _raceEngineerEmergencyOverrideMute, value))
+            {
+                _shell.Options.RaceEngineerEmergencyOverrideMute = value;
+                _shell.Options.Save();
+            }
+        }
+    }
+
+    public double RaceEngineerSpeechVolume
+    {
+        get => _raceEngineerSpeechVolume;
+        set
+        {
+            if (SetProperty(ref _raceEngineerSpeechVolume, value))
+            {
+                _shell.Options.RaceEngineerSpeechVolume = value;
+                _shell.Options.Save();
+            }
+        }
+    }
+
+    public string RaceEngineerPushToTalkKey
+    {
+        get => _raceEngineerPushToTalkKey;
+        set
+        {
+            if (SetProperty(ref _raceEngineerPushToTalkKey, value))
+            {
+                _shell.Options.RaceEngineerPushToTalkKey = value;
+                _shell.Options.Save();
+            }
+        }
+    }
+
+    public bool RaceEngineerEnableFuel
+    {
+        get => _raceEngineerEnableFuel;
+        set
+        {
+            if (SetProperty(ref _raceEngineerEnableFuel, value))
+            {
+                _shell.Options.RaceEngineerEnableFuel = value;
+                _shell.Options.Save();
+            }
+        }
+    }
+
+    public bool RaceEngineerEnablePace
+    {
+        get => _raceEngineerEnablePace;
+        set
+        {
+            if (SetProperty(ref _raceEngineerEnablePace, value))
+            {
+                _shell.Options.RaceEngineerEnablePace = value;
+                _shell.Options.Save();
+            }
+        }
+    }
+
+    public bool RaceEngineerEnableSession
+    {
+        get => _raceEngineerEnableSession;
+        set
+        {
+            if (SetProperty(ref _raceEngineerEnableSession, value))
+            {
+                _shell.Options.RaceEngineerEnableSession = value;
+                _shell.Options.Save();
+            }
+        }
     }
 
     public string BroadcastingStatusText => $"Broadcasting: {_shell.Telemetry.BroadcastingStatusText}.";

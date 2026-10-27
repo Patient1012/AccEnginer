@@ -410,7 +410,8 @@
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Mode" Style="{StaticResource FuelFieldLabel}" />
                                 <ComboBox Style="{StaticResource InputCombo}" Height="36"
-                                          SelectedItem="{Binding SafetyMarginMode}">
+                                          SelectedValuePath="Content"
+                                          SelectedValue="{Binding SafetyMarginMode, Mode=TwoWay}">
                                     <ComboBoxItem Content="Litres" />
                                     <ComboBoxItem Content="Percentage" />
                                     <ComboBoxItem Content="Both" />

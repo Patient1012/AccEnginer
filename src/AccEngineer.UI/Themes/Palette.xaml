@@ -7,7 +7,7 @@
     <Color x:Key="ColorBorder">#FF4A5766</Color>
     <Color x:Key="ColorTextPrimary">#FFFFFFFF</Color>
     <Color x:Key="ColorTextSecondary">#FFC4CFDA</Color>
-    <Color x:Key="ColorAccent">#FFC9F84A</Color>
+    <Color x:Key="ColorAccent">#FF12D524</Color>
     <Color x:Key="ColorAccentDim">#2EC9F84A</Color>
     <Color x:Key="ColorWarning">#FFFFC24D</Color>
     <Color x:Key="ColorError">#FFFF6B74</Color>

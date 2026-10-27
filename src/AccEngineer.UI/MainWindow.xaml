@@ -35,6 +35,9 @@
         <DataTemplate DataType="{x:Type vm:FuelCalculatorViewModel}">
             <views:FuelCalculatorView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:RaceEngineerViewModel}">
+            <views:RaceEngineerView />
+        </DataTemplate>
 
         <Style x:Key="LinkButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
